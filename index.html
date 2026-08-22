@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bs English House</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            var(--hero-bg): #7A9051; 
+            --grid-line: rgba(255, 255, 255, 0.15);
+            --dark-green: #2B4214;
+            --card-read: #64A05B;
+            --card-list: #4869D6;
+            --card-speak: #E8833A;
+            --card-write: #D96073;
+            --text-dark: #333333;
+            --bg-light: #F9F9F9;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', sans-serif; }
+        html { scroll-behavior: smooth; }
+        body { background-color: var(--bg-light); overflow-x: hidden; }
+
+        /* --- NAVIGATION --- */
+        nav {
+            position: fixed; top: 0; width: 100%; padding: 15px 40px;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 100; background: rgba(122, 144, 81, 0.95);
+            backdrop-filter: blur(10px); box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .logo { font-size: 24px; font-weight: 900; color: white; display: flex; align-items: center; gap: 10px; }
+        
+        .btn-google {
+            display: flex; align-items: center; gap: 10px; background: white; color: var(--text-dark);
+            padding: 10px 20px; border-radius: 30px; text-decoration: none; font-weight: 700;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.3s ease; cursor: pointer;
+        }
+        .btn-google:hover { transform: translateY(-2px); }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            position: relative; min-height: 100vh; background-color: #7A9051;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+            background-size: 40px 40px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center; color: white; padding: 100px 20px 20px;
+            overflow: hidden;
+        }
+
+        .hero h2 { font-size: 24px; font-weight: 600; margin-bottom: 10px; }
+        .hero h1 { font-size: 72px; font-weight: 900; margin-bottom: 20px; border: 4px solid white; padding: 10px 40px; border-radius: 50px; }
+        .hero p { max-width: 600px; font-size: 18px; line-height: 1.6; margin-bottom: 30px; }
+
+        .cta-btn {
+            background: white; color: #7A9051; padding: 15px 40px;
+            border-radius: 50px; font-size: 18px; font-weight: 800; text-decoration: none; transition: all 0.3s;
+        }
+        .cta-btn:hover { background: var(--dark-green); color: white; }
+
+        .mascot-cat { position: absolute; bottom: -20px; right: 5%; width: 250px; }
+
+        /* --- SKILLS SECTION --- */
+        .skills-section { padding: 100px 20px; text-align: center; }
+        .skills-section h2 { font-size: 36px; color: var(--dark-green); margin-bottom: 50px; }
+        .cards-container { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; max-width: 1000px; margin: 0 auto; }
+
+        .card {
+            width: 220px; height: 350px; border-radius: 20px; padding: 30px 20px;
+            color: white; position: relative; overflow: hidden; cursor: pointer;
+            border: 4px solid #111; box-shadow: 4px 4px 0px #111;
+            text-align: left; transition: transform 0.3s ease;
+        }
+        .card:hover { transform: translateY(-10px); }
+        .card h3 { font-size: 24px; font-weight: 900; margin-bottom: 10px; }
+        .card p { font-size: 14px; line-height: 1.5; opacity: 0.9; }
+        .card::after {
+            content: ''; position: absolute; bottom: -20px; right: -20px;
+            width: 150px; height: 150px; background: rgba(0,0,0,0.1); border-radius: 50%;
+        }
+
+        .card-listening { background-color: var(--card-list); }
+        .card-reading { background-color: var(--card-read); }
+        .card-speaking { background-color: var(--card-speak); }
+        .card-writing { background-color: var(--card-write); }
+
+        /* --- FOOTER MỚI --- */
+        footer {
+            background-color: var(--dark-green);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.8;
+            border-top: 4px solid #111;
+        }
+
+        footer p { opacity: 0.9; }
+        footer .brand-name { font-size: 20px; font-weight: 900; margin-bottom: 10px; display: block; color: #F4B036;}
+
+        /* --- MODAL (POPUP) --- */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); z-index: 999;
+            justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.show { display: flex; opacity: 1; }
+        
+        .modal-box {
+            background: white; width: 90%; max-width: 500px; border-radius: 24px;
+            padding: 30px; position: relative; transform: translateY(50px);
+            transition: transform 0.3s ease; border: 4px solid #111; box-shadow: 6px 6px 0px #111;
+            max-height: 80vh; overflow-y: auto;
+        }
+        .modal-overlay.show .modal-box { transform: translateY(0); }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; color: #111; }
+        .modal-header h2 { font-size: 24px; color: var(--dark-green); margin-bottom: 20px; }
+
+        .back-btn {
+            display: none; margin-bottom: 15px; padding: 8px 15px; background: #eee;
+            border: 2px solid #111; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 14px;
+        }
+        .back-btn:hover { background: #ddd; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn {
+            flex: 1; padding: 10px; border: 2px solid #111; border-radius: 10px;
+            font-size: 16px; font-weight: 800; cursor: pointer; background: white; transition: 0.2s;
+        }
+        .tab-btn.active { background: #7A9051; color: white; }
+
+        .list-container { display: flex; flex-direction: column; gap: 10px; }
+        .list-item {
+            padding: 15px; border: 2px solid #111; border-radius: 12px;
+            background: white; font-weight: 700; cursor: pointer; transition: 0.2s;
+            display: flex; justify-content: space-between; align-items: center; text-decoration: none; color: var(--text-dark);
+        }
+        .list-item:hover { background: #f0f0f0; transform: translateX(5px); }
+
+        .reveal { opacity: 0; transform: translateY(60px); transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        .delay-1 { transition-delay: 0.1s; } .delay-2 { transition-delay: 0.2s; }
+        .delay-3 { transition-delay: 0.3s; } .delay-4 { transition-delay: 0.4s; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <nav>
+        <div class="logo">🐾 Bs English House</div>
+        <!-- Link sang trang login -->
+        <a href="login.html" class="btn-google">
+            <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            Đăng nhập bằng Google
+        </a>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero reveal">
+        <h2>Nền tảng Luyện thi IELTS & Tiếng Anh</h2>
+        <h1>Bs English House</h1>
+        <p>Học Tiếng Anh không còn nhàm chán với phương pháp học tập tương tác, trực quan và đội ngũ giáo viên giàu kinh nghiệm.</p>
+        <a href="#skills-section" class="cta-btn">Bắt đầu học ngay ➔</a>
+        
+        <svg class="mascot-cat" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 200 Q 100 50 180 200 Z" fill="#F4B036" stroke="#111" stroke-width="4"/>
+            <path d="M40 90 L 30 30 L 90 70 Z" fill="#F4B036" stroke="#111" stroke-width="4"/>
+            <path d="M45 80 L 38 45 L 80 68 Z" fill="#E8833A"/>
+            <path d="M160 90 L 170 30 L 110 70 Z" fill="#F4B036" stroke="#111" stroke-width="4"/>
+            <path d="M155 80 L 162 45 L 120 68 Z" fill="#E8833A"/>
+            <circle cx="100" cy="110" r="60" fill="#F4B036" stroke="#111" stroke-width="4"/>
+            <circle cx="75" cy="100" r="8" fill="#111"/>
+            <circle cx="125" cy="100" r="8" fill="#111"/>
+            <ellipse cx="60" cy="115" rx="10" ry="6" fill="#D96073" opacity="0.6"/>
+            <ellipse cx="140" cy="115" rx="10" ry="6" fill="#D96073" opacity="0.6"/>
+            <path d="M 85 120 Q 100 135 115 120" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills-section" class="skills-section">
+        <h2 class="reveal">Lộ trình 4 Kỹ năng Chuyên sâu</h2>
+        <div class="cards-container">
+            <div class="card card-listening reveal delay-1" onclick="openModal('Listening')">
+                <h3>🎧 Listening</h3>
+                <p>Luyện nghe mỗi ngày với hàng trăm bài hội thoại từ cơ bản đến nâng cao.</p>
+            </div>
+            <div class="card card-reading reveal delay-2" onclick="openModal('Reading')">
+                <h3>📖 Reading</h3>
+                <p>Đọc hiểu đa dạng chủ đề với bộ từ vựng được chắt lọc sát với đề thi thực tế.</p>
+            </div>
+            <div class="card card-speaking reveal delay-3" onclick="openModal('Speaking')">
+                <h3>🗣️ Speaking</h3>
+                <p>Hệ thống tự động chấm điểm phát âm và ngữ điệu giúp bạn giao tiếp tự tin.</p>
+            </div>
+            <div class="card card-writing reveal delay-4" onclick="openModal('Writing')">
+                <h3>✍️ Writing</h3>
+                <p>Cải thiện tư duy viết luận, diễn đạt rành mạch kèm theo thư viện bài mẫu.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- THÔNG TIN FOOTER MỚI ĐƯỢC THÊM VÀO ĐÂY -->
+    <footer>
+        <span class="brand-name">BS ENGLISH HOUSE</span>
+        <p>📍 405/28 TRUONG CHINH STREET, TAN BINH DISTRICT, HO CHI MINH CITY</p>
+        <p>📞 0707090876 (MR. BINZ)</p>
+    </footer>
+
+    <!-- Modal (Popup) -->
+    <div id="courseModal" class="modal-overlay">
+        <div class="modal-box">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div class="modal-header">
+                <h2 id="modalTitle">Kỹ năng</h2>
+            </div>
+            <button id="backBtn" class="back-btn" onclick="goBack()">⬅ Quay lại</button>
+            <div id="tabsContainer" class="tabs">
+                <button id="tabIELTS" class="tab-btn active" onclick="switchSystem('ielts')">IELTS</button>
+                <button id="tabTOEIC" class="tab-btn" onclick="switchSystem('toeic')">TOEIC</button>
+            </div>
+            <div id="listContainer" class="list-container"></div>
+        </div>
+    </div>
+
+    <!-- JavaScript Data -->
+    <script>
+        const database = {
+            ielts: [
+                {
+                    title: "Giáo trình Cambridge 10 - 18",
+                    children: [
+                        {
+                            title: "Cambridge 11",
+                            children: [
+                                { title: "Test 1", link: "cam11-test1.html" },
+                                { title: "Test 2", link: "cam11-test2.html" },
+                                { title: "Test 3", link: "cam11-test3.html" },
+                                { title: "Test 4", link: "cam11-test4.html" }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            toeic: [
+                {
+                    title: "ETS TOEIC 2024",
+                    children: [
+                        {
+                            title: "Test 1",
+                            children: [
+                                { title: "Part 1 & 2", link: "ets-t1-p1.html" }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        const modal = document.getElementById('courseModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const listContainer = document.getElementById('listContainer');
+        const tabsContainer = document.getElementById('tabsContainer');
+        const backBtn = document.getElementById('backBtn');
+        let navigationHistory = []; 
+
+        function openModal(skillName) {
+            modalTitle.innerText = `Kỹ năng ${skillName}`;
+            modal.style.display = 'flex';
+            setTimeout(() => { modal.classList.add('show'); }, 10);
+            switchSystem('ielts');
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+        }
+
+        window.onclick = function(event) { if (event.target == modal) closeModal(); }
+
+        function switchSystem(systemType) {
+            navigationHistory = []; 
+            document.getElementById('tabIELTS').classList.remove('active');
+            document.getElementById('tabTOEIC').classList.remove('active');
+            if(systemType === 'ielts') document.getElementById('tabIELTS').classList.add('active');
+            if(systemType === 'toeic') document.getElementById('tabTOEIC').classList.add('active');
+            renderList(database[systemType]);
+        }
+
+        function renderList(dataArray) {
+            listContainer.innerHTML = ''; 
+            if (navigationHistory.length > 0) {
+                backBtn.style.display = 'block'; tabsContainer.style.display = 'none';
+            } else {
+                backBtn.style.display = 'none'; tabsContainer.style.display = 'flex';
+            }
+            dataArray.forEach(item => {
+                if (item.link) {
+                    const a = document.createElement('a');
+                    a.className = 'list-item'; a.href = item.link; 
+                    a.innerHTML = `<span>📝 ${item.title}</span> <span>Làm bài ➔</span>`;
+                    listContainer.appendChild(a);
+                } else if (item.children) {
+                    const div = document.createElement('div');
+                    div.className = 'list-item';
+                    div.innerHTML = `<span>📚 ${item.title}</span> <span>➔</span>`;
+                    div.onclick = () => {
+                        navigationHistory.push(dataArray); 
+                        renderList(item.children); 
+                    };
+                    listContainer.appendChild(div);
+                }
+            });
+        }
+
+        function goBack() {
+            if (navigationHistory.length > 0) {
+                const previousData = navigationHistory.pop();
+                renderList(previousData);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15 });
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        });
+    </script>
+</body>
+</html>
