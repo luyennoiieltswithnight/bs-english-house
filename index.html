@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bs English House</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <title>B's English House - Học thuật & Tương tác</title>
+    
+    <!-- Tích hợp Phông chữ mới từ Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            var(--hero-bg): #7A9051; 
+            --hero-bg: #7A9051; 
             --grid-line: rgba(255, 255, 255, 0.15);
             --dark-green: #2B4214;
             --card-read: #64A05B;
@@ -19,9 +23,18 @@
             --bg-light: #F9F9F9;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', sans-serif; }
-        html { scroll-behavior: smooth; }
-        body { background-color: var(--bg-light); overflow-x: hidden; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Quicksand', sans-serif; 
+            background-color: var(--bg-light); 
+            overflow-x: hidden; 
+            scroll-behavior: smooth;
+        }
+
+        h1, h2, h3, .brand-font {
+            font-family: 'Playfair Display', serif;
+        }
 
         /* --- NAVIGATION --- */
         nav {
@@ -31,7 +44,7 @@
             backdrop-filter: blur(10px); box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
-        .logo { font-size: 24px; font-weight: 900; color: white; display: flex; align-items: center; gap: 10px; }
+        .logo { font-size: 26px; font-weight: 900; color: white; display: flex; align-items: center; gap: 10px; }
         
         .btn-google {
             display: flex; align-items: center; gap: 10px; background: white; color: var(--text-dark);
@@ -42,42 +55,87 @@
 
         /* --- HERO SECTION --- */
         .hero {
-            position: relative; min-height: 100vh; background-color: #7A9051;
-            background-image: linear-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
-            background-size: 40px 40px; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center; color: white; padding: 100px 20px 20px;
+            position: relative; 
+            min-height: 100vh; 
+            background-color: var(--hero-bg);
+            background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 40px 40px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: flex-start; 
+            padding: 0 10%; 
             overflow: hidden;
+            color: white;
         }
 
-        .hero h2 { font-size: 24px; font-weight: 600; margin-bottom: 10px; }
-        .hero h1 { font-size: 72px; font-weight: 900; margin-bottom: 20px; border: 4px solid white; padding: 10px 40px; border-radius: 50px; }
-        .hero p { max-width: 600px; font-size: 18px; line-height: 1.6; margin-bottom: 30px; }
+        .hero-content {
+            max-width: 650px;
+            text-align: left;
+            position: relative;
+            z-index: 20; 
+        }
+
+        .hero-content h2 { font-size: 26px; font-weight: 700; margin-bottom: 15px; font-style: italic; opacity: 0.9; }
+        
+        .hero-content h1 { 
+            font-size: 85px; font-weight: 900; margin-bottom: 25px; 
+            text-shadow: 3px 3px 0px var(--dark-green);
+            letter-spacing: 2px;
+            line-height: 1.1;
+        }
+
+        .hero-content p { font-size: 18px; line-height: 1.7; margin-bottom: 40px; font-weight: 500; }
 
         .cta-btn {
-            background: white; color: #7A9051; padding: 15px 40px;
-            border-radius: 50px; font-size: 18px; font-weight: 800; text-decoration: none; transition: all 0.3s;
+            background: white; color: var(--hero-bg); padding: 16px 45px;
+            border-radius: 50px; font-size: 20px; font-weight: 700; text-decoration: none; 
+            transition: all 0.3s; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer;
+            border: none;
         }
-        .cta-btn:hover { background: var(--dark-green); color: white; }
+        .cta-btn:hover { background: var(--dark-green); color: white; transform: translateY(-3px); }
 
-        .mascot-cat { position: absolute; bottom: -20px; right: 5%; width: 250px; }
+        /* === MÈO X1.5 === */
+        .mascot-wrapper { 
+            position: absolute; 
+            bottom: -30px; 
+            right: 0%; 
+            width: 675px; /* Giảm lại thành X1.5 */
+            height: 675px; 
+            z-index: 10;
+            pointer-events: none; 
+        }
+
+        .mascot-cat {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            filter: drop-shadow(0 15px 15px rgba(0,0,0,0.3)); 
+        }
+
+        .cat-blink {
+            opacity: 0; 
+            transition: opacity 0.1s ease; 
+        }
 
         /* --- SKILLS SECTION --- */
         .skills-section { padding: 100px 20px; text-align: center; }
-        .skills-section h2 { font-size: 36px; color: var(--dark-green); margin-bottom: 50px; }
-        .cards-container { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; max-width: 1000px; margin: 0 auto; }
+        .skills-section h2 { font-size: 42px; color: var(--dark-green); margin-bottom: 60px; font-weight: 900; }
+        .cards-container { display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; max-width: 1050px; margin: 0 auto; }
 
         .card {
-            width: 220px; height: 350px; border-radius: 20px; padding: 30px 20px;
+            width: 230px; height: 340px; border-radius: 24px; padding: 35px 25px;
             color: white; position: relative; overflow: hidden; cursor: pointer;
-            border: 4px solid #111; box-shadow: 4px 4px 0px #111;
-            text-align: left; transition: transform 0.3s ease;
+            border: 4px solid #111; box-shadow: 6px 6px 0px #111;
+            text-align: left; transition: all 0.3s ease; display: flex; flex-direction: column;
         }
-        .card:hover { transform: translateY(-10px); }
-        .card h3 { font-size: 24px; font-weight: 900; margin-bottom: 10px; }
-        .card p { font-size: 14px; line-height: 1.5; opacity: 0.9; }
+        .card:hover { transform: translateY(-10px); box-shadow: 10px 10px 0px #111; }
+        .card h3 { font-size: 28px; font-weight: 900; margin-bottom: 15px; font-family: 'Quicksand', sans-serif;}
+        .card p { font-size: 15px; line-height: 1.6; opacity: 0.95; font-weight: 600; }
+        
         .card::after {
-            content: ''; position: absolute; bottom: -20px; right: -20px;
-            width: 150px; height: 150px; background: rgba(0,0,0,0.1); border-radius: 50%;
+            content: ''; position: absolute; bottom: -30px; right: -30px;
+            width: 160px; height: 160px; background: rgba(0,0,0,0.08); border-radius: 50%;
         }
 
         .card-listening { background-color: var(--card-list); }
@@ -89,193 +147,284 @@
         footer {
             background-color: var(--dark-green);
             color: white;
-            padding: 30px 20px;
-            text-align: center;
-            font-size: 15px;
-            font-weight: 600;
-            line-height: 1.8;
-            border-top: 4px solid #111;
+            padding: 60px 40px 30px;
+            border-top: 5px solid #111;
+        }
+        
+        .footer-content {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 40px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 40px;
         }
 
-        footer p { opacity: 0.9; }
-        footer .brand-name { font-size: 20px; font-weight: 900; margin-bottom: 10px; display: block; color: #F4B036;}
+        .footer-col { flex: 1; min-width: 250px; }
+        .footer-col h3 { font-size: 24px; margin-bottom: 20px; color: #F4B036; }
+        .footer-col p { font-size: 15px; line-height: 1.8; opacity: 0.9; margin-bottom: 10px; font-weight: 500;}
+        
+        .footer-bottom {
+            text-align: center; padding-top: 20px; font-size: 14px; opacity: 0.7; font-weight: 600;
+        }
 
-        /* --- MODAL (POPUP) --- */
+        /* --- MODAL (POPUP CỦA TỪNG KỸ NĂNG) --- */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6); z-index: 999;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); z-index: 999;
             justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;
         }
         .modal-overlay.show { display: flex; opacity: 1; }
         
         .modal-box {
-            background: white; width: 90%; max-width: 500px; border-radius: 24px;
-            padding: 30px; position: relative; transform: translateY(50px);
-            transition: transform 0.3s ease; border: 4px solid #111; box-shadow: 6px 6px 0px #111;
+            background: white; width: 90%; max-width: 550px; border-radius: 24px;
+            padding: 40px; position: relative; transform: translateY(50px);
+            transition: transform 0.3s ease; border: 4px solid #111; box-shadow: 8px 8px 0px #111;
             max-height: 80vh; overflow-y: auto;
         }
         .modal-overlay.show .modal-box { transform: translateY(0); }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; color: #111; }
-        .modal-header h2 { font-size: 24px; color: var(--dark-green); margin-bottom: 20px; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 32px; font-weight: bold; cursor: pointer; color: #888; transition: 0.2s;}
+        .close-btn:hover { color: #111; }
+        
+        .modal-header h2 { font-size: 32px; color: var(--dark-green); margin-bottom: 25px; border-bottom: 2px dashed #ccc; padding-bottom: 15px;}
 
-        .back-btn {
-            display: none; margin-bottom: 15px; padding: 8px 15px; background: #eee;
-            border: 2px solid #111; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 14px;
-        }
-        .back-btn:hover { background: #ddd; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn {
-            flex: 1; padding: 10px; border: 2px solid #111; border-radius: 10px;
-            font-size: 16px; font-weight: 800; cursor: pointer; background: white; transition: 0.2s;
-        }
-        .tab-btn.active { background: #7A9051; color: white; }
-
-        .list-container { display: flex; flex-direction: column; gap: 10px; }
-        .list-item {
-            padding: 15px; border: 2px solid #111; border-radius: 12px;
-            background: white; font-weight: 700; cursor: pointer; transition: 0.2s;
+        /* Bố cục Link trong Modal */
+        .link-group { display: flex; flex-direction: column; gap: 15px; }
+        .link-item {
+            padding: 16px 20px; border: 2px solid #111; border-radius: 12px;
+            background: #fff; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s;
             display: flex; justify-content: space-between; align-items: center; text-decoration: none; color: var(--text-dark);
         }
-        .list-item:hover { background: #f0f0f0; transform: translateX(5px); }
+        .link-item:hover { background: #f4f7f6; transform: translateX(5px); border-color: var(--hero-bg); }
+        .link-tag { font-size: 12px; padding: 4px 10px; background: #eee; border-radius: 20px; color: #555;}
 
-        .reveal { opacity: 0; transform: translateY(60px); transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
+        /* Ẩn hiện các khối kỹ năng */
+        .skill-content { display: none; }
+        .skill-content.active { display: block; }
+
+        /* Animations */
+        .reveal { opacity: 0; transform: translateY(60px); transition: all 1s cubic-bezier(0.16, 1, 0.3, 1); }
         .reveal.active { opacity: 1; transform: translateY(0); }
-        .delay-1 { transition-delay: 0.1s; } .delay-2 { transition-delay: 0.2s; }
-        .delay-3 { transition-delay: 0.3s; } .delay-4 { transition-delay: 0.4s; }
-
     </style>
 </head>
 <body>
 
     <!-- Header -->
     <nav>
-        <div class="logo">🐾 Bs English House</div>
-        <!-- Link sang trang login -->
-        <a href="login.html" class="btn-google">
-            <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-            </svg>
+        <div class="logo brand-font">🐾 B's English House</div>
+        <a href="login.html" class="btn-google" id="mainLoginBtn">
             Đăng nhập bằng Google
         </a>
     </nav>
 
     <!-- Hero Section -->
     <section class="hero reveal">
-        <h2>Nền tảng Luyện thi IELTS & Tiếng Anh</h2>
-        <h1>Bs English House</h1>
-        <p>Học Tiếng Anh không còn nhàm chán với phương pháp học tập tương tác, trực quan và đội ngũ giáo viên giàu kinh nghiệm.</p>
-        <a href="#skills-section" class="cta-btn">Bắt đầu học ngay ➔</a>
+        <!-- Khối chứa chữ được căn trái -->
+        <div class="hero-content">
+            <h2>Premium Preparation Platform</h2>
+            <h1 class="brand-font">B's English House</h1>
+            <p>Hệ thống học tập chuyên sâu được thiết kế cá nhân hóa. Vượt qua giới hạn điểm số với lộ trình rõ ràng, giao diện thân thiện và nguồn tài liệu được tuyển chọn khắt khe.</p>
+            <button onclick="checkAuthAndScroll()" class="cta-btn">Bắt đầu khóa học ➔</button>
+        </div>
         
-        <svg class="mascot-cat" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 200 Q 100 50 180 200 Z" fill="#F4B036" stroke="#111" stroke-width="4"/>
-            <path d="M40 90 L 30 30 L 90 70 Z" fill="#F4B036" stroke="#111" stroke-width="4"/>
-            <path d="M45 80 L 38 45 L 80 68 Z" fill="#E8833A"/>
-            <path d="M160 90 L 170 30 L 110 70 Z" fill="#F4B036" stroke="#111" stroke-width="4"/>
-            <path d="M155 80 L 162 45 L 120 68 Z" fill="#E8833A"/>
-            <circle cx="100" cy="110" r="60" fill="#F4B036" stroke="#111" stroke-width="4"/>
-            <circle cx="75" cy="100" r="8" fill="#111"/>
-            <circle cx="125" cy="100" r="8" fill="#111"/>
-            <ellipse cx="60" cy="115" rx="10" ry="6" fill="#D96073" opacity="0.6"/>
-            <ellipse cx="140" cy="115" rx="10" ry="6" fill="#D96073" opacity="0.6"/>
-            <path d="M 85 120 Q 100 135 115 120" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round"/>
-        </svg>
+        <!-- BỌC 2 ẢNH VÀO 1 GROUP -->
+        <div class="mascot-wrapper">
+            <!-- ẢNH MỞ MẮT -->
+            <img class="mascot-cat" src="https://raw.githubusercontent.com/luyennoiieltswithnight/bs-english-house/main/4EDC5E88-8FD2-42F4-B86B-F248A692A37A.PNG" alt="Mèo mở mắt">
+            
+            <!-- ẢNH NHẮM MẮT -->
+            <img class="mascot-cat cat-blink" id="catBlinkImg" src="https://raw.githubusercontent.com/luyennoiieltswithnight/bs-english-house/main/F1566185-4DE5-4D10-9C3E-7F15B6C8A6F7.PNG" alt="Mèo nhắm mắt">
+        </div>
     </section>
 
     <!-- Skills Section -->
     <section id="skills-section" class="skills-section">
-        <h2 class="reveal">Lộ trình 4 Kỹ năng Chuyên sâu</h2>
+        <h2 class="brand-font reveal">Lộ Trình Đào Tạo</h2>
         <div class="cards-container">
-            <div class="card card-listening reveal delay-1" onclick="openModal('Listening')">
+            <div class="card card-listening reveal" onclick="checkAuthAndOpen('listening')">
                 <h3>🎧 Listening</h3>
-                <p>Luyện nghe mỗi ngày với hàng trăm bài hội thoại từ cơ bản đến nâng cao.</p>
+                <p>Khám phá kho tàng bài nghe đa dạng. Luyện chép chính tả và kỹ năng Take-note chuyên sâu.</p>
             </div>
-            <div class="card card-reading reveal delay-2" onclick="openModal('Reading')">
+            <div class="card card-reading reveal" style="transition-delay: 0.1s;" onclick="checkAuthAndOpen('reading')">
                 <h3>📖 Reading</h3>
-                <p>Đọc hiểu đa dạng chủ đề với bộ từ vựng được chắt lọc sát với đề thi thực tế.</p>
+                <p>Bộ tài liệu được phân loại theo từng dạng bài, giúp bạn tối ưu hóa thời gian làm Scanning.</p>
             </div>
-            <div class="card card-speaking reveal delay-3" onclick="openModal('Speaking')">
+            <div class="card card-speaking reveal" style="transition-delay: 0.2s;" onclick="checkAuthAndOpen('speaking')">
                 <h3>🗣️ Speaking</h3>
-                <p>Hệ thống tự động chấm điểm phát âm và ngữ điệu giúp bạn giao tiếp tự tin.</p>
+                <p>Phản xạ tự nhiên với thư viện ý tưởng và từ vựng band cao theo từng chủ đề.</p>
             </div>
-            <div class="card card-writing reveal delay-4" onclick="openModal('Writing')">
+            <div class="card card-writing reveal" style="transition-delay: 0.3s;" onclick="checkAuthAndOpen('writing')">
                 <h3>✍️ Writing</h3>
-                <p>Cải thiện tư duy viết luận, diễn đạt rành mạch kèm theo thư viện bài mẫu.</p>
+                <p>Cấu trúc bài viết logic, mạch lạc. Chấm chữa chi tiết từng lỗi sai ngữ pháp.</p>
             </div>
         </div>
     </section>
 
-    <!-- THÔNG TIN FOOTER MỚI ĐƯỢC THÊM VÀO ĐÂY -->
+    <!-- Footer Mới -->
     <footer>
-        <span class="brand-name">BS ENGLISH HOUSE</span>
-        <p>📍 405/28 TRUONG CHINH STREET, TAN BINH DISTRICT, HO CHI MINH CITY</p>
-        <p>📞 0707090876 (MR. BINZ)</p>
+        <div class="footer-content">
+            <div class="footer-col">
+                <h3 class="brand-font">B'S ENGLISH HOUSE</h3>
+                <p>Nơi khơi nguồn cảm hứng học Tiếng Anh. Chúng tôi cam kết mang lại môi trường giáo dục hiện đại, chuyên nghiệp và tận tâm nhất.</p>
+            </div>
+            <div class="footer-col">
+                <h3 class="brand-font">Thông tin liên hệ</h3>
+                <p>📍 405/28 Truong Chinh Street, Tan Binh District, HCMC</p>
+                <p>📞 0707 090 876 (Mr. Binz)</p>
+                <p>✉️ bsenglishhouse@edu.vn</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            &copy; 2024 B's English House. All rights reserved.
+        </div>
     </footer>
 
-    <!-- Modal (Popup) -->
+    <!-- ========================================== -->
+    <!-- KHU VỰC CHỨA CÁC LINK RIÊNG BIỆT CHO 4 KỸ NĂNG -->
+    <!-- ========================================== -->
     <div id="courseModal" class="modal-overlay">
         <div class="modal-box">
             <span class="close-btn" onclick="closeModal()">&times;</span>
             <div class="modal-header">
-                <h2 id="modalTitle">Kỹ năng</h2>
+                <h2 id="modalTitle" class="brand-font">Tiêu đề kỹ năng</h2>
             </div>
-            <button id="backBtn" class="back-btn" onclick="goBack()">⬅ Quay lại</button>
-            <div id="tabsContainer" class="tabs">
-                <button id="tabIELTS" class="tab-btn active" onclick="switchSystem('ielts')">IELTS</button>
-                <button id="tabTOEIC" class="tab-btn" onclick="switchSystem('toeic')">TOEIC</button>
+
+            <!-- CODE DÀNH RIÊNG CHO LISTENING -->
+            <div id="content-listening" class="skill-content link-group">
+                <a href="link-cambridge-18.html" class="link-item">
+                    <span>Cambridge IELTS 18</span> <span class="link-tag">IELTS</span>
+                </a>
+                <a href="link-ets-2024.html" class="link-item">
+                    <span>ETS TOEIC LC 2024</span> <span class="link-tag">TOEIC</span>
+                </a>
+                <a href="#" class="link-item">
+                    <span>Luyện Nghe Chép Chính Tả</span> <span class="link-tag">Basic</span>
+                </a>
             </div>
-            <div id="listContainer" class="list-container"></div>
+
+            <!-- CODE DÀNH RIÊNG CHO READING -->
+            <div id="content-reading" class="skill-content link-group">
+                <a href="#" class="link-item">
+                    <span>Cambridge IELTS 15-18</span> <span class="link-tag">IELTS</span>
+                </a>
+                <a href="#" class="link-item">
+                    <span>Economy TOEIC RC</span> <span class="link-tag">TOEIC</span>
+                </a>
+            </div>
+
+            <!-- CODE DÀNH RIÊNG CHO SPEAKING -->
+            <div id="content-speaking" class="skill-content link-group">
+                <a href="#" class="link-item">
+                    <span>Part 1: Forecast Quý 3/2024</span> <span class="link-tag">Mới</span>
+                </a>
+                <a href="#" class="link-item">
+                    <span>Mẫu câu giao tiếp công sở</span> <span class="link-tag">Giao tiếp</span>
+                </a>
+            </div>
+
+            <!-- CODE DÀNH RIÊNG CHO WRITING -->
+            <div id="content-writing" class="skill-content link-group">
+                <a href="#" class="link-item">
+                    <span>Task 1: Biểu đồ đường & Cột</span> <span class="link-tag">IELTS</span>
+                </a>
+                <a href="#" class="link-item">
+                    <span>Thư viện bài mẫu Band 7.0+</span> <span class="link-tag">Tham khảo</span>
+                </a>
+            </div>
+
         </div>
     </div>
 
-    <!-- JavaScript Data -->
     <script>
-        const database = {
-            ielts: [
-                {
-                    title: "Giáo trình Cambridge 10 - 18",
-                    children: [
-                        {
-                            title: "Cambridge 11",
-                            children: [
-                                { title: "Test 1", link: "cam11-test1.html" },
-                                { title: "Test 2", link: "cam11-test2.html" },
-                                { title: "Test 3", link: "cam11-test3.html" },
-                                { title: "Test 4", link: "cam11-test4.html" }
-                            ]
-                        }
-                    ]
-                }
-            ],
-            toeic: [
-                {
-                    title: "ETS TOEIC 2024",
-                    children: [
-                        {
-                            title: "Test 1",
-                            children: [
-                                { title: "Part 1 & 2", link: "ets-t1-p1.html" }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        };
+        // ==========================================
+        // 1. HIỆU ỨNG SCROLL ĐỂ MÈO CHỚP MẮT
+        // ==========================================
+        const catBlink = document.getElementById('catBlinkImg');
+        let lastScrollValue = window.scrollY;
+        
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.scrollY;
+            
+            // Cuộn 80px mèo chớp mắt
+            if (Math.abs(currentScroll - lastScrollValue) > 80) { 
+                lastScrollValue = currentScroll;
+                
+                catBlink.style.opacity = '1';
+                
+                setTimeout(() => {
+                    catBlink.style.opacity = '0';
+                }, 150);
+            }
+        });
+
+        // ==========================================
+        // 2. KIỂM TRA ĐĂNG NHẬP VÀ CẬP NHẬT GIAO DIỆN
+        // ==========================================
+        const userName = localStorage.getItem('userName');
+        document.addEventListener("DOMContentLoaded", function() {
+            if (userName) {
+                const userPhoto = localStorage.getItem('userPhoto');
+                const loginBtn = document.getElementById('mainLoginBtn');
+                
+                loginBtn.innerHTML = `
+                    <img src="${userPhoto}" alt="Avatar" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid #7A9051;">
+                    <span>Hi, ${userName.split(' ')[0]}</span>
+                `;
+                loginBtn.href = "#"; 
+                
+                // Đăng xuất
+                loginBtn.onclick = function(e) {
+                    e.preventDefault();
+                    if(confirm("Bạn có muốn đăng xuất tài khoản?")) {
+                        localStorage.clear();
+                        location.reload();
+                    }
+                };
+            }
+        });
+
+        function checkAuth(callback) {
+            if (userName) {
+                callback(); 
+            } else {
+                alert("Bạn cần Đăng nhập bằng tài khoản học viên để truy cập tính năng này nhé!");
+                window.location.href = "login.html";
+            }
+        }
+
+        function checkAuthAndScroll() {
+            checkAuth(function() {
+                document.getElementById('skills-section').scrollIntoView({ behavior: 'smooth' });
+            });
+        }
 
         const modal = document.getElementById('courseModal');
         const modalTitle = document.getElementById('modalTitle');
-        const listContainer = document.getElementById('listContainer');
-        const tabsContainer = document.getElementById('tabsContainer');
-        const backBtn = document.getElementById('backBtn');
-        let navigationHistory = []; 
 
-        function openModal(skillName) {
-            modalTitle.innerText = `Kỹ năng ${skillName}`;
-            modal.style.display = 'flex';
-            setTimeout(() => { modal.classList.add('show'); }, 10);
-            switchSystem('ielts');
+        function checkAuthAndOpen(skillName) {
+            checkAuth(function() {
+                const allContents = document.querySelectorAll('.skill-content');
+                allContents.forEach(content => content.classList.remove('active'));
+
+                if (skillName === 'listening') {
+                    modalTitle.innerText = 'Listening Materials';
+                    document.getElementById('content-listening').classList.add('active');
+                } else if (skillName === 'reading') {
+                    modalTitle.innerText = 'Reading Materials';
+                    document.getElementById('content-reading').classList.add('active');
+                } else if (skillName === 'speaking') {
+                    modalTitle.innerText = 'Speaking Library';
+                    document.getElementById('content-speaking').classList.add('active');
+                } else if (skillName === 'writing') {
+                    modalTitle.innerText = 'Writing Tasks';
+                    document.getElementById('content-writing').classList.add('active');
+                }
+
+                modal.style.display = 'flex';
+                setTimeout(() => { modal.classList.add('show'); }, 10);
+            });
         }
 
         function closeModal() {
@@ -283,48 +432,8 @@
             setTimeout(() => { modal.style.display = 'none'; }, 300);
         }
 
-        window.onclick = function(event) { if (event.target == modal) closeModal(); }
-
-        function switchSystem(systemType) {
-            navigationHistory = []; 
-            document.getElementById('tabIELTS').classList.remove('active');
-            document.getElementById('tabTOEIC').classList.remove('active');
-            if(systemType === 'ielts') document.getElementById('tabIELTS').classList.add('active');
-            if(systemType === 'toeic') document.getElementById('tabTOEIC').classList.add('active');
-            renderList(database[systemType]);
-        }
-
-        function renderList(dataArray) {
-            listContainer.innerHTML = ''; 
-            if (navigationHistory.length > 0) {
-                backBtn.style.display = 'block'; tabsContainer.style.display = 'none';
-            } else {
-                backBtn.style.display = 'none'; tabsContainer.style.display = 'flex';
-            }
-            dataArray.forEach(item => {
-                if (item.link) {
-                    const a = document.createElement('a');
-                    a.className = 'list-item'; a.href = item.link; 
-                    a.innerHTML = `<span>📝 ${item.title}</span> <span>Làm bài ➔</span>`;
-                    listContainer.appendChild(a);
-                } else if (item.children) {
-                    const div = document.createElement('div');
-                    div.className = 'list-item';
-                    div.innerHTML = `<span>📚 ${item.title}</span> <span>➔</span>`;
-                    div.onclick = () => {
-                        navigationHistory.push(dataArray); 
-                        renderList(item.children); 
-                    };
-                    listContainer.appendChild(div);
-                }
-            });
-        }
-
-        function goBack() {
-            if (navigationHistory.length > 0) {
-                const previousData = navigationHistory.pop();
-                renderList(previousData);
-            }
+        window.onclick = function(event) {
+            if (event.target == modal) closeModal();
         }
 
         document.addEventListener("DOMContentLoaded", function() {
@@ -336,34 +445,8 @@
                     }
                 });
             }, { threshold: 0.15 });
+
             document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-        });
-    </script>
-    <script>
-        // KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP
-        document.addEventListener("DOMContentLoaded", function() {
-            // Lấy thông tin mà trang login.html đã lưu tạm
-            const userName = localStorage.getItem('userName');
-            const userPhoto = localStorage.getItem('userPhoto');
-            
-            if (userName) {
-                // Đổi nút Đăng nhập thành Avatar và Tên của học viên
-                const loginBtn = document.querySelector('.btn-google');
-                loginBtn.innerHTML = `
-                    <img src="${userPhoto}" alt="Avatar" style="width: 24px; height: 24px; border-radius: 50%;">
-                    <span>Chào, ${userName}</span>
-                `;
-                loginBtn.href = "#"; // Hủy link sang trang đăng nhập
-                
-                // Thêm chức năng Đăng xuất khi click vào nút
-                loginBtn.onclick = function(e) {
-                    e.preventDefault(); // Chặn hành vi chuyển trang mặc định
-                    if(confirm("Bạn có chắc chắn muốn đăng xuất không?")) {
-                        localStorage.clear(); // Xóa dữ liệu tạm
-                        location.reload(); // Tải lại trang
-                    }
-                };
-            }
         });
     </script>
 </body>
