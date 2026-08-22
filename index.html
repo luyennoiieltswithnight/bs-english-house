@@ -339,5 +339,32 @@
             document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
         });
     </script>
+    <script>
+        // KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP
+        document.addEventListener("DOMContentLoaded", function() {
+            // Lấy thông tin mà trang login.html đã lưu tạm
+            const userName = localStorage.getItem('userName');
+            const userPhoto = localStorage.getItem('userPhoto');
+            
+            if (userName) {
+                // Đổi nút Đăng nhập thành Avatar và Tên của học viên
+                const loginBtn = document.querySelector('.btn-google');
+                loginBtn.innerHTML = `
+                    <img src="${userPhoto}" alt="Avatar" style="width: 24px; height: 24px; border-radius: 50%;">
+                    <span>Chào, ${userName}</span>
+                `;
+                loginBtn.href = "#"; // Hủy link sang trang đăng nhập
+                
+                // Thêm chức năng Đăng xuất khi click vào nút
+                loginBtn.onclick = function(e) {
+                    e.preventDefault(); // Chặn hành vi chuyển trang mặc định
+                    if(confirm("Bạn có chắc chắn muốn đăng xuất không?")) {
+                        localStorage.clear(); // Xóa dữ liệu tạm
+                        location.reload(); // Tải lại trang
+                    }
+                };
+            }
+        });
+    </script>
 </body>
 </html>
