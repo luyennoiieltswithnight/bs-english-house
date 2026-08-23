@@ -46,6 +46,7 @@
         
         .nav-actions { display: flex; gap: 15px; align-items: center; }
 
+        /* Nút Bảng điều khiển (Mặc định ẩn, chỉ hiện cho Dev/Teacher) */
         #btnDashboard {
             display: none; padding: 10px 20px; background: #F4B036; color: #111;
             border-radius: 30px; text-decoration: none; font-weight: 800; cursor: pointer;
@@ -150,6 +151,8 @@
         .test-links { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; background: #fff; border-top: 2px solid #ccc; }
         .test-link-item { padding: 10px 5px; background: #fff; border-radius: 8px; text-align: center; text-decoration: none; color: var(--text-dark); font-weight: 800; font-size: 14px; transition: 0.2s; border: 2px solid #111; box-shadow: 2px 2px 0px #111; }
         .test-link-item:hover { background: var(--hero-bg); color: white; transform: translateY(-2px); box-shadow: 4px 4px 0px #111; }
+        .test-link-empty { opacity: 0.45; cursor: default; background: #f0f0f0; color: #999; box-shadow: none; border-color: #ccc; }
+        .test-link-empty:hover { background: #f0f0f0; color: #999; transform: none; box-shadow: none; }
 
         .skill-content { display: none; }
         .skill-content.active { display: block; }
@@ -277,11 +280,11 @@
             <div id="panel-dev" class="dash-panel">
                 <h3>⚙️ Developer Tools</h3>
                 <div class="action-grid">
-                    <!-- Nút Mở Tool Tạo Đề (Sẽ Load iFrame) -->
-                    <div class="action-btn primary" onclick="openTestBuilder()">Tạo Bài Giảng Mới (Test Builder)</div>
+                    <div class="action-btn primary">Tạo Bài Giảng Mới (Generate)</div>
                     <div class="action-btn">Quản Lý Đề Test</div>
                     <div class="action-btn">Cấu Hình Khóa Học</div>
                     <div class="action-btn">Cấp Quyền Tài Khoản</div>
+                    <div class="action-btn primary" onclick="window.open('admin/test-builder.html', '_blank')">📖 Tạo Đề Reading (Test Builder)</div>
                 </div>
             </div>
 
@@ -313,45 +316,60 @@
         </div>
     </div>
 
-    <!-- POPUP TEST BUILDER (CHỈ DÀNH CHO DEV) -->
-    <div id="testBuilderModal" class="modal-overlay">
-        <div class="modal-box" style="max-width: 95vw; height: 95vh; padding: 20px; display: flex; flex-direction: column;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h2 class="brand-font" style="margin: 0; color: var(--dark-green);">🚀 Trình Tạo Đề Reading (Test Builder)</h2>
-                <span class="close-btn" style="position: static;" onclick="closeModal('testBuilderModal')">&times;</span>
-            </div>
-            <!-- Chèn iframe nhúng file test-builder.html -->
-            <iframe src="test-builder.html" style="flex: 1; width: 100%; border: 2px solid #111; border-radius: 10px; background: #fff;"></iframe>
-        </div>
-    </div>
-
     <!-- JAVASCRIPT -->
     <script>
+        // Tạo link tự động
+        // readingManifest được nạp từ reading/manifest.json (do công cụ Test Builder tự
+        // cập nhật mỗi khi xuất bản 1 đề Reading mới) — dùng để tự hiện link Test thật
+        // thay cho link placeholder "nhap_link_..." bên dưới. Các kỹ năng khác (listening/
+        // speaking/writing) chưa có manifest nên vẫn giữ nguyên hành vi placeholder cũ.
+        let readingManifest = null;
+
         function generateTestLinks(prefix, start, end, skill) {
             let html = '';
             for (let i = start; i <= end; i++) {
                 let bookName = prefix === 'cam' ? `📘 Cambridge ${i}` : `📕 Real IELTS ${i}`;
+                let linksHtml = '';
+                for (let n = 1; n <= 4; n++) {
+                    let realPath = null;
+                    if (skill === 'reading' && readingManifest && readingManifest.reading &&
+                        readingManifest.reading[prefix] && readingManifest.reading[prefix][i]) {
+                        realPath = readingManifest.reading[prefix][i][n] || null;
+                    }
+                    if (realPath) {
+                        linksHtml += `<a href="${realPath}" class="test-link-item">Test ${n}</a>`;
+                    } else if (skill === 'reading') {
+                        linksHtml += `<span class="test-link-item test-link-empty" title="Chưa có đề">Test ${n}</span>`;
+                    } else {
+                        linksHtml += `<a href="nhap_link_${skill}_${prefix}${i}_test${n}" class="test-link-item">Test ${n}</a>`;
+                    }
+                }
                 html += `
                 <details class="book-group">
                     <summary>${bookName}</summary>
-                    <div class="test-links">
-                        <a href="reading/${prefix === 'cam' ? 'cambridge/cam-' + i : 'real-ielts/' + i}/test-1.html" class="test-link-item">Test 1</a>
-                        <a href="reading/${prefix === 'cam' ? 'cambridge/cam-' + i : 'real-ielts/' + i}/test-2.html" class="test-link-item">Test 2</a>
-                        <a href="reading/${prefix === 'cam' ? 'cambridge/cam-' + i : 'real-ielts/' + i}/test-3.html" class="test-link-item">Test 3</a>
-                        <a href="reading/${prefix === 'cam' ? 'cambridge/cam-' + i : 'real-ielts/' + i}/test-4.html" class="test-link-item">Test 4</a>
-                    </div>
+                    <div class="test-links">${linksHtml}</div>
                 </details>`;
             }
             return html;
         }
 
-        document.addEventListener("DOMContentLoaded", function() {
+        function renderAllTestLinks() {
             document.getElementById('cambridge-listening-container').innerHTML = generateTestLinks('cam', 10, 20, 'listening');
             document.getElementById('real-listening-container').innerHTML = generateTestLinks('real', 8, 15, 'listening');
             document.getElementById('cambridge-reading-container').innerHTML = generateTestLinks('cam', 10, 20, 'reading');
             document.getElementById('real-reading-container').innerHTML = generateTestLinks('real', 8, 15, 'reading');
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            renderAllTestLinks(); // hiện ngay (Reading sẽ hiện "chưa có" cho tới khi manifest tải xong)
+
+            fetch('reading/manifest.json')
+                .then(res => res.ok ? res.json() : null)
+                .then(data => { readingManifest = data; renderAllTestLinks(); })
+                .catch(() => { /* chưa có manifest (chưa xuất bản đề nào) — giữ trạng thái "chưa có" */ });
         });
 
+        // Mèo chớp mắt
         const catBlink = document.getElementById('catBlinkImg');
         let lastScrollValue = window.scrollY;
         window.addEventListener('scroll', () => {
@@ -363,14 +381,16 @@
             }
         });
 
+        // XỬ LÝ ĐĂNG NHẬP VÀ PHÂN QUYỀN HIỂN THỊ
         const userName = localStorage.getItem('userName');
-        const userRole = localStorage.getItem('userRole'); 
+        const userRole = localStorage.getItem('userRole'); // Lấy Role từ Firestore (login.html đã lưu)
 
         document.addEventListener("DOMContentLoaded", function() {
             if (userName) {
                 const userPhoto = localStorage.getItem('userPhoto');
                 const loginBtn = document.getElementById('mainLoginBtn');
                 
+                // Đổi nút thành Avatar
                 loginBtn.innerHTML = `
                     <img src="${userPhoto}" alt="Avatar" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid #7A9051;">
                     <span>Hi, ${userName.split(' ')[0]}</span>
@@ -384,6 +404,7 @@
                     }
                 };
 
+                // HIỂN THỊ NÚT DASHBOARD NẾU LÀ DEV HOẶC TEACHER
                 if (userRole === 'dev' || userRole === 'teacher') {
                     document.getElementById('btnDashboard').style.display = 'block';
                 }
@@ -397,6 +418,7 @@
 
         function checkAuthAndScroll() { checkAuth(function() { document.getElementById('skills-section').scrollIntoView({ behavior: 'smooth' }); }); }
 
+        // Mở Popup Khóa học
         function checkAuthAndOpen(skillName) {
             checkAuth(function() {
                 const allContents = document.querySelectorAll('.skill-content');
@@ -411,12 +433,16 @@
             });
         }
 
+        // Mở Bảng Điều Khiển
         function openDashboard() {
+            // Ẩn tất cả Panel trước
             document.getElementById('panel-dev').classList.remove('active');
             document.getElementById('panel-teacher').classList.remove('active');
 
+            // Render giao diện theo quyền
             if (userRole === 'dev') {
                 document.getElementById('panel-dev').classList.add('active');
+                // Dev thường kiêm luôn Teacher nên cho hiện cả bảng của giáo viên
                 document.getElementById('panel-teacher').classList.add('active'); 
             } else if (userRole === 'teacher') {
                 document.getElementById('panel-teacher').classList.add('active');
@@ -427,14 +453,7 @@
             setTimeout(() => { modal.classList.add('show'); }, 10);
         }
 
-        // --- HÀM MỞ TEST BUILDER ---
-        function openTestBuilder() {
-            closeModal('dashboardModal'); // Đóng Dashboard
-            const modal = document.getElementById('testBuilderModal');
-            modal.style.display = 'flex';
-            setTimeout(() => { modal.classList.add('show'); }, 10);
-        }
-
+        // Đóng Popup chung
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             modal.classList.remove('show');
@@ -448,6 +467,7 @@
             }
         }
 
+        // Reveal Animation
         document.addEventListener("DOMContentLoaded", function() {
             const observer = new IntersectionObserver((entries, observer) => {
                 entries.forEach(entry => {
