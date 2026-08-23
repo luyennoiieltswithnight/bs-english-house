@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B's English House - Học thuật & Tương tác</title>
     
-    <!-- FAVICON (Ảnh Mèo trên Tab trình duyệt) -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/luyennoiieltswithnight/bs-english-house/main/4EDC5E88-8FD2-42F4-B86B-F248A692A37A.PNG">
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Quicksand:wght@500;600;700;800&display=swap" rel="stylesheet">
     
     <style>
         :root {
@@ -34,9 +32,7 @@
             scroll-behavior: smooth;
         }
 
-        h1, h2, h3, .brand-font {
-            font-family: 'Playfair Display', serif;
-        }
+        h1, h2, h3, .brand-font { font-family: 'Playfair Display', serif; }
 
         /* --- NAVIGATION --- */
         nav {
@@ -48,6 +44,16 @@
 
         .logo { font-size: 26px; font-weight: 900; color: white; display: flex; align-items: center; gap: 10px; }
         
+        .nav-actions { display: flex; gap: 15px; align-items: center; }
+
+        /* Nút Bảng điều khiển (Mặc định ẩn, chỉ hiện cho Dev/Teacher) */
+        #btnDashboard {
+            display: none; padding: 10px 20px; background: #F4B036; color: #111;
+            border-radius: 30px; text-decoration: none; font-weight: 800; cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 2px solid #111; transition: 0.2s;
+        }
+        #btnDashboard:hover { background: #E8833A; transform: translateY(-2px); }
+
         .btn-google {
             display: flex; align-items: center; gap: 10px; background: white; color: var(--text-dark);
             padding: 10px 20px; border-radius: 30px; text-decoration: none; font-weight: 700;
@@ -57,65 +63,26 @@
 
         /* --- HERO SECTION --- */
         .hero {
-            position: relative; 
-            min-height: 100vh; 
-            background-color: var(--hero-bg);
+            position: relative; min-height: 100vh; background-color: var(--hero-bg);
             background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-            background-size: 40px 40px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: flex-start; 
-            padding: 0 10%; 
-            overflow: hidden;
-            color: white;
+            background-size: 40px 40px; display: flex; align-items: center; 
+            justify-content: flex-start; padding: 0 10%; overflow: hidden; color: white;
         }
 
-        .hero-content {
-            max-width: 650px;
-            text-align: left;
-            position: relative;
-            z-index: 20; 
-        }
-
+        .hero-content { max-width: 650px; text-align: left; position: relative; z-index: 20; }
         .hero-content h2 { font-size: 26px; font-weight: 700; margin-bottom: 15px; font-style: italic; opacity: 0.9; }
-        
-        .hero-content h1 { 
-            font-size: 85px; font-weight: 900; margin-bottom: 25px; 
-            text-shadow: 3px 3px 0px var(--dark-green);
-            letter-spacing: 2px;
-            line-height: 1.1;
-        }
-
+        .hero-content h1 { font-size: 85px; font-weight: 900; margin-bottom: 25px; text-shadow: 3px 3px 0px var(--dark-green); letter-spacing: 2px; line-height: 1.1; }
         .hero-content p { font-size: 18px; line-height: 1.7; margin-bottom: 40px; font-weight: 500; }
 
         .cta-btn {
             background: white; color: var(--hero-bg); padding: 16px 45px;
             border-radius: 50px; font-size: 20px; font-weight: 700; text-decoration: none; 
-            transition: all 0.3s; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer;
-            border: none;
+            transition: all 0.3s; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer; border: none;
         }
         .cta-btn:hover { background: var(--dark-green); color: white; transform: translateY(-3px); }
 
-        /* === MÈO (Mặc định cho Desktop) === */
-        .mascot-wrapper { 
-            position: absolute; 
-            bottom: -30px; 
-            right: 0%; 
-            width: 675px; 
-            height: 675px; 
-            z-index: 10;
-            pointer-events: none; 
-            transition: all 0.3s ease;
-        }
-
-        .mascot-cat {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            filter: drop-shadow(0 15px 15px rgba(0,0,0,0.3)); 
-        }
-
+        .mascot-wrapper { position: absolute; bottom: -30px; right: 0%; width: 675px; height: 675px; z-index: 10; pointer-events: none; transition: all 0.3s ease; }
+        .mascot-cat { position: absolute; bottom: 0; left: 0; width: 100%; filter: drop-shadow(0 15px 15px rgba(0,0,0,0.3)); }
         .cat-blink { opacity: 0; transition: opacity 0.1s ease; }
 
         /* --- SKILLS SECTION --- */
@@ -132,11 +99,7 @@
         .card:hover { transform: translateY(-10px); box-shadow: 10px 10px 0px #111; }
         .card h3 { font-size: 28px; font-weight: 900; margin-bottom: 15px; font-family: 'Quicksand', sans-serif;}
         .card p { font-size: 15px; line-height: 1.6; opacity: 0.95; font-weight: 600; }
-        
-        .card::after {
-            content: ''; position: absolute; bottom: -30px; right: -30px;
-            width: 160px; height: 160px; background: rgba(0,0,0,0.08); border-radius: 50%;
-        }
+        .card::after { content: ''; position: absolute; bottom: -30px; right: -30px; width: 160px; height: 160px; background: rgba(0,0,0,0.08); border-radius: 50%; }
 
         .card-listening { background-color: var(--card-list); }
         .card-reading { background-color: var(--card-read); }
@@ -144,30 +107,14 @@
         .card-writing { background-color: var(--card-write); }
 
         /* --- FOOTER --- */
-        footer {
-            background-color: var(--dark-green);
-            color: white;
-            padding: 60px 40px 30px;
-            border-top: 5px solid #111;
-        }
-        
-        .footer-content {
-            max-width: 1100px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 40px;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            padding-bottom: 40px;
-        }
-
+        footer { background-color: var(--dark-green); color: white; padding: 60px 40px 30px; border-top: 5px solid #111; }
+        .footer-content { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 40px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 40px; }
         .footer-col { flex: 1; min-width: 250px; }
         .footer-col h3 { font-size: 24px; margin-bottom: 20px; color: #F4B036; }
         .footer-col p { font-size: 15px; line-height: 1.8; opacity: 0.9; margin-bottom: 10px; font-weight: 500;}
         .footer-bottom { text-align: center; padding-top: 20px; font-size: 14px; opacity: 0.7; font-weight: 600; }
 
-        /* --- MODAL (POPUP) --- */
+        /* --- MODAL (CHUNG) --- */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); z-index: 999;
@@ -184,13 +131,11 @@
         .modal-overlay.show .modal-box { transform: translateY(0); }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 32px; font-weight: bold; cursor: pointer; color: #888; transition: 0.2s;}
         .close-btn:hover { color: #111; }
-        
         .modal-header h2 { font-size: 32px; color: var(--dark-green); margin-bottom: 25px; border-bottom: 2px dashed #ccc; padding-bottom: 15px;}
 
-        /* --- GIAO DIỆN ACCORDION (THƯ MỤC XỔ XUỐNG) --- */
+        /* --- UI ACCORDION BÀI TẬP --- */
         details > summary { list-style: none; outline: none; }
         details > summary::-webkit-details-marker { display: none; }
-        
         .course-group { margin-bottom: 20px; border: 3px solid #111; border-radius: 16px; background: #fff; overflow: hidden; box-shadow: 4px 4px 0px #111; }
         .course-group > summary { padding: 16px 20px; font-weight: 900; font-size: 18px; cursor: pointer; background: #f4f7f6; display: flex; justify-content: space-between; align-items: center; color: var(--dark-green); }
         .course-group > summary::after { content: '▼'; font-size: 14px; transition: transform 0.3s; }
@@ -204,58 +149,45 @@
         .book-group[open] > summary::after { content: '−'; }
         
         .test-links { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; background: #fff; border-top: 2px solid #ccc; }
-        .test-link-item { 
-            padding: 10px 5px; background: #fff; border-radius: 8px; text-align: center; 
-            text-decoration: none; color: var(--text-dark); font-weight: 800; font-size: 14px; 
-            transition: 0.2s; border: 2px solid #111; box-shadow: 2px 2px 0px #111; 
-        }
+        .test-link-item { padding: 10px 5px; background: #fff; border-radius: 8px; text-align: center; text-decoration: none; color: var(--text-dark); font-weight: 800; font-size: 14px; transition: 0.2s; border: 2px solid #111; box-shadow: 2px 2px 0px #111; }
         .test-link-item:hover { background: var(--hero-bg); color: white; transform: translateY(-2px); box-shadow: 4px 4px 0px #111; }
 
         .skill-content { display: none; }
         .skill-content.active { display: block; }
+
+        /* --- UI DASHBOARD (BẢNG ĐIỀU KHIỂN) --- */
+        .dash-panel { display: none; margin-bottom: 25px; padding: 20px; border-radius: 16px; border: 2px solid #eee; background: #fafafa; }
+        .dash-panel.active { display: block; }
+        .dash-panel h3 { font-size: 20px; margin-bottom: 15px; color: var(--hero-bg); border-bottom: 2px solid #eee; padding-bottom: 10px;}
+        
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .action-btn { padding: 15px; background: white; border: 2px solid #111; border-radius: 12px; font-weight: 800; text-align: center; cursor: pointer; transition: 0.2s; box-shadow: 3px 3px 0px #111; }
+        .action-btn:hover { background: #f0f0f0; transform: translateY(-2px); box-shadow: 5px 5px 0px #111; }
+        .action-btn.primary { background: var(--dark-green); color: white; }
+        .action-btn.primary:hover { background: #1a2a0c; }
+
+        /* Bảng theo dõi tiến độ */
+        .progress-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 15px; }
+        .progress-table th, .progress-table td { border: 1px solid #ddd; padding: 12px 10px; text-align: left; }
+        .progress-table th { background-color: #f4f7f6; font-weight: 800; color: var(--dark-green); }
+        .status-done { color: #2e7d32; font-weight: 700; background: #c8e6c9; padding: 3px 8px; border-radius: 10px; font-size: 12px;}
+        .status-pending { color: #c62828; font-weight: 700; background: #ffcdd2; padding: 3px 8px; border-radius: 10px; font-size: 12px;}
+
         .reveal { opacity: 0; transform: translateY(60px); transition: all 1s cubic-bezier(0.16, 1, 0.3, 1); }
         .reveal.active { opacity: 1; transform: translateY(0); }
 
-        /* ======================================================= */
-        /* RESPONSIVE CHO IPAD & ĐIỆN THOẠI                        */
-        /* ======================================================= */
-        
-        /* Cho iPad (Tablet) */
         @media (max-width: 1024px) {
             .hero-content h1 { font-size: 65px; }
             .mascot-wrapper { width: 500px; height: 500px; right: -10%; }
-            .hero { padding: 0 5%; }
         }
-
-        /* Cho Điện thoại (Mobile) */
         @media (max-width: 768px) {
             nav { padding: 15px 20px; flex-direction: column; gap: 10px; }
-            .logo { font-size: 22px; }
-            
-            .hero {
-                align-items: flex-start; 
-                justify-content: center;
-                padding: 150px 20px 0; /* Cách một khoảng trên cùng cho Header */
-            }
-            .hero-content {
-                text-align: center; /* Căn giữa chữ */
-                margin-bottom: 300px; /* Chừa một khoảng trống cực lớn bên dưới để nhét con mèo vào */
-            }
+            .hero { align-items: flex-start; justify-content: center; padding: 150px 20px 0; }
+            .hero-content { text-align: center; margin-bottom: 300px; }
             .hero-content h1 { font-size: 48px; line-height: 1.2; }
-            .hero-content h2 { font-size: 20px; }
-            
-            .mascot-wrapper {
-                width: 380px; 
-                height: 380px;
-                right: 50%; /* Ép con mèo ra giữa */
-                transform: translateX(50%); /* Cân bằng chuẩn giữa màn hình */
-                bottom: -20px;
-            }
-
-            .test-links { grid-template-columns: repeat(2, 1fr); } /* Bài test xếp thành 2 cột trên đt */
-            .cards-container { gap: 15px; }
-            .card { width: 100%; height: auto; }
-            .modal-box { width: 95%; padding: 20px; }
+            .mascot-wrapper { width: 380px; height: 380px; right: 50%; transform: translateX(50%); bottom: -20px; }
+            .test-links { grid-template-columns: repeat(2, 1fr); } 
+            .action-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -264,7 +196,10 @@
     <!-- Header -->
     <nav>
         <div class="logo brand-font">🐾 B's English House</div>
-        <a href="login.html" class="btn-google" id="mainLoginBtn">Đăng nhập bằng Google</a>
+        <div class="nav-actions">
+            <button id="btnDashboard" onclick="openDashboard()">Bảng Điều Khiển</button>
+            <a href="login.html" class="btn-google" id="mainLoginBtn">Đăng nhập Google</a>
+        </div>
     </nav>
 
     <!-- Hero Section -->
@@ -273,7 +208,7 @@
             <h2>Premium Preparation Platform</h2>
             <h1 class="brand-font">B's English House</h1>
             <p>Hệ thống học tập chuyên sâu được thiết kế cá nhân hóa. Vượt qua giới hạn điểm số với lộ trình rõ ràng, giao diện thân thiện và nguồn tài liệu được tuyển chọn khắt khe.</p>
-            <button onclick="checkAuthAndScroll()" class="cta-btn">Bắt đầu khóa học ➔</button>
+            <button onclick="checkAuthAndScroll()" class="cta-btn">Bắt đầu ôn luyện ➔</button>
         </div>
         
         <div class="mascot-wrapper">
@@ -287,20 +222,16 @@
         <h2 class="brand-font reveal">Lộ Trình Đào Tạo</h2>
         <div class="cards-container">
             <div class="card card-listening reveal" onclick="checkAuthAndOpen('listening')">
-                <h3>🎧 Listening</h3>
-                <p>Khám phá kho tàng bài nghe đa dạng. Luyện chép chính tả và kỹ năng Take-note chuyên sâu.</p>
+                <h3>🎧 Listening</h3><p>Khám phá kho tàng bài nghe đa dạng. Luyện chép chính tả và kỹ năng Take-note chuyên sâu.</p>
             </div>
             <div class="card card-reading reveal" style="transition-delay: 0.1s;" onclick="checkAuthAndOpen('reading')">
-                <h3>📖 Reading</h3>
-                <p>Bộ tài liệu được phân loại theo từng dạng bài, giúp bạn tối ưu hóa thời gian làm Scanning.</p>
+                <h3>📖 Reading</h3><p>Bộ tài liệu được phân loại theo từng dạng bài, giúp bạn tối ưu hóa thời gian làm Scanning.</p>
             </div>
             <div class="card card-speaking reveal" style="transition-delay: 0.2s;" onclick="checkAuthAndOpen('speaking')">
-                <h3>🗣️ Speaking</h3>
-                <p>Phản xạ tự nhiên với thư viện ý tưởng và từ vựng band cao theo từng chủ đề.</p>
+                <h3>🗣️ Speaking</h3><p>Phản xạ tự nhiên với thư viện ý tưởng và từ vựng band cao theo từng chủ đề.</p>
             </div>
             <div class="card card-writing reveal" style="transition-delay: 0.3s;" onclick="checkAuthAndOpen('writing')">
-                <h3>✍️ Writing</h3>
-                <p>Cấu trúc bài viết logic, mạch lạc. Chấm chữa chi tiết từng lỗi sai ngữ pháp.</p>
+                <h3>✍️ Writing</h3><p>Cấu trúc bài viết logic, mạch lạc. Chấm chữa chi tiết từng lỗi sai ngữ pháp.</p>
             </div>
         </div>
     </section>
@@ -308,76 +239,75 @@
     <!-- Footer -->
     <footer>
         <div class="footer-content">
-            <div class="footer-col">
-                <h3 class="brand-font">B'S ENGLISH HOUSE</h3>
-                <p>Nơi khơi nguồn cảm hứng học Tiếng Anh. Chúng tôi cam kết mang lại môi trường giáo dục hiện đại, chuyên nghiệp và tận tâm nhất.</p>
-            </div>
-            <div class="footer-col">
-                <h3 class="brand-font">Thông tin liên hệ</h3>
-                <p>📍 405/28 Truong Chinh Street, Tan Binh District, HCMC</p>
-                <p>📞 0707 090 876 (Mr. Binz)</p>
-                <p>✉️ bsenglishhouse@edu.vn</p>
-            </div>
+            <div class="footer-col"><h3 class="brand-font">B'S ENGLISH HOUSE</h3><p>Nơi khơi nguồn cảm hứng học Tiếng Anh. Chúng tôi cam kết mang lại môi trường giáo dục hiện đại, chuyên nghiệp và tận tâm nhất.</p></div>
+            <div class="footer-col"><h3 class="brand-font">Thông tin liên hệ</h3><p>📍 405/28 Truong Chinh Street, Tan Binh District, HCMC</p><p>📞 0707 090 876 (Mr. Binz)</p><p>✉️ bsenglishhouse@edu.vn</p></div>
         </div>
         <div class="footer-bottom">&copy; 2024 B's English House. All rights reserved.</div>
     </footer>
 
-    <!-- POPUP MODAL CHỨA LINK -->
+    <!-- POPUP MODAL CHỨA BÀI TEST -->
     <div id="courseModal" class="modal-overlay">
         <div class="modal-box">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-            <div class="modal-header">
-                <h2 id="modalTitle" class="brand-font">Tiêu đề kỹ năng</h2>
-            </div>
-
-            <!-- 1. KHO LINK CHO LISTENING -->
+            <span class="close-btn" onclick="closeModal('courseModal')">&times;</span>
+            <div class="modal-header"><h2 id="modalTitle" class="brand-font">Kỹ năng</h2></div>
+            
             <div id="content-listening" class="skill-content">
-                <details class="course-group">
-                    <summary>📚 Bộ Cambridge IELTS (10 - 20)</summary>
-                    <div class="course-items"><div id="cambridge-listening-container"></div></div>
-                </details>
-                <details class="course-group">
-                    <summary>🎯 Bộ Real IELTS (8 - 15)</summary>
-                    <div class="course-items"><div id="real-listening-container"></div></div>
-                </details>
+                <details class="course-group"><summary>📚 Bộ Cambridge (10-20)</summary><div class="course-items"><div id="cambridge-listening-container"></div></div></details>
+                <details class="course-group"><summary>🎯 Real IELTS (8-15)</summary><div class="course-items"><div id="real-listening-container"></div></div></details>
             </div>
-
-            <!-- 2. KHO LINK CHO READING -->
             <div id="content-reading" class="skill-content">
-                <details class="course-group">
-                    <summary>📚 Bộ Cambridge IELTS (10 - 20)</summary>
-                    <div class="course-items"><div id="cambridge-reading-container"></div></div>
-                </details>
-                <details class="course-group">
-                    <summary>🎯 Bộ Real IELTS (8 - 15)</summary>
-                    <div class="course-items"><div id="real-reading-container"></div></div>
-                </details>
+                <details class="course-group"><summary>📚 Bộ Cambridge (10-20)</summary><div class="course-items"><div id="cambridge-reading-container"></div></div></details>
+                <details class="course-group"><summary>🎯 Real IELTS (8-15)</summary><div class="course-items"><div id="real-reading-container"></div></div></details>
             </div>
-
-            <!-- 3. KHO LINK CHO SPEAKING -->
             <div id="content-speaking" class="skill-content">
-                <details class="course-group">
-                    <summary>🗣️ Speaking Forecast 2024</summary>
-                    <div class="course-items">
-                        <div class="book-group" style="padding: 15px;">
-                            <p style="font-weight: bold; margin-bottom: 10px;">Part 1 & Part 2</p>
-                            <a href="nhap_link_speaking_vao_day" class="test-link-item" style="display: block; width: 100%;">Tải bộ tài liệu Speaking ➔</a>
-                        </div>
-                    </div>
-                </details>
+                <details class="course-group"><summary>🗣️ Speaking Forecast 2024</summary><div class="course-items"><div class="book-group" style="padding:15px;"><a href="#" class="test-link-item" style="display:block;">Tải tài liệu ➔</a></div></div></details>
+            </div>
+            <div id="content-writing" class="skill-content">
+                <details class="course-group"><summary>✍️ Writing Task 1 & 2</summary><div class="course-items"><div class="book-group" style="padding:15px;"><a href="#" class="test-link-item" style="display:block;">Vào thư viện ➔</a></div></div></details>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP BẢNG ĐIỀU KHIỂN (DÀNH CHO DEV & TEACHER) -->
+    <div id="dashboardModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 800px;">
+            <span class="close-btn" onclick="closeModal('dashboardModal')">&times;</span>
+            <div class="modal-header"><h2 class="brand-font">Bảng Điều Khiển Hệ Thống</h2></div>
+            
+            <!-- Khu vực của DEV -->
+            <div id="panel-dev" class="dash-panel">
+                <h3>⚙️ Developer Tools</h3>
+                <div class="action-grid">
+                    <div class="action-btn primary">Tạo Bài Giảng Mới (Generate)</div>
+                    <div class="action-btn">Quản Lý Đề Test</div>
+                    <div class="action-btn">Cấu Hình Khóa Học</div>
+                    <div class="action-btn">Cấp Quyền Tài Khoản</div>
+                </div>
             </div>
 
-            <!-- 4. KHO LINK CHO WRITING -->
-            <div id="content-writing" class="skill-content">
-                <details class="course-group">
-                    <summary>✍️ Writing Task 1 & 2</summary>
-                    <div class="course-items">
-                        <div class="book-group" style="padding: 15px;">
-                            <p style="font-weight: bold; margin-bottom: 10px;">Thư viện bài mẫu Band 7.0+</p>
-                            <a href="nhap_link_writing_vao_day" class="test-link-item" style="display: block; width: 100%;">Vào thư viện ➔</a>
-                        </div>
-                    </div>
-                </details>
+            <!-- Khu vực của TEACHER -->
+            <div id="panel-teacher" class="dash-panel">
+                <h3>👨‍🏫 Lớp Học Của Tôi</h3>
+                <div class="action-grid" style="margin-bottom: 20px;">
+                    <div class="action-btn primary">Phát Bài Tập Về Nhà</div>
+                    <div class="action-btn">Chấm Bài Writing</div>
+                </div>
+                
+                <h4 style="margin-bottom: 10px;">📊 Tiến độ làm bài của học sinh</h4>
+                <div style="overflow-x: auto;">
+                    <table class="progress-table">
+                        <thead>
+                            <tr><th>Học sinh</th><th>Bài tập hiện tại</th><th>Trạng thái</th><th>Hành động</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>Huy</strong></td><td>Cam 12 - Test 1 (Reading)</td><td><span class="status-done">Đã Nộp (7.5)</span></td><td><a href="#">Xem</a></td></tr>
+                            <tr><td><strong>Kim Phụng</strong></td><td>Listening Chép chính tả</td><td><span class="status-done">Đã Nộp (8.0)</span></td><td><a href="#">Xem</a></td></tr>
+                            <tr><td><strong>Gia Hưng</strong></td><td>Speaking Part 2 - Forecast</td><td><span class="status-pending">Chưa Nộp</span></td><td><a href="#">Nhắc nhở</a></td></tr>
+                            <tr><td><strong>Michael</strong></td><td>Cam 15 - Test 3 (Writing)</td><td><span class="status-pending">Chưa Nộp</span></td><td><a href="#">Nhắc nhở</a></td></tr>
+                            <tr><td><strong>Peter</strong></td><td>Vocabulary Test</td><td><span class="status-done">Đã Nộp (9.0)</span></td><td><a href="#">Xem</a></td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
         </div>
@@ -385,6 +315,7 @@
 
     <!-- JAVASCRIPT -->
     <script>
+        // Tạo link tự động
         function generateTestLinks(prefix, start, end, skill) {
             let html = '';
             for (let i = start; i <= end; i++) {
@@ -410,9 +341,9 @@
             document.getElementById('real-reading-container').innerHTML = generateTestLinks('real', 8, 15, 'reading');
         });
 
+        // Mèo chớp mắt
         const catBlink = document.getElementById('catBlinkImg');
         let lastScrollValue = window.scrollY;
-        
         window.addEventListener('scroll', () => {
             const currentScroll = window.scrollY;
             if (Math.abs(currentScroll - lastScrollValue) > 80) { 
@@ -422,18 +353,21 @@
             }
         });
 
+        // XỬ LÝ ĐĂNG NHẬP VÀ PHÂN QUYỀN HIỂN THỊ
         const userName = localStorage.getItem('userName');
+        const userRole = localStorage.getItem('userRole'); // Lấy Role từ Firestore (login.html đã lưu)
+
         document.addEventListener("DOMContentLoaded", function() {
             if (userName) {
                 const userPhoto = localStorage.getItem('userPhoto');
                 const loginBtn = document.getElementById('mainLoginBtn');
                 
+                // Đổi nút thành Avatar
                 loginBtn.innerHTML = `
                     <img src="${userPhoto}" alt="Avatar" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid #7A9051;">
                     <span>Hi, ${userName.split(' ')[0]}</span>
                 `;
                 loginBtn.href = "#"; 
-                
                 loginBtn.onclick = function(e) {
                     e.preventDefault();
                     if(confirm("Bạn có muốn đăng xuất tài khoản?")) {
@@ -441,64 +375,75 @@
                         location.reload();
                     }
                 };
+
+                // HIỂN THỊ NÚT DASHBOARD NẾU LÀ DEV HOẶC TEACHER
+                if (userRole === 'dev' || userRole === 'teacher') {
+                    document.getElementById('btnDashboard').style.display = 'block';
+                }
             }
         });
 
         function checkAuth(callback) {
             if (userName) { callback(); } 
-            else {
-                alert("Bạn cần Đăng nhập bằng tài khoản học viên để truy cập tính năng này nhé!");
-                window.location.href = "login.html";
-            }
+            else { alert("Vui lòng Đăng nhập để sử dụng tính năng này!"); window.location.href = "login.html"; }
         }
 
-        function checkAuthAndScroll() {
-            checkAuth(function() {
-                document.getElementById('skills-section').scrollIntoView({ behavior: 'smooth' });
-            });
-        }
+        function checkAuthAndScroll() { checkAuth(function() { document.getElementById('skills-section').scrollIntoView({ behavior: 'smooth' }); }); }
 
-        const modal = document.getElementById('courseModal');
-        const modalTitle = document.getElementById('modalTitle');
-
+        // Mở Popup Khóa học
         function checkAuthAndOpen(skillName) {
             checkAuth(function() {
                 const allContents = document.querySelectorAll('.skill-content');
                 allContents.forEach(content => content.classList.remove('active'));
 
-                if (skillName === 'listening') {
-                    modalTitle.innerText = 'Listening Materials';
-                    document.getElementById('content-listening').classList.add('active');
-                } else if (skillName === 'reading') {
-                    modalTitle.innerText = 'Reading Materials';
-                    document.getElementById('content-reading').classList.add('active');
-                } else if (skillName === 'speaking') {
-                    modalTitle.innerText = 'Speaking Library';
-                    document.getElementById('content-speaking').classList.add('active');
-                } else if (skillName === 'writing') {
-                    modalTitle.innerText = 'Writing Tasks';
-                    document.getElementById('content-writing').classList.add('active');
-                }
+                document.getElementById('modalTitle').innerText = skillName.toUpperCase() + ' MATERIALS';
+                document.getElementById('content-' + skillName).classList.add('active');
 
+                const modal = document.getElementById('courseModal');
                 modal.style.display = 'flex';
                 setTimeout(() => { modal.classList.add('show'); }, 10);
             });
         }
 
-        function closeModal() {
+        // Mở Bảng Điều Khiển
+        function openDashboard() {
+            // Ẩn tất cả Panel trước
+            document.getElementById('panel-dev').classList.remove('active');
+            document.getElementById('panel-teacher').classList.remove('active');
+
+            // Render giao diện theo quyền
+            if (userRole === 'dev') {
+                document.getElementById('panel-dev').classList.add('active');
+                // Dev thường kiêm luôn Teacher nên cho hiện cả bảng của giáo viên
+                document.getElementById('panel-teacher').classList.add('active'); 
+            } else if (userRole === 'teacher') {
+                document.getElementById('panel-teacher').classList.add('active');
+            }
+
+            const modal = document.getElementById('dashboardModal');
+            modal.style.display = 'flex';
+            setTimeout(() => { modal.classList.add('show'); }, 10);
+        }
+
+        // Đóng Popup chung
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
             modal.classList.remove('show');
             setTimeout(() => { modal.style.display = 'none'; }, 300);
         }
 
-        window.onclick = function(event) { if (event.target == modal) closeModal(); }
+        window.onclick = function(event) { 
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.classList.remove('show');
+                setTimeout(() => { event.target.style.display = 'none'; }, 300);
+            }
+        }
 
+        // Reveal Animation
         document.addEventListener("DOMContentLoaded", function() {
             const observer = new IntersectionObserver((entries, observer) => {
                 entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('active');
-                        observer.unobserve(entry.target);
-                    }
+                    if (entry.isIntersecting) { entry.target.classList.add('active'); observer.unobserve(entry.target); }
                 });
             }, { threshold: 0.15 });
             document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
