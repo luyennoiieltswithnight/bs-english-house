@@ -116,6 +116,7 @@
   .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
   .type-select { width: 220px; }
   .publish-panel { background: #fbfaf6; border: 1px dashed var(--border); border-radius: 10px; padding: 20px; margin-top: 20px; }
+  .pat-help { background: #eef4ff; border: 1px solid #b9d1f5; border-radius: 8px; padding: 14px 16px; font-size: 13px; line-height: 1.7; margin-bottom: 16px; color: #1f3a5f; }
   .path-preview { font-family: monospace; font-size: 12.5px; background: #2b2b2b; color: #dcdcaa; padding: 10px 14px; border-radius: 6px; margin: 10px 0; line-height: 1.8; }
   .publish-log { font-family: monospace; font-size: 12.5px; white-space: pre-wrap; background: #111; color: #9ef29e; padding: 12px 14px; border-radius: 6px; max-height: 220px; overflow-y: auto; margin-top: 10px; }
   .checkbox-line { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-top: 8px; }
@@ -202,17 +203,28 @@
 
       <div class="publish-panel">
         <h3 style="margin-top:0;">🚀 Xuất lên web (GitHub Pages)</h3>
-        <p class="hint">Công cụ gọi thẳng GitHub API từ trình duyệt của bạn để tạo/cập nhật file. Token chỉ được lưu trong trình duyệt này (localStorage), không gửi đi đâu khác ngoài api.github.com.</p>
+        <p class="hint">Công cụ gọi thẳng GitHub API từ trình duyệt của bạn để tạo/cập nhật file — không qua máy chủ nào khác. Token chỉ lưu trong trình duyệt này (localStorage), không gửi đi đâu ngoài api.github.com.</p>
+
+        <div class="pat-help">
+          <b>Personal Access Token (PAT) là gì?</b> Đây là một "mật khẩu riêng" GitHub cấp để cho phép công cụ này ghi file vào đúng 1 repo của bạn, thay vì dùng mật khẩu GitHub thật (an toàn hơn, có thể thu hồi bất cứ lúc nào).
+          <br><b>Vì sao không điền sẵn token vào code luôn?</b> Vì trang này (và mọi file trên GitHub Pages) là <b>công khai</b> — ai xem "View Source" cũng đọc được. Nếu gắn token thẳng vào code, bất kỳ ai cũng có thể lấy trộm token đó và ghi/xoá bất cứ gì trong repo của bạn. Token chỉ nên nằm trong trình duyệt của riêng bạn.
+          <br><b>Tin vui:</b> chỉ cần nhập <u>một lần duy nhất</u> — tick ô "Lưu lại" bên dưới (mặc định đã tick sẵn), lần sau mở tool lên là tự điền, không phải gõ lại.
+          <div style="margin-top:8px;">
+            <button class="btn btn-sm" id="create-token-btn" type="button">🔑 Tạo Token mới trên GitHub</button>
+            <span class="hint" style="display:inline-block; margin-left:6px;">Chọn quyền "repo" (hoặc với Fine-grained token: "Contents: Read and write" cho đúng repo bs-english-house) rồi copy token dán vào ô dưới.</span>
+          </div>
+        </div>
+
         <div class="row">
           <div class="field"><label>GitHub Owner</label><input type="text" id="gh-owner" value="luyennoiieltswithnight"></div>
           <div class="field"><label>Repo</label><input type="text" id="gh-repo" value="bs-english-house"></div>
           <div class="field"><label>Branch</label><input type="text" id="gh-branch" value="main"></div>
         </div>
         <div class="field">
-          <label>Personal Access Token (cần quyền "repo" hoặc "Contents: Read and write")</label>
-          <input type="text" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+          <label>Personal Access Token</label>
+          <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
           <div class="checkbox-line">
-            <input type="checkbox" id="gh-remember"> <label for="gh-remember" style="margin:0;">Lưu Owner/Repo/Token vào trình duyệt này cho lần sau</label>
+            <input type="checkbox" id="gh-remember" checked> <label for="gh-remember" style="margin:0;">🔒 Lưu Owner/Repo/Token vào trình duyệt này (chỉ máy bạn) cho lần sau</label>
           </div>
         </div>
         <div id="path-preview-slot"></div>
@@ -680,17 +692,25 @@ const ghRememberEl = document.getElementById('gh-remember');
   } catch (e) {}
 })();
 
+document.getElementById('create-token-btn').addEventListener('click', () => {
+  const owner = ghOwnerEl.value.trim() || 'luyennoiieltswithnight';
+  const repo = ghRepoEl.value.trim() || 'bs-english-house';
+  const url = `https://github.com/settings/tokens/new?scopes=repo&description=${encodeURIComponent('Night IELTS Test Builder (' + owner + '/' + repo + ')')}`;
+  window.open(url, '_blank');
+});
+
+// Path/key convention mirrors the site's own generateTestLinks() in index.html:
+// prefix is exactly 'cam' or 'real', book/test are plain numbers — this lets
+// index.html look up reading/manifest.json with zero translation needed.
 function currentTestPaths() {
   const meta = testState.meta;
-  const sourceSlug = meta.source === 'cambridge' ? 'cambridge' : 'real-ielts';
-  const bookSlug = 'cam-' + slug(meta.book);
-  const bookKey = meta.source === 'cambridge' ? bookSlug : slug(meta.book);
-  const testSlug = 'test-' + slug(meta.testNum);
+  const prefix = meta.source === 'cambridge' ? 'cam' : 'real';
+  const book = slug(meta.book).replace(/-/g, '') || 'x';
+  const testNum = slug(meta.testNum).replace(/-/g, '') || 'x';
   return {
-    sourceSlug, bookKey, testSlug,
-    testPath: `reading/${sourceSlug}/${bookKey}/${testSlug}.html`,
-    manifestPath: 'reading/manifest.json',
-    hubPath: 'reading/index.html'
+    prefix, book, testNum,
+    testPath: `reading/${prefix}${book}/test${testNum}.html`,
+    manifestPath: 'reading/manifest.json'
   };
 }
 
@@ -699,7 +719,7 @@ function refreshPathPreview() {
   const slot = document.getElementById('path-preview-slot');
   slot.innerHTML = '';
   const box = el('div', { class: 'path-preview' }, [
-    `📄 ${paths.testPath}` , el('br'), `📋 ${paths.manifestPath} (cập nhật)`, el('br'), `📖 ${paths.hubPath} (tự tạo lại)`
+    `📄 ${paths.testPath}`, el('br'), `📋 ${paths.manifestPath} (cập nhật — trang chủ đọc file này để tự hiện link Test trong menu Reading)`
   ]);
   slot.appendChild(box);
 }
@@ -745,124 +765,6 @@ async function ghPutFile(owner, repo, path, token, branch, contentUtf8, message,
   return res.json();
 }
 
-function buildHubHTML(manifest) {
-  const manifestJson = JSON.stringify(manifest);
-  return `<!DOCTYPE html>
-<html lang="vi">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Night IELTS — Reading</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-  :root { --bg:#729a65; --panel:#f9f5e8; --border:#2c3e2d; --accent:#e8b93b; }
-  * { box-sizing: border-box; }
-  body {
-    margin:0; min-height:100vh; font-family:'Inter',sans-serif;
-    background: var(--bg);
-    background-image: linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px);
-    background-size: 20px 20px;
-    display:flex; align-items:center; justify-content:center; padding:30px;
-  }
-  .hub {
-    background: var(--panel); border:2px solid var(--border); border-radius:16px;
-    max-width:820px; width:100%; padding:36px; box-shadow:0 10px 25px rgba(0,0,0,0.2);
-  }
-  h1 { text-align:center; margin-top:0; }
-  .crumbs { text-align:center; margin-bottom:24px; color:#555; font-size:14px; }
-  .crumbs span { cursor:pointer; text-decoration:underline; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:14px; }
-  .card-btn {
-    background:white; border:2px solid var(--border); border-radius:10px; padding:18px;
-    text-align:center; cursor:pointer; font-weight:700; transition:transform .15s;
-    text-decoration:none; color:#222; display:block;
-  }
-  .card-btn:hover { transform:translateY(-2px); background:#fff8e1; }
-  .step { display:none; }
-  .step.active { display:block; }
-  .back-btn { background:none; border:none; color:#1a73e8; cursor:pointer; font-weight:700; margin-bottom:16px; font-size:14px; }
-  .empty { text-align:center; color:#888; padding:30px 0; }
-</style>
-</head>
-<body>
-<div class="hub">
-  <h1>📖 Night IELTS — Reading</h1>
-  <div class="crumbs" id="crumbs"></div>
-
-  <div class="step active" id="step-source">
-    <div class="grid">
-      <div class="card-btn" onclick="goSource('cambridge')">📚 Cambridge</div>
-      <div class="card-btn" onclick="goSource('real-ielts')">🎯 Real IELTS</div>
-    </div>
-  </div>
-
-  <div class="step" id="step-book">
-    <button class="back-btn" onclick="goSourceBack()">← Quay lại</button>
-    <div class="grid" id="book-grid"></div>
-  </div>
-
-  <div class="step" id="step-test">
-    <button class="back-btn" onclick="goBookBack()">← Quay lại</button>
-    <div class="grid" id="test-grid"></div>
-  </div>
-</div>
-
-<script>
-const manifest = ${manifestJson};
-let curSource = null, curBook = null;
-
-function showStep(id) {
-  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-function updateCrumbs() {
-  const parts = ['Reading'];
-  if (curSource) parts.push(curSource === 'cambridge' ? 'Cambridge' : 'Real IELTS');
-  if (curBook && manifest[curSource] && manifest[curSource][curBook]) parts.push(manifest[curSource][curBook].bookLabel);
-  document.getElementById('crumbs').textContent = parts.join(' › ');
-}
-function goSource(src) {
-  curSource = src; curBook = null;
-  const books = manifest[src] || {};
-  const grid = document.getElementById('book-grid');
-  grid.innerHTML = '';
-  const keys = Object.keys(books);
-  if (keys.length === 0) { grid.innerHTML = '<div class="empty">Chưa có đề nào được xuất bản cho mục này.</div>'; }
-  keys.sort().forEach(k => {
-    const b = books[k];
-    const btn = document.createElement('div');
-    btn.className = 'card-btn';
-    btn.textContent = b.bookLabel;
-    btn.onclick = () => goBook(k);
-    grid.appendChild(btn);
-  });
-  showStep('step-book');
-  updateCrumbs();
-}
-function goBook(bookKey) {
-  curBook = bookKey;
-  const tests = (manifest[curSource][bookKey] || {}).tests || [];
-  const grid = document.getElementById('test-grid');
-  grid.innerHTML = '';
-  if (tests.length === 0) { grid.innerHTML = '<div class="empty">Chưa có test nào.</div>'; }
-  tests.slice().sort((a,b) => a.label.localeCompare(b.label, undefined, {numeric:true})).forEach(t => {
-    const a = document.createElement('a');
-    a.className = 'card-btn';
-    a.href = t.path;
-    a.textContent = t.label;
-    grid.appendChild(a);
-  });
-  showStep('step-test');
-  updateCrumbs();
-}
-function goSourceBack() { showStep('step-source'); curSource = null; curBook = null; updateCrumbs(); }
-function goBookBack() { showStep('step-book'); curBook = null; updateCrumbs(); }
-updateCrumbs();
-<\/script>
-</body>
-</html>`;
-}
-
 document.getElementById('publish-btn').addEventListener('click', async () => {
   const owner = ghOwnerEl.value.trim();
   const repo = ghRepoEl.value.trim();
@@ -892,40 +794,27 @@ document.getElementById('publish-btn').addEventListener('click', async () => {
   try {
     logPublish('⏳ Đang kiểm tra manifest hiện tại...');
     const manifestFile = await ghGetFile(owner, repo, paths.manifestPath, token, branch);
-    let manifest = { cambridge: {}, 'real-ielts': {} };
+    let manifest = { reading: { cam: {}, real: {} } };
     if (manifestFile) {
       manifest = JSON.parse(b64ToUtf8(manifestFile.content));
+      if (!manifest.reading) manifest.reading = {};
+      if (!manifest.reading.cam) manifest.reading.cam = {};
+      if (!manifest.reading.real) manifest.reading.real = {};
     }
-    if (!manifest[paths.sourceSlug]) manifest[paths.sourceSlug] = {};
-    if (!manifest[paths.sourceSlug][paths.bookKey]) {
-      manifest[paths.sourceSlug][paths.bookKey] = {
-        bookLabel: testState.meta.source === 'cambridge' ? `Cambridge ${testState.meta.book}` : `Real IELTS ${testState.meta.book}`,
-        tests: []
-      };
-    }
-    const bookEntry = manifest[paths.sourceSlug][paths.bookKey];
-    const testLabel = `Test ${testState.meta.testNum}`;
-    const testEntry = { slug: paths.testSlug, label: testLabel, path: paths.testPath, title: build.title };
-    const existingIdx = bookEntry.tests.findIndex(t => t.slug === paths.testSlug);
-    if (existingIdx >= 0) bookEntry.tests[existingIdx] = testEntry; else bookEntry.tests.push(testEntry);
+    if (!manifest.reading[paths.prefix][paths.book]) manifest.reading[paths.prefix][paths.book] = {};
+    manifest.reading[paths.prefix][paths.book][paths.testNum] = paths.testPath;
 
     logPublish(`⏳ Đang tải lên ${paths.testPath} ...`);
     const existingTestFile = await ghGetFile(owner, repo, paths.testPath, token, branch);
     await ghPutFile(owner, repo, paths.testPath, token, branch, build.html, `Add/update ${build.title}`, existingTestFile ? existingTestFile.sha : null);
 
-    logPublish('⏳ Đang cập nhật manifest.json ...');
+    logPublish('⏳ Đang cập nhật manifest.json (trang chủ dùng file này để tự hiện link Test) ...');
     await ghPutFile(owner, repo, paths.manifestPath, token, branch, JSON.stringify(manifest, null, 2), `Update reading manifest for ${build.title}`, manifestFile ? manifestFile.sha : null);
 
-    logPublish('⏳ Đang cập nhật trang Reading Hub (reading/index.html) ...');
-    const hubHtml = buildHubHTML(manifest);
-    const existingHub = await ghGetFile(owner, repo, paths.hubPath, token, branch);
-    await ghPutFile(owner, repo, paths.hubPath, token, branch, hubHtml, 'Update reading hub', existingHub ? existingHub.sha : null);
-
     const liveUrl = `https://${owner}.github.io/${repo}/${paths.testPath}`;
-    const hubUrl = `https://${owner}.github.io/${repo}/${paths.hubPath}`;
     const slot = document.getElementById('publish-log-slot');
     slot.innerHTML = '';
-    slot.appendChild(el('div', { class: 'ok-box' }, [`✅ Xuất bản thành công!\n\n📄 Bài test: ${liveUrl}\n📖 Trang Reading Hub: ${hubUrl}\n\n(GitHub Pages có thể mất 1-2 phút để cập nhật)`]));
+    slot.appendChild(el('div', { class: 'ok-box' }, [`✅ Xuất bản thành công!\n\n📄 Bài test: ${liveUrl}\n\nVào lại trang chủ, mục Reading → ${testState.meta.source === 'cambridge' ? 'Bộ Cambridge' : 'Real IELTS'} → Cambridge ${testState.meta.book}/Real IELTS ${testState.meta.book} → Test ${testState.meta.testNum} sẽ tự bấm được (F5 lại trang nếu chưa thấy, GitHub Pages có thể mất 1-2 phút để cập nhật).`]));
   } catch (err) {
     const slot = document.getElementById('publish-log-slot');
     slot.innerHTML = '';
