@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B's English House - Học thuật & Tương tác</title>
     
+    <!-- FAVICON (Ảnh Mèo trên Tab trình duyệt) -->
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/luyennoiieltswithnight/bs-english-house/main/4EDC5E88-8FD2-42F4-B86B-F248A692A37A.PNG">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
@@ -93,7 +96,7 @@
         }
         .cta-btn:hover { background: var(--dark-green); color: white; transform: translateY(-3px); }
 
-        /* === MÈO X1.5 === */
+        /* === MÈO (Mặc định cho Desktop) === */
         .mascot-wrapper { 
             position: absolute; 
             bottom: -30px; 
@@ -102,6 +105,7 @@
             height: 675px; 
             z-index: 10;
             pointer-events: none; 
+            transition: all 0.3s ease;
         }
 
         .mascot-cat {
@@ -112,10 +116,7 @@
             filter: drop-shadow(0 15px 15px rgba(0,0,0,0.3)); 
         }
 
-        .cat-blink {
-            opacity: 0; 
-            transition: opacity 0.1s ease; 
-        }
+        .cat-blink { opacity: 0; transition: opacity 0.1s ease; }
 
         /* --- SKILLS SECTION --- */
         .skills-section { padding: 100px 20px; text-align: center; }
@@ -190,39 +191,72 @@
         details > summary { list-style: none; outline: none; }
         details > summary::-webkit-details-marker { display: none; }
         
-        /* Nhóm lớn (VD: Cambridge, Real IELTS) */
         .course-group { margin-bottom: 20px; border: 3px solid #111; border-radius: 16px; background: #fff; overflow: hidden; box-shadow: 4px 4px 0px #111; }
         .course-group > summary { padding: 16px 20px; font-weight: 900; font-size: 18px; cursor: pointer; background: #f4f7f6; display: flex; justify-content: space-between; align-items: center; color: var(--dark-green); }
         .course-group > summary::after { content: '▼'; font-size: 14px; transition: transform 0.3s; }
         .course-group[open] > summary::after { transform: rotate(180deg); }
-        
         .course-items { padding: 15px; display: flex; flex-direction: column; gap: 12px; background: #fff; border-top: 3px solid #111; }
         
-        /* Nhóm nhỏ (VD: Cam 10, Cam 11) */
         .book-group { border: 2px solid #ccc; border-radius: 12px; overflow: hidden; transition: 0.3s;}
         .book-group[open] { border-color: var(--hero-bg); box-shadow: 0 0 0 2px rgba(122,144,81,0.2); }
         .book-group > summary { padding: 12px 16px; font-weight: 700; font-size: 16px; cursor: pointer; background: #fafafa; display: flex; justify-content: space-between; align-items: center; }
         .book-group > summary::after { content: '+'; font-size: 22px; font-weight: bold; transition: transform 0.3s; color: var(--hero-bg); }
         .book-group[open] > summary::after { content: '−'; }
         
-        /* Chứa các bài Test */
         .test-links { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; background: #fff; border-top: 2px solid #ccc; }
-        
-        /* Nút Test */
         .test-link-item { 
             padding: 10px 5px; background: #fff; border-radius: 8px; text-align: center; 
             text-decoration: none; color: var(--text-dark); font-weight: 800; font-size: 14px; 
             transition: 0.2s; border: 2px solid #111; box-shadow: 2px 2px 0px #111; 
         }
-        .test-link-item:hover { 
-            background: var(--hero-bg); color: white; transform: translateY(-2px); box-shadow: 4px 4px 0px #111; 
-        }
+        .test-link-item:hover { background: var(--hero-bg); color: white; transform: translateY(-2px); box-shadow: 4px 4px 0px #111; }
 
-        /* Ẩn hiện các khối kỹ năng */
         .skill-content { display: none; }
         .skill-content.active { display: block; }
         .reveal { opacity: 0; transform: translateY(60px); transition: all 1s cubic-bezier(0.16, 1, 0.3, 1); }
         .reveal.active { opacity: 1; transform: translateY(0); }
+
+        /* ======================================================= */
+        /* RESPONSIVE CHO IPAD & ĐIỆN THOẠI                        */
+        /* ======================================================= */
+        
+        /* Cho iPad (Tablet) */
+        @media (max-width: 1024px) {
+            .hero-content h1 { font-size: 65px; }
+            .mascot-wrapper { width: 500px; height: 500px; right: -10%; }
+            .hero { padding: 0 5%; }
+        }
+
+        /* Cho Điện thoại (Mobile) */
+        @media (max-width: 768px) {
+            nav { padding: 15px 20px; flex-direction: column; gap: 10px; }
+            .logo { font-size: 22px; }
+            
+            .hero {
+                align-items: flex-start; 
+                justify-content: center;
+                padding: 150px 20px 0; /* Cách một khoảng trên cùng cho Header */
+            }
+            .hero-content {
+                text-align: center; /* Căn giữa chữ */
+                margin-bottom: 300px; /* Chừa một khoảng trống cực lớn bên dưới để nhét con mèo vào */
+            }
+            .hero-content h1 { font-size: 48px; line-height: 1.2; }
+            .hero-content h2 { font-size: 20px; }
+            
+            .mascot-wrapper {
+                width: 380px; 
+                height: 380px;
+                right: 50%; /* Ép con mèo ra giữa */
+                transform: translateX(50%); /* Cân bằng chuẩn giữa màn hình */
+                bottom: -20px;
+            }
+
+            .test-links { grid-template-columns: repeat(2, 1fr); } /* Bài test xếp thành 2 cột trên đt */
+            .cards-container { gap: 15px; }
+            .card { width: 100%; height: auto; }
+            .modal-box { width: 95%; padding: 20px; }
+        }
     </style>
 </head>
 <body>
@@ -296,61 +330,31 @@
                 <h2 id="modalTitle" class="brand-font">Tiêu đề kỹ năng</h2>
             </div>
 
-            <!-- ============================================== -->
-            <!-- 1. KHO LINK CHO LISTENING                      -->
-            <!-- ============================================== -->
+            <!-- 1. KHO LINK CHO LISTENING -->
             <div id="content-listening" class="skill-content">
-                
-                <!-- BỘ CAMBRIDGE LISTENING -->
                 <details class="course-group">
                     <summary>📚 Bộ Cambridge IELTS (10 - 20)</summary>
-                    <div class="course-items">
-                        
-                        <!-- Tạo thẻ cho Cam 10 đến Cam 20 bằng JS tự động bên dưới để code không bị quá dài -->
-                        <div id="cambridge-listening-container"></div>
-                        
-                    </div>
+                    <div class="course-items"><div id="cambridge-listening-container"></div></div>
                 </details>
-
-                <!-- BỘ REAL IELTS LISTENING -->
                 <details class="course-group">
                     <summary>🎯 Bộ Real IELTS (8 - 15)</summary>
-                    <div class="course-items">
-                        
-                        <!-- Tạo thẻ cho Real 8 đến 15 -->
-                        <div id="real-listening-container"></div>
-
-                    </div>
+                    <div class="course-items"><div id="real-listening-container"></div></div>
                 </details>
-
             </div>
 
-            <!-- ============================================== -->
-            <!-- 2. KHO LINK CHO READING                        -->
-            <!-- ============================================== -->
+            <!-- 2. KHO LINK CHO READING -->
             <div id="content-reading" class="skill-content">
-                
-                <!-- BỘ CAMBRIDGE READING -->
                 <details class="course-group">
                     <summary>📚 Bộ Cambridge IELTS (10 - 20)</summary>
-                    <div class="course-items">
-                        <div id="cambridge-reading-container"></div>
-                    </div>
+                    <div class="course-items"><div id="cambridge-reading-container"></div></div>
                 </details>
-
-                <!-- BỘ REAL IELTS READING -->
                 <details class="course-group">
                     <summary>🎯 Bộ Real IELTS (8 - 15)</summary>
-                    <div class="course-items">
-                        <div id="real-reading-container"></div>
-                    </div>
+                    <div class="course-items"><div id="real-reading-container"></div></div>
                 </details>
-
             </div>
 
-            <!-- ============================================== -->
-            <!-- 3. KHO LINK CHO SPEAKING (Mẫu)                 -->
-            <!-- ============================================== -->
+            <!-- 3. KHO LINK CHO SPEAKING -->
             <div id="content-speaking" class="skill-content">
                 <details class="course-group">
                     <summary>🗣️ Speaking Forecast 2024</summary>
@@ -363,9 +367,7 @@
                 </details>
             </div>
 
-            <!-- ============================================== -->
-            <!-- 4. KHO LINK CHO WRITING (Mẫu)                  -->
-            <!-- ============================================== -->
+            <!-- 4. KHO LINK CHO WRITING -->
             <div id="content-writing" class="skill-content">
                 <details class="course-group">
                     <summary>✍️ Writing Task 1 & 2</summary>
@@ -383,15 +385,10 @@
 
     <!-- JAVASCRIPT -->
     <script>
-        // =================================================================================
-        // HÀM TẠO SẴN LINK CHO CAMBRIDGE (10-20) VÀ REAL IELTS (8-15) ĐỂ BẠN DỄ THAY THẾ
-        // =================================================================================
         function generateTestLinks(prefix, start, end, skill) {
             let html = '';
             for (let i = start; i <= end; i++) {
-                // Tên bộ sách, VD: Cambridge 10
                 let bookName = prefix === 'cam' ? `📘 Cambridge ${i}` : `📕 Real IELTS ${i}`;
-                
                 html += `
                 <details class="book-group">
                     <summary>${bookName}</summary>
@@ -401,26 +398,18 @@
                         <a href="nhap_link_${skill}_${prefix}${i}_test3" class="test-link-item">Test 3</a>
                         <a href="nhap_link_${skill}_${prefix}${i}_test4" class="test-link-item">Test 4</a>
                     </div>
-                </details>
-                `;
+                </details>`;
             }
             return html;
         }
 
-        // Tự động chèn đống code HTML đã tạo vào đúng vị trí trong Web
         document.addEventListener("DOMContentLoaded", function() {
-            // Cho LISTENING
             document.getElementById('cambridge-listening-container').innerHTML = generateTestLinks('cam', 10, 20, 'listening');
             document.getElementById('real-listening-container').innerHTML = generateTestLinks('real', 8, 15, 'listening');
-            
-            // Cho READING
             document.getElementById('cambridge-reading-container').innerHTML = generateTestLinks('cam', 10, 20, 'reading');
             document.getElementById('real-reading-container').innerHTML = generateTestLinks('real', 8, 15, 'reading');
         });
 
-        // ==========================================
-        // CÁC CHỨC NĂNG KHÁC (Scroll chớp mắt, Auth, Popup)
-        // ==========================================
         const catBlink = document.getElementById('catBlinkImg');
         let lastScrollValue = window.scrollY;
         
