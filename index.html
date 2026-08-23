@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B's English House - Học thuật & Tương tác</title>
     
-    <!-- Tích hợp Phông chữ mới từ Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
@@ -99,7 +98,7 @@
             position: absolute; 
             bottom: -30px; 
             right: 0%; 
-            width: 675px; /* Giảm lại thành X1.5 */
+            width: 675px; 
             height: 675px; 
             z-index: 10;
             pointer-events: none; 
@@ -143,7 +142,7 @@
         .card-speaking { background-color: var(--card-speak); }
         .card-writing { background-color: var(--card-write); }
 
-        /* --- FOOTER MỚI --- */
+        /* --- FOOTER --- */
         footer {
             background-color: var(--dark-green);
             color: white;
@@ -165,12 +164,9 @@
         .footer-col { flex: 1; min-width: 250px; }
         .footer-col h3 { font-size: 24px; margin-bottom: 20px; color: #F4B036; }
         .footer-col p { font-size: 15px; line-height: 1.8; opacity: 0.9; margin-bottom: 10px; font-weight: 500;}
-        
-        .footer-bottom {
-            text-align: center; padding-top: 20px; font-size: 14px; opacity: 0.7; font-weight: 600;
-        }
+        .footer-bottom { text-align: center; padding-top: 20px; font-size: 14px; opacity: 0.7; font-weight: 600; }
 
-        /* --- MODAL (POPUP CỦA TỪNG KỸ NĂNG) --- */
+        /* --- MODAL (POPUP) --- */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); z-index: 999;
@@ -179,10 +175,10 @@
         .modal-overlay.show { display: flex; opacity: 1; }
         
         .modal-box {
-            background: white; width: 90%; max-width: 550px; border-radius: 24px;
+            background: white; width: 90%; max-width: 650px; border-radius: 24px;
             padding: 40px; position: relative; transform: translateY(50px);
             transition: transform 0.3s ease; border: 4px solid #111; box-shadow: 8px 8px 0px #111;
-            max-height: 80vh; overflow-y: auto;
+            max-height: 85vh; overflow-y: auto;
         }
         .modal-overlay.show .modal-box { transform: translateY(0); }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 32px; font-weight: bold; cursor: pointer; color: #888; transition: 0.2s;}
@@ -190,21 +186,41 @@
         
         .modal-header h2 { font-size: 32px; color: var(--dark-green); margin-bottom: 25px; border-bottom: 2px dashed #ccc; padding-bottom: 15px;}
 
-        /* Bố cục Link trong Modal */
-        .link-group { display: flex; flex-direction: column; gap: 15px; }
-        .link-item {
-            padding: 16px 20px; border: 2px solid #111; border-radius: 12px;
-            background: #fff; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s;
-            display: flex; justify-content: space-between; align-items: center; text-decoration: none; color: var(--text-dark);
+        /* --- GIAO DIỆN ACCORDION (THƯ MỤC XỔ XUỐNG) --- */
+        details > summary { list-style: none; outline: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        
+        /* Nhóm lớn (VD: Cambridge, Real IELTS) */
+        .course-group { margin-bottom: 20px; border: 3px solid #111; border-radius: 16px; background: #fff; overflow: hidden; box-shadow: 4px 4px 0px #111; }
+        .course-group > summary { padding: 16px 20px; font-weight: 900; font-size: 18px; cursor: pointer; background: #f4f7f6; display: flex; justify-content: space-between; align-items: center; color: var(--dark-green); }
+        .course-group > summary::after { content: '▼'; font-size: 14px; transition: transform 0.3s; }
+        .course-group[open] > summary::after { transform: rotate(180deg); }
+        
+        .course-items { padding: 15px; display: flex; flex-direction: column; gap: 12px; background: #fff; border-top: 3px solid #111; }
+        
+        /* Nhóm nhỏ (VD: Cam 10, Cam 11) */
+        .book-group { border: 2px solid #ccc; border-radius: 12px; overflow: hidden; transition: 0.3s;}
+        .book-group[open] { border-color: var(--hero-bg); box-shadow: 0 0 0 2px rgba(122,144,81,0.2); }
+        .book-group > summary { padding: 12px 16px; font-weight: 700; font-size: 16px; cursor: pointer; background: #fafafa; display: flex; justify-content: space-between; align-items: center; }
+        .book-group > summary::after { content: '+'; font-size: 22px; font-weight: bold; transition: transform 0.3s; color: var(--hero-bg); }
+        .book-group[open] > summary::after { content: '−'; }
+        
+        /* Chứa các bài Test */
+        .test-links { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; background: #fff; border-top: 2px solid #ccc; }
+        
+        /* Nút Test */
+        .test-link-item { 
+            padding: 10px 5px; background: #fff; border-radius: 8px; text-align: center; 
+            text-decoration: none; color: var(--text-dark); font-weight: 800; font-size: 14px; 
+            transition: 0.2s; border: 2px solid #111; box-shadow: 2px 2px 0px #111; 
         }
-        .link-item:hover { background: #f4f7f6; transform: translateX(5px); border-color: var(--hero-bg); }
-        .link-tag { font-size: 12px; padding: 4px 10px; background: #eee; border-radius: 20px; color: #555;}
+        .test-link-item:hover { 
+            background: var(--hero-bg); color: white; transform: translateY(-2px); box-shadow: 4px 4px 0px #111; 
+        }
 
         /* Ẩn hiện các khối kỹ năng */
         .skill-content { display: none; }
         .skill-content.active { display: block; }
-
-        /* Animations */
         .reveal { opacity: 0; transform: translateY(60px); transition: all 1s cubic-bezier(0.16, 1, 0.3, 1); }
         .reveal.active { opacity: 1; transform: translateY(0); }
     </style>
@@ -214,14 +230,11 @@
     <!-- Header -->
     <nav>
         <div class="logo brand-font">🐾 B's English House</div>
-        <a href="login.html" class="btn-google" id="mainLoginBtn">
-            Đăng nhập bằng Google
-        </a>
+        <a href="login.html" class="btn-google" id="mainLoginBtn">Đăng nhập bằng Google</a>
     </nav>
 
     <!-- Hero Section -->
     <section class="hero reveal">
-        <!-- Khối chứa chữ được căn trái -->
         <div class="hero-content">
             <h2>Premium Preparation Platform</h2>
             <h1 class="brand-font">B's English House</h1>
@@ -229,12 +242,8 @@
             <button onclick="checkAuthAndScroll()" class="cta-btn">Bắt đầu khóa học ➔</button>
         </div>
         
-        <!-- BỌC 2 ẢNH VÀO 1 GROUP -->
         <div class="mascot-wrapper">
-            <!-- ẢNH MỞ MẮT -->
             <img class="mascot-cat" src="https://raw.githubusercontent.com/luyennoiieltswithnight/bs-english-house/main/4EDC5E88-8FD2-42F4-B86B-F248A692A37A.PNG" alt="Mèo mở mắt">
-            
-            <!-- ẢNH NHẮM MẮT -->
             <img class="mascot-cat cat-blink" id="catBlinkImg" src="https://raw.githubusercontent.com/luyennoiieltswithnight/bs-english-house/main/F1566185-4DE5-4D10-9C3E-7F15B6C8A6F7.PNG" alt="Mèo nhắm mắt">
         </div>
     </section>
@@ -262,7 +271,7 @@
         </div>
     </section>
 
-    <!-- Footer Mới -->
+    <!-- Footer -->
     <footer>
         <div class="footer-content">
             <div class="footer-col">
@@ -276,14 +285,10 @@
                 <p>✉️ bsenglishhouse@edu.vn</p>
             </div>
         </div>
-        <div class="footer-bottom">
-            &copy; 2024 B's English House. All rights reserved.
-        </div>
+        <div class="footer-bottom">&copy; 2024 B's English House. All rights reserved.</div>
     </footer>
 
-    <!-- ========================================== -->
-    <!-- KHU VỰC CHỨA CÁC LINK RIÊNG BIỆT CHO 4 KỸ NĂNG -->
-    <!-- ========================================== -->
+    <!-- POPUP MODAL CHỨA LINK -->
     <div id="courseModal" class="modal-overlay">
         <div class="modal-box">
             <span class="close-btn" onclick="closeModal()">&times;</span>
@@ -291,77 +296,143 @@
                 <h2 id="modalTitle" class="brand-font">Tiêu đề kỹ năng</h2>
             </div>
 
-            <!-- CODE DÀNH RIÊNG CHO LISTENING -->
-            <div id="content-listening" class="skill-content link-group">
-                <a href="link-cambridge-18.html" class="link-item">
-                    <span>Cambridge IELTS 18</span> <span class="link-tag">IELTS</span>
-                </a>
-                <a href="link-ets-2024.html" class="link-item">
-                    <span>ETS TOEIC LC 2024</span> <span class="link-tag">TOEIC</span>
-                </a>
-                <a href="#" class="link-item">
-                    <span>Luyện Nghe Chép Chính Tả</span> <span class="link-tag">Basic</span>
-                </a>
+            <!-- ============================================== -->
+            <!-- 1. KHO LINK CHO LISTENING                      -->
+            <!-- ============================================== -->
+            <div id="content-listening" class="skill-content">
+                
+                <!-- BỘ CAMBRIDGE LISTENING -->
+                <details class="course-group">
+                    <summary>📚 Bộ Cambridge IELTS (10 - 20)</summary>
+                    <div class="course-items">
+                        
+                        <!-- Tạo thẻ cho Cam 10 đến Cam 20 bằng JS tự động bên dưới để code không bị quá dài -->
+                        <div id="cambridge-listening-container"></div>
+                        
+                    </div>
+                </details>
+
+                <!-- BỘ REAL IELTS LISTENING -->
+                <details class="course-group">
+                    <summary>🎯 Bộ Real IELTS (8 - 15)</summary>
+                    <div class="course-items">
+                        
+                        <!-- Tạo thẻ cho Real 8 đến 15 -->
+                        <div id="real-listening-container"></div>
+
+                    </div>
+                </details>
+
             </div>
 
-            <!-- CODE DÀNH RIÊNG CHO READING -->
-            <div id="content-reading" class="skill-content link-group">
-                <a href="#" class="link-item">
-                    <span>Cambridge IELTS 15-18</span> <span class="link-tag">IELTS</span>
-                </a>
-                <a href="#" class="link-item">
-                    <span>Economy TOEIC RC</span> <span class="link-tag">TOEIC</span>
-                </a>
+            <!-- ============================================== -->
+            <!-- 2. KHO LINK CHO READING                        -->
+            <!-- ============================================== -->
+            <div id="content-reading" class="skill-content">
+                
+                <!-- BỘ CAMBRIDGE READING -->
+                <details class="course-group">
+                    <summary>📚 Bộ Cambridge IELTS (10 - 20)</summary>
+                    <div class="course-items">
+                        <div id="cambridge-reading-container"></div>
+                    </div>
+                </details>
+
+                <!-- BỘ REAL IELTS READING -->
+                <details class="course-group">
+                    <summary>🎯 Bộ Real IELTS (8 - 15)</summary>
+                    <div class="course-items">
+                        <div id="real-reading-container"></div>
+                    </div>
+                </details>
+
             </div>
 
-            <!-- CODE DÀNH RIÊNG CHO SPEAKING -->
-            <div id="content-speaking" class="skill-content link-group">
-                <a href="#" class="link-item">
-                    <span>Part 1: Forecast Quý 3/2024</span> <span class="link-tag">Mới</span>
-                </a>
-                <a href="#" class="link-item">
-                    <span>Mẫu câu giao tiếp công sở</span> <span class="link-tag">Giao tiếp</span>
-                </a>
+            <!-- ============================================== -->
+            <!-- 3. KHO LINK CHO SPEAKING (Mẫu)                 -->
+            <!-- ============================================== -->
+            <div id="content-speaking" class="skill-content">
+                <details class="course-group">
+                    <summary>🗣️ Speaking Forecast 2024</summary>
+                    <div class="course-items">
+                        <div class="book-group" style="padding: 15px;">
+                            <p style="font-weight: bold; margin-bottom: 10px;">Part 1 & Part 2</p>
+                            <a href="nhap_link_speaking_vao_day" class="test-link-item" style="display: block; width: 100%;">Tải bộ tài liệu Speaking ➔</a>
+                        </div>
+                    </div>
+                </details>
             </div>
 
-            <!-- CODE DÀNH RIÊNG CHO WRITING -->
-            <div id="content-writing" class="skill-content link-group">
-                <a href="#" class="link-item">
-                    <span>Task 1: Biểu đồ đường & Cột</span> <span class="link-tag">IELTS</span>
-                </a>
-                <a href="#" class="link-item">
-                    <span>Thư viện bài mẫu Band 7.0+</span> <span class="link-tag">Tham khảo</span>
-                </a>
+            <!-- ============================================== -->
+            <!-- 4. KHO LINK CHO WRITING (Mẫu)                  -->
+            <!-- ============================================== -->
+            <div id="content-writing" class="skill-content">
+                <details class="course-group">
+                    <summary>✍️ Writing Task 1 & 2</summary>
+                    <div class="course-items">
+                        <div class="book-group" style="padding: 15px;">
+                            <p style="font-weight: bold; margin-bottom: 10px;">Thư viện bài mẫu Band 7.0+</p>
+                            <a href="nhap_link_writing_vao_day" class="test-link-item" style="display: block; width: 100%;">Vào thư viện ➔</a>
+                        </div>
+                    </div>
+                </details>
             </div>
 
         </div>
     </div>
 
+    <!-- JAVASCRIPT -->
     <script>
+        // =================================================================================
+        // HÀM TẠO SẴN LINK CHO CAMBRIDGE (10-20) VÀ REAL IELTS (8-15) ĐỂ BẠN DỄ THAY THẾ
+        // =================================================================================
+        function generateTestLinks(prefix, start, end, skill) {
+            let html = '';
+            for (let i = start; i <= end; i++) {
+                // Tên bộ sách, VD: Cambridge 10
+                let bookName = prefix === 'cam' ? `📘 Cambridge ${i}` : `📕 Real IELTS ${i}`;
+                
+                html += `
+                <details class="book-group">
+                    <summary>${bookName}</summary>
+                    <div class="test-links">
+                        <a href="nhap_link_${skill}_${prefix}${i}_test1" class="test-link-item">Test 1</a>
+                        <a href="nhap_link_${skill}_${prefix}${i}_test2" class="test-link-item">Test 2</a>
+                        <a href="nhap_link_${skill}_${prefix}${i}_test3" class="test-link-item">Test 3</a>
+                        <a href="nhap_link_${skill}_${prefix}${i}_test4" class="test-link-item">Test 4</a>
+                    </div>
+                </details>
+                `;
+            }
+            return html;
+        }
+
+        // Tự động chèn đống code HTML đã tạo vào đúng vị trí trong Web
+        document.addEventListener("DOMContentLoaded", function() {
+            // Cho LISTENING
+            document.getElementById('cambridge-listening-container').innerHTML = generateTestLinks('cam', 10, 20, 'listening');
+            document.getElementById('real-listening-container').innerHTML = generateTestLinks('real', 8, 15, 'listening');
+            
+            // Cho READING
+            document.getElementById('cambridge-reading-container').innerHTML = generateTestLinks('cam', 10, 20, 'reading');
+            document.getElementById('real-reading-container').innerHTML = generateTestLinks('real', 8, 15, 'reading');
+        });
+
         // ==========================================
-        // 1. HIỆU ỨNG SCROLL ĐỂ MÈO CHỚP MẮT
+        // CÁC CHỨC NĂNG KHÁC (Scroll chớp mắt, Auth, Popup)
         // ==========================================
         const catBlink = document.getElementById('catBlinkImg');
         let lastScrollValue = window.scrollY;
         
         window.addEventListener('scroll', () => {
             const currentScroll = window.scrollY;
-            
-            // Cuộn 80px mèo chớp mắt
             if (Math.abs(currentScroll - lastScrollValue) > 80) { 
                 lastScrollValue = currentScroll;
-                
                 catBlink.style.opacity = '1';
-                
-                setTimeout(() => {
-                    catBlink.style.opacity = '0';
-                }, 150);
+                setTimeout(() => { catBlink.style.opacity = '0'; }, 150);
             }
         });
 
-        // ==========================================
-        // 2. KIỂM TRA ĐĂNG NHẬP VÀ CẬP NHẬT GIAO DIỆN
-        // ==========================================
         const userName = localStorage.getItem('userName');
         document.addEventListener("DOMContentLoaded", function() {
             if (userName) {
@@ -374,7 +445,6 @@
                 `;
                 loginBtn.href = "#"; 
                 
-                // Đăng xuất
                 loginBtn.onclick = function(e) {
                     e.preventDefault();
                     if(confirm("Bạn có muốn đăng xuất tài khoản?")) {
@@ -386,9 +456,8 @@
         });
 
         function checkAuth(callback) {
-            if (userName) {
-                callback(); 
-            } else {
+            if (userName) { callback(); } 
+            else {
                 alert("Bạn cần Đăng nhập bằng tài khoản học viên để truy cập tính năng này nhé!");
                 window.location.href = "login.html";
             }
@@ -432,9 +501,7 @@
             setTimeout(() => { modal.style.display = 'none'; }, 300);
         }
 
-        window.onclick = function(event) {
-            if (event.target == modal) closeModal();
-        }
+        window.onclick = function(event) { if (event.target == modal) closeModal(); }
 
         document.addEventListener("DOMContentLoaded", function() {
             const observer = new IntersectionObserver((entries, observer) => {
@@ -445,7 +512,6 @@
                     }
                 });
             }, { threshold: 0.15 });
-
             document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
         });
     </script>
