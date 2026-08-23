@@ -120,7 +120,7 @@
         /* Main Content Area */
         .main-container {
             display: flex;
-            gap: 20px;
+            gap: 0;
             flex: 1;
             min-height: 0;
             position: relative; /* For translation popup */
@@ -131,10 +131,35 @@
             border: 2px solid var(--border-color);
             border-radius: 12px;
             flex: 1;
+            min-width: 220px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Draggable resizer between the two panels */
+        .panel-resizer {
+            width: 18px;
+            flex-shrink: 0;
+            cursor: col-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+        }
+        .panel-resizer::after {
+            content: '';
+            width: 6px;
+            height: 56px;
+            border-radius: 6px;
+            background: rgba(44, 62, 45, 0.25);
+            transition: background 0.15s, height 0.15s;
+        }
+        .panel-resizer:hover::after,
+        .panel-resizer.dragging::after {
+            background: rgba(44, 62, 45, 0.55);
+            height: 80px;
         }
 
         .panel-content {
@@ -580,7 +605,7 @@
     <div class="main-container" id="main-workspace">
 
         <!-- LEFT PANEL: Reading Passage -->
-        <div class="panel">
+        <div class="panel" id="panel-passage">
             <div class="panel-content passage-text">
 
                 <!-- PASSAGE 1 -->
@@ -637,8 +662,11 @@
             </div>
         </div>
 
+        <!-- DRAGGABLE RESIZER -->
+        <div class="panel-resizer" id="panel-resizer"></div>
+
         <!-- RIGHT PANEL: Questions -->
-        <div class="panel">
+        <div class="panel" id="panel-questions">
             <div class="panel-content" id="questions-container">
                 <!-- JavaScript will inject questions here -->
             </div>
@@ -804,6 +832,47 @@
             if(qEl) qEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
+        // --- Draggable resizer between the passage panel and questions panel ---
+        (function initPanelResizer() {
+            const resizer = document.getElementById('panel-resizer');
+            const leftPanel = document.getElementById('panel-passage');
+            const container = document.getElementById('main-workspace');
+            if (!resizer || !leftPanel || !container) return;
+
+            let dragging = false;
+
+            function startDrag() {
+                dragging = true;
+                resizer.classList.add('dragging');
+                document.body.style.userSelect = 'none';
+            }
+            function doDrag(clientX) {
+                if (!dragging) return;
+                const rect = container.getBoundingClientRect();
+                let leftWidth = clientX - rect.left;
+                const min = 220;
+                const max = rect.width - 220 - resizer.offsetWidth;
+                leftWidth = Math.max(min, Math.min(max, leftWidth));
+                leftPanel.style.flex = 'none';
+                leftPanel.style.width = leftWidth + 'px';
+            }
+            function endDrag() {
+                dragging = false;
+                resizer.classList.remove('dragging');
+                document.body.style.userSelect = '';
+            }
+
+            resizer.addEventListener('mousedown', e => { startDrag(); e.preventDefault(); });
+            document.addEventListener('mousemove', e => doDrag(e.clientX));
+            document.addEventListener('mouseup', endDrag);
+
+            resizer.addEventListener('touchstart', () => { startDrag(); }, { passive: true });
+            document.addEventListener('touchmove', e => {
+                if (dragging) { doDrag(e.touches[0].clientX); e.preventDefault(); }
+            }, { passive: false });
+            document.addEventListener('touchend', endDrag);
+        })();
+
         function setupInputListeners() {
             document.addEventListener('input', e => {
                 if (e.target.name && e.target.name.startsWith('q')) {
@@ -835,12 +904,9 @@
             if(timerInterval) clearInterval(timerInterval);
 
             let score = 0;
-            let startQ, endQ;
-            if (appMode === 'practice') {
-                [startQ, endQ] = passageRanges[currentPassage - 1];
-            } else {
-                startQ = 1; endQ = TOTAL_QUESTIONS;
-            }
+            // Always grade all 3 passages/parts at once (in both practice and exam mode),
+            // not just whichever passage tab happens to be active right now.
+            let startQ = 1, endQ = TOTAL_QUESTIONS;
             let total = endQ - startQ + 1;
 
             for (let i = startQ; i <= endQ; i++) {
@@ -884,10 +950,13 @@
             document.getElementById('score-correct').innerText = score;
             document.getElementById('score-total').innerText = total;
 
-            if (appMode === 'exam') {
-                document.getElementById('band-container').style.display = 'block';
-                document.getElementById('band-score').innerText = calculateBand(score);
-            }
+            // Show the estimated band score in both modes now that grading always
+            // covers all 3 passages.
+            document.getElementById('band-container').style.display = 'block';
+            const band = calculateBand(score);
+            document.getElementById('band-score').innerText = band;
+
+            saveProgressRecord(score, total, band);
 
             document.getElementById('results-modal').style.display = 'flex';
         }
@@ -898,6 +967,29 @@
             if (scaled>=33) return "7.5"; if (scaled>=30) return "7.0"; if (scaled>=27) return "6.5";
             if (scaled>=23) return "6.0"; if (scaled>=19) return "5.5"; if (scaled>=15) return "5.0";
             if (scaled>=13) return "4.5"; if (scaled>=10) return "4.0"; return "< 4.0";
+        }
+
+        // --- Shared progress/history log (read by the site's index page) ---
+        // Kept deliberately tiny per attempt and capped in count so it never
+        // eats meaningful localStorage space.
+        const PROGRESS_HISTORY_KEY = 'bseh_progress_history';
+        const PROGRESS_HISTORY_LIMIT = 40;
+
+        function saveProgressRecord(score, total, band) {
+            try {
+                let history = JSON.parse(localStorage.getItem(PROGRESS_HISTORY_KEY) || '[]');
+                history.unshift({
+                    t: document.title,                // test title
+                    u: location.pathname.split('/').pop(), // filename, so index.html can link back
+                    s: score,
+                    n: total,
+                    b: band,
+                    m: appMode,
+                    d: new Date().toLocaleDateString('vi-VN')
+                });
+                if (history.length > PROGRESS_HISTORY_LIMIT) history = history.slice(0, PROGRESS_HISTORY_LIMIT);
+                localStorage.setItem(PROGRESS_HISTORY_KEY, JSON.stringify(history));
+            } catch (e) { /* localStorage unavailable or full - fail silently, non-critical */ }
         }
 
         function closeResultsAndReview() {
@@ -937,31 +1029,72 @@
         // Keep text selection alive while clicking toolbar buttons
         annotToolbar.addEventListener('mousedown', e => e.preventDefault());
 
-        document.getElementById('main-workspace').addEventListener('mouseup', function(e) {
+        const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+
+        function positionToolbar(rect) {
+            // On touch devices (iPad etc.) place the toolbar BELOW the selection so it
+            // doesn't collide/overlap with the OS's own native selection toolbar (which
+            // pops up above the selection).
+            annotToolbar.style.visibility = 'hidden';
+            annotToolbar.style.display = 'flex';
+            const tbWidth = annotToolbar.offsetWidth || 220;
+            const top = isCoarsePointer
+                ? (rect.bottom + window.scrollY + 14)
+                : (rect.top + window.scrollY - 48);
+            let left = rect.left + window.scrollX + (rect.width / 2) - (tbWidth / 2);
+            left = Math.max(10, Math.min(left, window.scrollX + window.innerWidth - tbWidth - 10));
+            annotToolbar.style.top = top + 'px';
+            annotToolbar.style.left = left + 'px';
+            annotToolbar.style.visibility = 'visible';
+        }
+
+        function handleSelectionUI(e) {
             // Don't trigger if clicking inside the toolbar or the translation box itself
-            if (transBox.contains(e.target) || annotToolbar.contains(e.target)) return;
+            if (e && (transBox.contains(e.target) || annotToolbar.contains(e.target))) return;
 
             const selection = window.getSelection();
             const text = selection.toString().trim();
 
             if (text.length > 0 && selection.rangeCount > 0 && text.split(/\s+/).length < 50) {
+                const anchorNode = selection.anchorNode;
+                const anchorEl = anchorNode && (anchorNode.nodeType === 3 ? anchorNode.parentNode : anchorNode);
+                const workspace = document.getElementById('main-workspace');
+                if (!anchorEl || !workspace.contains(anchorEl)) return;
+
                 savedRange = selection.getRangeAt(0).cloneRange();
                 selectedTextStr = text;
 
                 const rect = savedRange.getBoundingClientRect();
+                if (rect.width === 0 && rect.height === 0) return; // selection geometry not painted yet
                 positionToolbar(rect);
                 annotToolbar.style.display = 'flex';
                 transBox.style.display = 'none'; // hide translation box if making a new selection
             } else {
                 annotToolbar.style.display = 'none';
-                if (!transBox.contains(e.target)) transBox.style.display = 'none';
+                if (!(e && transBox.contains(e.target))) transBox.style.display = 'none';
             }
+        }
+
+        document.getElementById('main-workspace').addEventListener('mouseup', handleSelectionUI);
+
+        // iOS/iPad (and other touch/stylus devices) frequently don't fire a usable
+        // 'mouseup' after a native text-selection gesture, so 'selectionchange'
+        // (debounced) is used as a more reliable, cross-platform fallback.
+        let selectionDebounceTimer = null;
+        document.addEventListener('selectionchange', function() {
+            clearTimeout(selectionDebounceTimer);
+            selectionDebounceTimer = setTimeout(() => handleSelectionUI(null), 220);
         });
 
-        function positionToolbar(rect) {
-            annotToolbar.style.top = (rect.top + window.scrollY - 48) + 'px';
-            annotToolbar.style.left = Math.max(10, rect.left + window.scrollX + (rect.width / 2) - 110) + 'px';
-        }
+        // Touch: dismiss the toolbar when tapping empty space with no active selection
+        document.addEventListener('touchstart', function(e) {
+            if (!annotToolbar.contains(e.target) && !transBox.contains(e.target)) {
+                const sel = window.getSelection();
+                if (!sel || sel.toString().trim() === '') {
+                    annotToolbar.style.display = 'none';
+                }
+            }
+        }, { passive: true });
 
         // --- Robust multi-node wrap/erase so annotations survive selections that
         //     span multiple paragraphs or existing <span id="loc-..."> markers ---
@@ -1142,12 +1275,18 @@
         });
 
         // --- Vocabulary Notebook (saved locally in this browser) ---
+        const VOCAB_LIMIT = 300;
+
         document.getElementById('save-vocab-btn').addEventListener('click', () => {
             if (!selectedTextStr || !currentTranslation) return;
-            saveToVocabBook(selectedTextStr, currentTranslation);
+            const result = saveToVocabBook(selectedTextStr, currentTranslation);
             const btn = document.getElementById('save-vocab-btn');
             const original = btn.innerText;
-            btn.innerText = '✅ Đã lưu!';
+            if (result === 'full') {
+                alert(`Sổ từ vựng đã đầy (tối đa ${VOCAB_LIMIT} từ). Hãy xoá bớt từ cũ trong "My Words" trước khi lưu thêm.`);
+                return;
+            }
+            btn.innerText = result === 'duplicate' ? '✓ Đã có sẵn' : '✅ Đã lưu!';
             setTimeout(() => { btn.innerText = original; }, 1500);
         });
 
@@ -1157,12 +1296,15 @@
             } catch (e) { return []; }
         }
 
+        // Returns 'saved' | 'duplicate' | 'full'
         function saveToVocabBook(en, vi) {
             let book = getVocabBook();
-            if (book.some(item => item.en.toLowerCase() === en.toLowerCase())) return; // avoid duplicates
+            if (book.some(item => item.en.toLowerCase() === en.toLowerCase())) return 'duplicate'; // avoid duplicates
+            if (book.length >= VOCAB_LIMIT) return 'full'; // must delete old words before saving new ones
             book.unshift({ en, vi, date: new Date().toLocaleDateString('vi-VN') });
             localStorage.setItem('ielts_vocab_book', JSON.stringify(book));
             updateVocabCount();
+            return 'saved';
         }
 
         function removeVocab(idx) {
@@ -1175,7 +1317,10 @@
 
         function updateVocabCount() {
             const el = document.getElementById('vocab-count');
-            if (el) el.innerText = getVocabBook().length;
+            if (el) {
+                const n = getVocabBook().length;
+                el.innerText = n >= VOCAB_LIMIT ? `${n}/${VOCAB_LIMIT}` : n;
+            }
         }
 
         function escapeHtml(str) {
