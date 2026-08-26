@@ -6,6 +6,10 @@
         "2": "reading/cam10/test2.html"
       }
     },
-    "real": {}
+    "real": {
+      "9": {
+        "1": "reading/real9/test1.html"
+      }
+    }
   }
 }
