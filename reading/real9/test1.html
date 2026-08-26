@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IELTS Reading - Real IELTS 9 - Test 1</title>
+    <title>IELTS Reading - VOL 9 - Test 1</title>
     <link href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -17,6 +17,21 @@
             --primary-button: #e8b93b;
             --hover-bg: #e0d9c5;
         }
+
+        /* --- Exam mode ("Thi Thật"): minimal white theme, purple accent only ---
+             Applied by adding class="exam-mode" to <body> in startTest(). Practice
+             mode keeps the original green/parchment look untouched. */
+        body.exam-mode {
+            --bg-color: #ffffff;
+            --panel-bg: #ffffff;
+            --border-color: #6d3fa0;
+            --primary-button: #7c4dab;
+            --hover-bg: #f2ebfa;
+            background-image: none;
+        }
+        body.exam-mode .q-circle.answered { background-color: #e3d2f7; }
+        body.exam-mode .question-group { border-color: #e6dcf2; }
+        body.exam-mode .instruction { background: #faf7fd; }
 
         body {
             margin: 0;
@@ -289,6 +304,75 @@
             padding-top: 10px;
         }
 
+        /* Optional diagram/labeling image, attachable to any question group */
+        .group-image-wrap { margin-bottom: 15px; text-align: center; }
+        .group-image { max-width: 100%; border-radius: 8px; border: 1px solid #ddd; }
+
+        /* --- Matching / Drag-and-drop question type --- */
+        .match-bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            border: 1px dashed #bbb;
+        }
+        .match-chip {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: grab;
+            touch-action: none;
+            user-select: none;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.08);
+            transition: opacity 0.15s;
+        }
+        .match-chip:active { cursor: grabbing; }
+        .match-chip-ghost {
+            opacity: 0.9;
+            box-shadow: 4px 6px 12px rgba(0,0,0,0.25);
+        }
+        .match-row { flex-wrap: wrap; }
+        .match-prompt-text { flex: 1; min-width: 160px; }
+        .match-slot {
+            min-width: 140px;
+            min-height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 14px;
+            border: 2px dashed #aaa;
+            border-radius: 8px;
+            background: #fafafa;
+            color: #999;
+            font-size: 13px;
+            font-weight: 600;
+            touch-action: none;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .match-slot.filled { border-style: solid; border-color: var(--border-color); background: white; color: var(--text-color); }
+        .match-slot.drag-over { background: var(--hover-bg); border-color: var(--primary-button); }
+
+        /* --- Per-part grading bar (Practice mode only) --- */
+        .part-grade-bar { display: none; margin-bottom: 20px; text-align: right; }
+        .part-grade-bar.visible { display: block; }
+        .part-grade-btn {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 7px 16px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .part-grade-btn:hover { background: var(--hover-bg); }
+
         .show-loc-btn {
             background: var(--border-color);
             color: white;
@@ -500,10 +584,11 @@
 
     <!-- Floating Annotation Toolbar -->
     <div id="annot-toolbar">
-        <button class="annot-color" data-color="#aecbfa" style="background:#aecbfa" title="Highlight xanh dương"></button>
-        <button class="annot-color" data-color="#f8bbd0" style="background:#f8bbd0" title="Highlight hồng"></button>
-        <button class="annot-color" data-color="#b9f6ca" style="background:#b9f6ca" title="Highlight xanh lá"></button>
-        <button class="annot-color" data-color="#fff59d" style="background:#fff59d" title="Highlight vàng"></button>
+        <button class="annot-color annot-color-practice" data-color="#aecbfa" style="background:#aecbfa" title="Highlight xanh dương"></button>
+        <button class="annot-color annot-color-practice" data-color="#f8bbd0" style="background:#f8bbd0" title="Highlight hồng"></button>
+        <button class="annot-color annot-color-practice" data-color="#b9f6ca" style="background:#b9f6ca" title="Highlight xanh lá"></button>
+        <button class="annot-color annot-color-practice" data-color="#fff59d" style="background:#fff59d" title="Highlight vàng"></button>
+        <button class="annot-color annot-color-exam" data-color="#7a1a35" data-text-color="#ffffff" style="background:#7a1a35; display:none;" title="Highlight rượu vang"></button>
         <span class="annot-divider"></span>
         <button class="annot-btn" id="annot-underline" title="Gạch chân"><u>U</u></button>
         <button class="annot-btn" id="annot-strike" title="Gạch ngang"><s>abc</s></button>
@@ -542,7 +627,7 @@
     <!-- Setup Screen -->
     <div id="setup-screen" class="overlay">
         <div class="modal-box">
-            <h1>IELTS Reading - Real IELTS 9 - Test 1</h1>
+            <h1>IELTS Reading - VOL 9 - Test 1</h1>
             <p>Chọn chế độ làm bài:</p>
             <div class="mode-select">
                 <button class="mode-btn selected" id="btn-practice" onclick="selectMode('practice')">
@@ -551,7 +636,7 @@
                 </button>
                 <button class="mode-btn" id="btn-exam" onclick="selectMode('exam')">
                     <h3>Chế độ Thi Thật</h3>
-                    <p>90 phút đếm ngược. Làm full 3 Passages. Trả điểm Band IELTS.</p>
+                    <p>60 phút đếm ngược. Làm full 3 Passages. Trả điểm Band IELTS.</p>
                 </button>
             </div>
 
@@ -597,7 +682,7 @@
         </div>
         <div class="header-right">
             <button class="nav-btn" onclick="openVocabBook()">📖 Sổ từ vựng (<span id="vocab-count">0</span>)</button>
-            <div class="timer" id="timer-display" style="display:none;">90:00</div>
+            <div class="timer" id="timer-display" style="display:none;">60:00</div>
             <button class="submit-btn" id="main-submit-btn" onclick="submitTest()">Nộp bài</button>
         </div>
     </div>
@@ -665,7 +750,7 @@
     <script>
         // --- Data Structure (generated by the Test Builder tool) ---
         // questionsData[passageIndex] = array of question groups for that passage
-        const questionsData = [[{"instruction":"TRUE / FALSE / NOT GIVEN","type":"tfng","reference":"","labels":["TRUE","FALSE","NOT GIVEN"],"questions":[{"text":"All of the baobab species found on Madagascar are unique to the island.","answer":"FALSE","exp":"Chỉ sáu trong tám loài chỉ được tìm thấy ở Madagascar; loài thứ bảy có nguồn gốc từ lục địa châu Phi. Vì vậy không phải tất cả các loài đều đặc hữu của đảo.","loc":"loc-1"},{"text":"Adanson and Grandidier were the first foreign botanists to visit Madagascar.","answer":"NOT GIVEN","exp":"Bài chỉ cho biết họ là hai nhà thực vật học người Pháp nổi tiếng thế kỷ 19. Không có thông tin cho biết họ là những nhà thực vật học nước ngoài đầu tiên đến Madagascar.","loc":"loc-2"},{"text":"The baobab can be found in most areas of Madagascar.","answer":"FALSE","exp":"Baobab chỉ mọc dọc phía tây Madagascar và không mọc ở vùng cao nguyên trung tâm, nên không thể nói chúng được tìm thấy ở hầu hết các khu vực.","loc":"loc-3"},{"text":"The landscape around the Avenue des Baobabs is the result of agricultural development.","answer":"TRUE","exp":"Cảnh quan xung quanh được con người tạo ra khi phần lớn đồng bằng Morondava được phát quang để trồng lúa và mía.","loc":"loc-4"},{"text":"The baobab provides useful products for the local people.","answer":"TRUE","exp":"Baobab có giá trị như một nguồn thực phẩm và vật liệu xây dựng có thể tái tạo, nên cung cấp các sản phẩm hữu ích cho người dân địa phương.","loc":"loc-5"},{"text":"There is general agreement about the reasons for baobabs falling down.","answer":"FALSE","exp":"Nguyên nhân chính xác vẫn chưa được xác định. Chỉ một số người cho rằng nước tưới từ các cánh đồng gần đó có thể là một phần nguyên nhân, nên không có sự đồng thuận chung.","loc":"loc-6"}]},{"instruction":"Write ONE WORD ONLY from the passage for each answer.","type":"text","reference":"","questions":[{"text":"Trees may be falling down because of ______ from nearby fields.","answer":"water","exp":"Một số người cho rằng nước dùng để tưới các cánh đồng gần đó có thể góp phần khiến cây baobab bị đổ.","loc":"loc-7"},{"text":"Lone trees are at risk from ______.","answer":"cyclones","exp":"Những cây mọc đơn lẻ, tách khỏi khu rừng xung quanh, dễ bị các cơn bão mạnh quật đổ.","loc":"loc-8"},{"text":"Land clearance is mainly carried out by burning to create space for ______ activity.","answer":"farming","exp":"Mối đe dọa chính là việc phát quang đất để phục vụ farming; đốt là phương pháp thường được dùng để phát quang.","loc":"loc-9"},{"text":"The practice of ______ makes seed germination difficult.","answer":"logging","exp":"Logging thúc đẩy sự phát triển của cây bụi thấp, làm lấp các khoảng trống sáng trong rừng cần thiết cho sự nảy mầm của baobab.","loc":"loc-10"},{"text":"The disappearance of certain ______ limited the dispersal of baobab seeds.","answer":"animals","exp":"Hai loài động vật lớn đã tuyệt chủng từng đóng vai trò quan trọng trong việc phát tán hạt, nên sự biến mất của chúng làm hạn chế quá trình này.","loc":"loc-11"},{"text":"Jim Bond worked on making ______ of areas of relatively undamaged baobab forest.","answer":"maps","exp":"Bond cùng người dân địa phương tìm kiếm và lập bản đồ sự phân bố của baobab trong các khu rừng.","loc":"loc-12"},{"text":"Jim Bond planned on producing a ______ showing the importance of baobab in local culture.","answer":"book","exp":"Bond dự định biên soạn một cuốn sách thiếu nhi có minh họa về các câu chuyện dân gian địa phương để lan truyền nhận thức về tầm quan trọng văn hóa của baobab.","loc":"loc-13"}]}],[{"instruction":"Choose the correct heading for each paragraph.","type":"text","reference":"i. A simpler, more efficient way of trading<br>ii. A form of regional promotion<br>iii. Calculating what a coin was worth<br>iv. Calculating what a coin was worth<br>v. A simpler, more efficient way of trading<br>vi. Putting a face to famous historical names<br>vii. An uncertain future<br>viii. The importance of coins as historical evidence<br>ix. Unchanging coins signalled trustworthiness<br>x. The development of paper money<br>xi. Significant records of past societies","questions":[{"text":"Paragraph 1","answer":"vii","exp":"Đoạn này nói về khả năng tiền xu và tiền giấy, tiền nhựa sẽ trở nên lỗi thời khi tiền tệ chuyển sang hệ thống tín dụng và ghi nợ điện tử.","loc":"loc-14"},{"text":"Paragraph 2","answer":"xi","exp":"Tiền xu cổ được mô tả là nguồn tư liệu phong phú giúp con người và các nhà khảo cổ tìm hiểu các sự kiện và thái độ văn hóa của các xã hội trong quá khứ.","loc":"loc-15"},{"text":"Paragraph 3","answer":"v","exp":"Tiền kim loại dễ vận chuyển và không bị hư hỏng như hàng hóa trong những chuyến đi biển dài, giúp việc trao đổi trở nên đơn giản và hiệu quả hơn.","loc":"loc-16"},{"text":"Paragraph 4","answer":"iv","exp":"Đoạn này giải thích cách giá trị của tiền xu được xác định dựa trên giá trị nội tại của kim loại và cách kiểm tra lượng, độ tinh khiết của kim loại.","loc":"loc-17"},{"text":"Paragraph 5","answer":"ii","exp":"Tiền xu có chức năng kép: đơn vị giá trị và biểu tượng bản sắc của thành bang. Chúng cũng giúp quảng bá những đặc điểm của từng thành bang.","loc":"loc-18"},{"text":"Paragraph 6","answer":"ix","exp":"Thiết kế đồng tiền Athens được giữ gần như không thay đổi trong nhiều năm, và sự thống nhất này được xem là biểu hiện của tính toàn vẹn và đáng tin cậy.","loc":"loc-19"},{"text":"Paragraph 7","answer":"vi","exp":"Đoạn cuối giải thích việc thay hình các vị thần trên tiền xu bằng chân dung các vị vua và cách tiền xu lưu giữ hình ảnh của những nhân vật lịch sử nổi tiếng.","loc":"loc-20"}]},{"instruction":"Choose TWO correct answers.\nimage:\noptions:\nThere is no record of the names of the coin makers.\nCoins were not popular as payment for traded objects.\nCoins with the same design often looked quite different.\nGreek coins were more beautiful in design than Roman coins.\nAt times, too many coins were produced in Greece.","type":"text","reference":"","questions":[{"text":"Which TWO of these comments about ancient coins are made by the writer of the text? — Comment 1","answer":"A","exp":"Những người chế tác tiền xu được mô tả là anonymous craftsmen, tức những người thợ vô danh, cho thấy không có tên của họ được ghi lại.","loc":"loc-21"},{"text":"Which TWO of these comments about ancient coins are made by the writer of the text? — Comment 2","answer":"C","exp":"Các đồng tiền có cùng thiết kế có thể trông khác nhau vì khuôn đúc phải được làm lại nhiều lần bởi nhiều nghệ nhân khác nhau.","loc":"loc-22"}]},{"instruction":"Write ONE WORD ONLY from the passage for each answer.","type":"text","reference":"","questions":[{"text":"The ancient Greek ______ was made up of many city-states which were spread over a large area.","answer":"civilisation","exp":"Đoạn văn nói nền văn minh Hy Lạp gồm hàng chục thành bang và có tính phi tập trung cao.","loc":"loc-23"},{"text":"Before coins, Greek traders used ______ when exchanging goods.","answer":"barter","exp":"Trước khi có tiền xu, hoạt động thương mại dựa trên barter, tức trao đổi trực tiếp hàng hóa.","loc":"loc-24"},{"text":"The Greeks had a plentiful supply of ______ which they mined themselves.","answer":"silver","exp":"Tiền xu ban đầu chủ yếu được làm từ bạc và người Hy Lạp có các mỏ bạc trên lãnh thổ của mình.","loc":"loc-25"},{"text":"The Greeks were able to avoid the problem of ______ which the Spanish encountered much later.","answer":"inflation","exp":"Bài nói nếu hoạt động khai thác của Hy Lạp lớn hơn, họ có thể gặp vấn đề tương tự Tây Ban Nha, khi quá nhiều kim loại quý đưa vào nền kinh tế gây ra lạm phát nghiêm trọng.","loc":"loc-26"}]}],[{"instruction":"Which paragraph contains the following information?\nimage:\noptions:\nParagraph A\nParagraph B\nParagraph C\nParagraph D\nParagraph E\nParagraph F\nParagraph G\nParagraph H\nParagraph I","type":"text","reference":"","questions":[{"text":"Details of an experiment in taste comparison","answer":"B","exp":"Đoạn B mô tả thí nghiệm trong đó năm người thử hai mẫu nước ép 304 và 305 và so sánh vị của chúng.","loc":"loc-27"},{"text":"Examples of medications that could be improved using compounds that remove bitterness","answer":"H","exp":"Đoạn H đưa ra các ví dụ về thuốc có thể được cải thiện bằng bitter blockers, bao gồm thuốc kháng histamine và kháng sinh.","loc":"loc-28"},{"text":"A biological reason why some people don’t like bitter-tasting foods","answer":"E","exp":"Đoạn E giải thích sự khác biệt về khả năng cảm nhận vị đắng có vẻ mang tính di truyền, và những người nhạy cảm thường ít ăn rau đắng.","loc":"loc-29"},{"text":"An explanation of how the taste process works","answer":"F","exp":"Đoạn F mô tả quá trình các receptor tiếp nhận phân tử vị giác, tín hiệu được truyền qua G proteins và cuối cùng được truyền đến não.","loc":"loc-30"},{"text":"Why bitterness is more interesting commercially than other tastes","answer":"C","exp":"Đoạn C giải thích vị đắng đặc biệt được ngành công nghiệp thực phẩm quan tâm vì nó xuất hiện trong rất nhiều loại thực phẩm.","loc":"loc-31"},{"text":"An example of how compounds that remove bitterness could indirectly benefit health","answer":"H","exp":"Đoạn H cho thấy AMP có thể loại bỏ vị đắng của potassium chloride, từ đó cho phép thay thế một phần muối ăn bằng loại muối có thể hữu ích hơn trong chế độ ăn.","loc":"loc-32"},{"text":"A reason why people have different taste preferences from animals","answer":"D","exp":"Đoạn D giải thích rằng động vật tránh vị đắng vì nó thường báo hiệu điều nguy hiểm, trong khi con người đã học cách thưởng thức vị đắng.","loc":"loc-33"}]},{"instruction":"Write NO MORE THAN TWO WORDS from the passage for each answer.","type":"text","reference":"","questions":[{"text":"The grapefruit used to make drinks is chosen because it contains a smaller amount of a substance called ______.","answer":"naringin","exp":"Các nhà sản xuất nước ép thường chọn bưởi có hàm lượng naringin thấp vì naringin tạo ra vị đắng.","loc":"loc-34"},{"text":"Animals associate a bitter taste with ______ plants.","answer":"poisonous","exp":"Vị đắng giúp động vật nhận biết rằng một loại cây có thể độc.","loc":"loc-35"},{"text":"Our varying degree of sensitivity to bitter tastes is thought to be ______.","answer":"genetic","exp":"Sự khác biệt về khả năng cảm nhận vị đắng giữa con người dường như có liên quan đến yếu tố di truyền.","loc":"loc-36"},{"text":"People who are extremely aware of bitter tastes are called ______.","answer":"supertasters","exp":"Những người có số lượng taste buds cao bất thường và đặc biệt nhạy cảm với các hợp chất đắng được gọi là supertasters.","loc":"loc-37"},{"text":"Receptors inside the ______ on the tongue detect the taste of food and drink.","answer":"taste buds","exp":"Lưỡi được bao phủ bởi taste buds, bên trong đó có các receptor tiếp nhận các phân tử vị giác trong thức ăn và đồ uống.","loc":"loc-38"}]},{"instruction":"Choose the correct answer.","type":"mcq","reference":"","questions":[{"text":"The G protein identified by Robert Margolskee","options":["A. is responsible for transmitting bitter tastes.","B. causes dangerous reactions in the cells of the tongue.","C. has a similar function to sight and smell receptors.","D. can be found only in sweetness and umami."],"answer":"A","exp":"Tín hiệu vị đắng được truyền qua G proteins và cuối cùng tạo ra tín hiệu đến não. Vì vậy đáp án A đúng.","loc":"loc-39"},{"text":"AMP is an organic compound which is","options":["A. found only in breast milk.","B. bitter-tasting when added to food.","C. able to reduce some bitter tastes.","D. found in bitter taste receptors."],"answer":"C","exp":"AMP không có vị đắng riêng và khi được đưa vào thực phẩm, nó gắn vào các thụ thể vị đắng để làm giảm một số vị đắng.","loc":"loc-40"}]}]];
+        const questionsData = [[{"instruction":"TRUE / FALSE / NOT GIVEN","type":"tfng","reference":"","imageUrl":"","labels":["TRUE","FALSE","NOT GIVEN"],"questions":[{"text":"All of the baobab species found on Madagascar are unique to the island.","answer":"FALSE","exp":"Chỉ sáu trong tám loài chỉ được tìm thấy ở Madagascar; loài thứ bảy có nguồn gốc từ lục địa châu Phi. Vì vậy không phải tất cả các loài đều đặc hữu của đảo.","loc":"loc-1"},{"text":"Adanson and Grandidier were the first foreign botanists to visit Madagascar.","answer":"NOT GIVEN","exp":"Bài chỉ cho biết họ là hai nhà thực vật học người Pháp nổi tiếng thế kỷ 19. Không có thông tin cho biết họ là những nhà thực vật học nước ngoài đầu tiên đến Madagascar.","loc":"loc-2"},{"text":"The baobab can be found in most areas of Madagascar.","answer":"FALSE","exp":"Baobab chỉ mọc dọc phía tây Madagascar và không mọc ở vùng cao nguyên trung tâm, nên không thể nói chúng được tìm thấy ở hầu hết các khu vực.","loc":"loc-3"},{"text":"The landscape around the Avenue des Baobabs is the result of agricultural development.","answer":"TRUE","exp":"Cảnh quan xung quanh được con người tạo ra khi phần lớn đồng bằng Morondava được phát quang để trồng lúa và mía.","loc":"loc-4"},{"text":"The baobab provides useful products for the local people.","answer":"TRUE","exp":"Baobab có giá trị như một nguồn thực phẩm và vật liệu xây dựng có thể tái tạo, nên cung cấp các sản phẩm hữu ích cho người dân địa phương.","loc":"loc-5"},{"text":"There is general agreement about the reasons for baobabs falling down.","answer":"FALSE","exp":"Nguyên nhân chính xác vẫn chưa được xác định. Chỉ một số người cho rằng nước tưới từ các cánh đồng gần đó có thể là một phần nguyên nhân, nên không có sự đồng thuận chung.","loc":"loc-6"}]},{"instruction":"Write ONE WORD ONLY from the passage for each answer.","type":"text","reference":"","imageUrl":"","questions":[{"text":"Trees may be falling down because of ______ from nearby fields.","answer":"water","exp":"Một số người cho rằng nước dùng để tưới các cánh đồng gần đó có thể góp phần khiến cây baobab bị đổ.","loc":"loc-7"},{"text":"Lone trees are at risk from ______.","answer":"cyclones","exp":"Những cây mọc đơn lẻ, tách khỏi khu rừng xung quanh, dễ bị các cơn bão mạnh quật đổ.","loc":"loc-8"},{"text":"Land clearance is mainly carried out by burning to create space for ______ activity.","answer":"farming","exp":"Mối đe dọa chính là việc phát quang đất để phục vụ farming; đốt là phương pháp thường được dùng để phát quang.","loc":"loc-9"},{"text":"The practice of ______ makes seed germination difficult.","answer":"logging","exp":"Logging thúc đẩy sự phát triển của cây bụi thấp, làm lấp các khoảng trống sáng trong rừng cần thiết cho sự nảy mầm của baobab.","loc":"loc-10"},{"text":"The disappearance of certain ______ limited the dispersal of baobab seeds.","answer":"animals","exp":"Hai loài động vật lớn đã tuyệt chủng từng đóng vai trò quan trọng trong việc phát tán hạt, nên sự biến mất của chúng làm hạn chế quá trình này.","loc":"loc-11"},{"text":"Jim Bond worked on making ______ of areas of relatively undamaged baobab forest.","answer":"maps","exp":"Bond cùng người dân địa phương tìm kiếm và lập bản đồ sự phân bố của baobab trong các khu rừng.","loc":"loc-12"},{"text":"Jim Bond planned on producing a ______ showing the importance of baobab in local culture.","answer":"book","exp":"Bond dự định biên soạn một cuốn sách thiếu nhi có minh họa về các câu chuyện dân gian địa phương để lan truyền nhận thức về tầm quan trọng văn hóa của baobab.","loc":"loc-13"}]}],[{"instruction":"Choose the correct heading for each paragraph.","type":"text","reference":"i. A simpler, more efficient way of trading<br>ii. A form of regional promotion<br>iii. Calculating what a coin was worth<br>iv. Calculating what a coin was worth<br>v. A simpler, more efficient way of trading<br>vi. Putting a face to famous historical names<br>vii. An uncertain future<br>viii. The importance of coins as historical evidence<br>ix. Unchanging coins signalled trustworthiness<br>x. The development of paper money<br>xi. Significant records of past societies","imageUrl":"","questions":[{"text":"Paragraph 1","answer":"vii","exp":"Đoạn này nói về khả năng tiền xu và tiền giấy, tiền nhựa sẽ trở nên lỗi thời khi tiền tệ chuyển sang hệ thống tín dụng và ghi nợ điện tử.","loc":"loc-14"},{"text":"Paragraph 2","answer":"xi","exp":"Tiền xu cổ được mô tả là nguồn tư liệu phong phú giúp con người và các nhà khảo cổ tìm hiểu các sự kiện và thái độ văn hóa của các xã hội trong quá khứ.","loc":"loc-15"},{"text":"Paragraph 3","answer":"v","exp":"Tiền kim loại dễ vận chuyển và không bị hư hỏng như hàng hóa trong những chuyến đi biển dài, giúp việc trao đổi trở nên đơn giản và hiệu quả hơn.","loc":"loc-16"},{"text":"Paragraph 4","answer":"iv","exp":"Đoạn này giải thích cách giá trị của tiền xu được xác định dựa trên giá trị nội tại của kim loại và cách kiểm tra lượng, độ tinh khiết của kim loại.","loc":"loc-17"},{"text":"Paragraph 5","answer":"ii","exp":"Tiền xu có chức năng kép: đơn vị giá trị và biểu tượng bản sắc của thành bang. Chúng cũng giúp quảng bá những đặc điểm của từng thành bang.","loc":"loc-18"},{"text":"Paragraph 6","answer":"ix","exp":"Thiết kế đồng tiền Athens được giữ gần như không thay đổi trong nhiều năm, và sự thống nhất này được xem là biểu hiện của tính toàn vẹn và đáng tin cậy.","loc":"loc-19"},{"text":"Paragraph 7","answer":"vi","exp":"Đoạn cuối giải thích việc thay hình các vị thần trên tiền xu bằng chân dung các vị vua và cách tiền xu lưu giữ hình ảnh của những nhân vật lịch sử nổi tiếng.","loc":"loc-20"}]},{"instruction":"Choose TWO correct answers.","type":"matching","reference":"","imageUrl":"","options":["A. There is no record of the names of the coin makers.","B. Coins were not popular as payment for traded objects.","C. Coins with the same design often looked quite different.","D. Greek coins were more beautiful in design than Roman coins.","E. At times, too many coins were produced in Greece."],"questions":[{"text":"Which TWO of these comments about ancient coins are made by the writer of the text? — Comment 1","answer":"A","exp":"Những người chế tác tiền xu được mô tả là anonymous craftsmen, tức những người thợ vô danh, cho thấy không có tên của họ được ghi lại.","loc":"loc-21"},{"text":"Which TWO of these comments about ancient coins are made by the writer of the text? — Comment 2","answer":"C","exp":"Các đồng tiền có cùng thiết kế có thể trông khác nhau vì khuôn đúc phải được làm lại nhiều lần bởi nhiều nghệ nhân khác nhau.","loc":"loc-22"}]},{"instruction":"Write ONE WORD ONLY from the passage for each answer.","type":"text","reference":"","imageUrl":"","questions":[{"text":"The ancient Greek ______ was made up of many city-states which were spread over a large area.","answer":"civilisation","exp":"Đoạn văn nói nền văn minh Hy Lạp gồm hàng chục thành bang và có tính phi tập trung cao.","loc":"loc-23"},{"text":"Before coins, Greek traders used ______ when exchanging goods.","answer":"barter","exp":"Trước khi có tiền xu, hoạt động thương mại dựa trên barter, tức trao đổi trực tiếp hàng hóa.","loc":"loc-24"},{"text":"The Greeks had a plentiful supply of ______ which they mined themselves.","answer":"silver","exp":"Tiền xu ban đầu chủ yếu được làm từ bạc và người Hy Lạp có các mỏ bạc trên lãnh thổ của mình.","loc":"loc-25"},{"text":"The Greeks were able to avoid the problem of ______ which the Spanish encountered much later.","answer":"inflation","exp":"Bài nói nếu hoạt động khai thác của Hy Lạp lớn hơn, họ có thể gặp vấn đề tương tự Tây Ban Nha, khi quá nhiều kim loại quý đưa vào nền kinh tế gây ra lạm phát nghiêm trọng.","loc":"loc-26"}]}],[{"instruction":"Which paragraph contains the following information?","type":"matching","reference":"","imageUrl":"","options":["A. Paragraph A","B. Paragraph B","C. Paragraph C","D. Paragraph D","E. Paragraph E","F. Paragraph F","G. Paragraph G","H. Paragraph H","I. Paragraph I"],"questions":[{"text":"Details of an experiment in taste comparison","answer":"B","exp":"Đoạn B mô tả thí nghiệm trong đó năm người thử hai mẫu nước ép 304 và 305 và so sánh vị của chúng.","loc":"loc-27"},{"text":"Examples of medications that could be improved using compounds that remove bitterness","answer":"H","exp":"Đoạn H đưa ra các ví dụ về thuốc có thể được cải thiện bằng bitter blockers, bao gồm thuốc kháng histamine và kháng sinh.","loc":"loc-28"},{"text":"A biological reason why some people don’t like bitter-tasting foods","answer":"E","exp":"Đoạn E giải thích sự khác biệt về khả năng cảm nhận vị đắng có vẻ mang tính di truyền, và những người nhạy cảm thường ít ăn rau đắng.","loc":"loc-29"},{"text":"An explanation of how the taste process works","answer":"F","exp":"Đoạn F mô tả quá trình các receptor tiếp nhận phân tử vị giác, tín hiệu được truyền qua G proteins và cuối cùng được truyền đến não.","loc":"loc-30"},{"text":"Why bitterness is more interesting commercially than other tastes","answer":"C","exp":"Đoạn C giải thích vị đắng đặc biệt được ngành công nghiệp thực phẩm quan tâm vì nó xuất hiện trong rất nhiều loại thực phẩm.","loc":"loc-31"},{"text":"An example of how compounds that remove bitterness could indirectly benefit health","answer":"H","exp":"Đoạn H cho thấy AMP có thể loại bỏ vị đắng của potassium chloride, từ đó cho phép thay thế một phần muối ăn bằng loại muối có thể hữu ích hơn trong chế độ ăn.","loc":"loc-32"},{"text":"A reason why people have different taste preferences from animals","answer":"D","exp":"Đoạn D giải thích rằng động vật tránh vị đắng vì nó thường báo hiệu điều nguy hiểm, trong khi con người đã học cách thưởng thức vị đắng.","loc":"loc-33"}]},{"instruction":"Write NO MORE THAN TWO WORDS from the passage for each answer.","type":"text","reference":"","imageUrl":"","questions":[{"text":"The grapefruit used to make drinks is chosen because it contains a smaller amount of a substance called ______.","answer":"naringin","exp":"Các nhà sản xuất nước ép thường chọn bưởi có hàm lượng naringin thấp vì naringin tạo ra vị đắng.","loc":"loc-34"},{"text":"Animals associate a bitter taste with ______ plants.","answer":"poisonous","exp":"Vị đắng giúp động vật nhận biết rằng một loại cây có thể độc.","loc":"loc-35"},{"text":"Our varying degree of sensitivity to bitter tastes is thought to be ______.","answer":"genetic","exp":"Sự khác biệt về khả năng cảm nhận vị đắng giữa con người dường như có liên quan đến yếu tố di truyền.","loc":"loc-36"},{"text":"People who are extremely aware of bitter tastes are called ______.","answer":"supertasters","exp":"Những người có số lượng taste buds cao bất thường và đặc biệt nhạy cảm với các hợp chất đắng được gọi là supertasters.","loc":"loc-37"},{"text":"Receptors inside the ______ on the tongue detect the taste of food and drink.","answer":"taste buds","exp":"Lưỡi được bao phủ bởi taste buds, bên trong đó có các receptor tiếp nhận các phân tử vị giác trong thức ăn và đồ uống.","loc":"loc-38"}]},{"instruction":"Choose the correct answer.","type":"mcq","reference":"","imageUrl":"","questions":[{"text":"The G protein identified by Robert Margolskee","options":["A. is responsible for transmitting bitter tastes.","B. causes dangerous reactions in the cells of the tongue.","C. has a similar function to sight and smell receptors.","D. can be found only in sweetness and umami."],"answer":"A","exp":"Tín hiệu vị đắng được truyền qua G proteins và cuối cùng tạo ra tín hiệu đến não. Vì vậy đáp án A đúng.","loc":"loc-39"},{"text":"AMP is an organic compound which is","options":["A. found only in breast milk.","B. bitter-tasting when added to food.","C. able to reduce some bitter tastes.","D. found in bitter taste receptors."],"answer":"C","exp":"AMP không có vị đắng riêng và khi được đưa vào thực phẩm, nó gắn vào các thụ thể vị đắng để làm giảm một số vị đắng.","loc":"loc-40"}]}]];
 
         const testData = {};
         const passageRanges = [];
@@ -687,6 +772,11 @@
             passageRanges.push([start, qCounter]);
         });
         const TOTAL_QUESTIONS = qCounter;
+        // passageRanges/TOTAL_QUESTIONS được khai báo bằng const nên KHÔNG tự gắn lên window
+        // (khác với "var"/function ở top-level của script thường) — gắn tay ở đây để đoạn
+        // <script type="module"> báo kết quả về Firestore ở cuối trang đọc được khoảng câu hỏi
+        // của từng Passage khi cần chấm riêng 1 Passage.
+        window.passageRanges = passageRanges;
 
         // Populate the practice-mode passage dropdown from passage titles
         (function initDropdown() {
@@ -702,31 +792,59 @@
         // --- HTML Question Templates Generation ---
         function generateQuestionsHTML() {
             let html = '';
+            let groupCounter = 0;
             questionsData.forEach((groups, pIdx) => {
                 html += `<div id="questions-p${pIdx + 1}" class="content-wrapper${pIdx === 0 ? ' active' : ''}">`;
+                html += `<div class="part-grade-bar" id="part-grade-bar-${pIdx + 1}">
+                            <button class="part-grade-btn" type="button" onclick="gradePart(${pIdx + 1})">✅ Chấm riêng Part ${pIdx + 1}</button>
+                          </div>`;
                 groups.forEach(g => {
+                    groupCounter++;
                     const nums = g.questions.map(q => q.qNum);
                     const rangeLabel = nums.length > 1 ? `Questions ${nums[0]}-${nums[nums.length - 1]}` : `Question ${nums[0]}`;
                     html += `<div class="question-group"><h3>${rangeLabel}</h3><p class="instruction">${g.instruction || ''}</p>`;
+                    if (g.imageUrl) {
+                        html += renderGroupImage(g.imageUrl);
+                    }
                     if (g.reference) {
                         html += `<div style="border:1px solid #ccc; padding:15px; margin-bottom:15px; background:#fff;">${g.reference}</div>`;
                     }
-                    g.questions.forEach(q => {
-                        if (g.type === 'tfng') {
-                            html += genRadio(q.qNum, q.text, g.labels || ['TRUE', 'FALSE', 'NOT GIVEN']);
-                        } else if (g.type === 'mcq') {
-                            html += genRadio(q.qNum, q.text, q.options || []);
-                        } else if (g.type === 'inline') {
-                            html += genTextInline(q.qNum, q.pre || '', q.post || '');
-                        } else {
-                            html += genText(q.qNum, q.text || '');
-                        }
-                    });
+                    if (g.type === 'matching') {
+                        html += genMatching(groupCounter, g.options || [], g.questions);
+                    } else {
+                        g.questions.forEach(q => {
+                            if (g.type === 'tfng') {
+                                html += genRadio(q.qNum, q.text, g.labels || ['TRUE', 'FALSE', 'NOT GIVEN']);
+                            } else if (g.type === 'mcq') {
+                                html += genRadio(q.qNum, q.text, q.options || []);
+                            } else if (g.type === 'inline') {
+                                html += genTextInline(q.qNum, q.pre || '', q.post || '');
+                            } else {
+                                html += genText(q.qNum, q.text || '');
+                            }
+                        });
+                    }
                     html += `</div>`;
                 });
                 html += `</div>`;
             });
             document.getElementById('questions-container').innerHTML = html;
+        }
+
+        // Converts a typical Google Drive "share" link into a directly-viewable
+        // image URL; passes any other URL (Imgur, direct image host, etc.) through untouched.
+        function toDirectImageUrl(url) {
+            if (!url) return '';
+            url = url.trim();
+            const m = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || (url.includes('drive.google.com') && url.match(/[?&]id=([a-zA-Z0-9_-]+)/));
+            if (m && m[1]) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+            return url;
+        }
+
+        function renderGroupImage(url) {
+            const src = toDirectImageUrl(url);
+            return `<div class="group-image-wrap"><img src="${src}" alt="Sơ đồ minh hoạ" class="group-image" loading="lazy"
+                        onerror="this.parentElement.innerHTML='&lt;p style=&quot;color:#c62828;font-size:13px;&quot;&gt;⚠️ Không tải được ảnh — kiểm tra lại link (cần bật chia sẻ &quot;Anyone with the link&quot;).&lt;/p&gt;'"></div>`;
         }
 
         function genRadio(qNum, text, options) {
@@ -762,6 +880,158 @@
                     </div>`;
         }
 
+        // Matching / drag-drop question type: a bank of draggable option chips
+        // (A, B, C...) that get dragged into a slot next to each prompt. Answers
+        // are mirrored into a hidden <input name="qN"> so all the existing grading /
+        // "answered" nav-circle logic works unchanged, with no special-casing needed.
+        function genMatching(groupId, options, questions) {
+            const bankHtml = options.map(opt => {
+                const letter = (opt.split('.')[0] || '').trim();
+                return `<div class="match-chip" data-letter="${letter}" data-group="${groupId}" id="chip-${groupId}-${letter}">${opt}</div>`;
+            }).join('');
+
+            const rowsHtml = questions.map(q => `
+                <div class="question-item match-row" id="q-container-${q.qNum}">
+                    <div class="q-num">${q.qNum}</div>
+                    <span class="match-prompt-text">${q.text}</span>
+                    <div class="match-slot" id="slot-${q.qNum}" data-group="${groupId}" data-qnum="${q.qNum}" data-letter="">Kéo đáp án vào đây</div>
+                    <input type="hidden" name="q${q.qNum}" id="input-q${q.qNum}" value="">
+                    <div class="feedback-box" id="fb-${q.qNum}" style="width:100%; margin-top:5px;"></div>
+                </div>
+            `).join('');
+
+            return `<div class="match-bank" id="bank-${groupId}">${bankHtml}</div>${rowsHtml}`;
+        }
+
+        // --- Matching drag-and-drop engine (Pointer Events, so it works the same
+        //     with mouse, touch and pen — unlike the native HTML5 DnD API, which
+        //     iOS Safari does not support at all). Delegated at document level so
+        //     it works for every matching group generated above. ---
+        (function initMatchingDnD() {
+            const DEFAULT_SLOT_TEXT = 'Kéo đáp án vào đây';
+            let dragSource = null; // { letter, label, group, sourceSlot }
+            let dragGhost = null;
+
+            function showBankChip(group, letter) {
+                const chip = document.getElementById(`chip-${group}-${letter}`);
+                if (chip) chip.style.display = '';
+            }
+            function hideBankChip(group, letter) {
+                const chip = document.getElementById(`chip-${group}-${letter}`);
+                if (chip) chip.style.display = 'none';
+            }
+            function setSlotInput(slotEl) {
+                const input = document.getElementById('input-q' + slotEl.dataset.qnum);
+                if (!input) return;
+                input.value = slotEl.dataset.letter || '';
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            function clearSlot(slotEl) {
+                if (!slotEl.dataset.letter) return;
+                showBankChip(slotEl.dataset.group, slotEl.dataset.letter);
+                slotEl.dataset.letter = '';
+                slotEl.textContent = DEFAULT_SLOT_TEXT;
+                slotEl.classList.remove('filled');
+                setSlotInput(slotEl);
+            }
+            function fillSlot(slotEl, letter, label) {
+                if (slotEl.dataset.letter && slotEl.dataset.letter !== letter) {
+                    showBankChip(slotEl.dataset.group, slotEl.dataset.letter);
+                }
+                slotEl.dataset.letter = letter;
+                slotEl.textContent = label;
+                slotEl.classList.add('filled');
+                hideBankChip(slotEl.dataset.group, letter);
+                setSlotInput(slotEl);
+            }
+            function makeGhost(sourceEl, text) {
+                const ghost = document.createElement('div');
+                ghost.className = 'match-chip match-chip-ghost';
+                ghost.textContent = text;
+                ghost.style.position = 'fixed';
+                ghost.style.pointerEvents = 'none';
+                ghost.style.zIndex = 3000;
+                ghost.style.width = sourceEl.offsetWidth + 'px';
+                document.body.appendChild(ghost);
+                return ghost;
+            }
+            function moveGhost(x, y) {
+                if (!dragGhost) return;
+                dragGhost.style.left = (x - dragGhost.offsetWidth / 2) + 'px';
+                dragGhost.style.top = (y - dragGhost.offsetHeight / 2) + 'px';
+            }
+            function clearDragOverStyles() {
+                document.querySelectorAll('.match-slot.drag-over').forEach(s => s.classList.remove('drag-over'));
+            }
+            function cleanup() {
+                if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+                clearDragOverStyles();
+                dragSource = null;
+            }
+
+            document.addEventListener('pointerdown', e => {
+                const chip = e.target.closest('.match-chip');
+                const slot = e.target.closest('.match-slot');
+                if (chip && chip.style.display !== 'none') {
+                    dragSource = { letter: chip.dataset.letter, label: chip.textContent, group: chip.dataset.group, sourceSlot: null };
+                    dragGhost = makeGhost(chip, chip.textContent);
+                    moveGhost(e.clientX, e.clientY);
+                    e.preventDefault();
+                } else if (slot && slot.classList.contains('filled')) {
+                    dragSource = { letter: slot.dataset.letter, label: slot.textContent, group: slot.dataset.group, sourceSlot: slot };
+                    dragGhost = makeGhost(slot, slot.textContent);
+                    moveGhost(e.clientX, e.clientY);
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            document.addEventListener('pointermove', e => {
+                if (!dragSource) return;
+                moveGhost(e.clientX, e.clientY);
+                clearDragOverStyles();
+                if (dragGhost) dragGhost.style.display = 'none';
+                const target = document.elementFromPoint(e.clientX, e.clientY);
+                if (dragGhost) dragGhost.style.display = '';
+                const slotUnder = target && target.closest && target.closest('.match-slot');
+                if (slotUnder && slotUnder.dataset.group === dragSource.group) slotUnder.classList.add('drag-over');
+            }, { passive: true });
+
+            document.addEventListener('pointerup', e => {
+                if (!dragSource) return;
+                if (dragGhost) dragGhost.style.display = 'none';
+                const target = document.elementFromPoint(e.clientX, e.clientY);
+                if (dragGhost) dragGhost.style.display = '';
+                const slotUnder = target && target.closest && target.closest('.match-slot');
+
+                if (slotUnder && slotUnder.dataset.group === dragSource.group && slotUnder !== dragSource.sourceSlot) {
+                    if (dragSource.sourceSlot) clearSlot(dragSource.sourceSlot);
+                    fillSlot(slotUnder, dragSource.letter, dragSource.label);
+                } else if (!slotUnder && dragSource.sourceSlot) {
+                    // dropped outside any slot -> send the chip back to the bank
+                    clearSlot(dragSource.sourceSlot);
+                }
+                // dropped back on its own slot, or a bank chip dropped nowhere valid: no-op
+
+                cleanup();
+            });
+
+            document.addEventListener('pointercancel', cleanup);
+        })();
+
+        function gradePart(pNum) {
+            const [startQ, endQ] = passageRanges[pNum - 1];
+            const score = gradeQuestionRange(startQ, endQ);
+            const total = endQ - startQ + 1;
+            const btn = document.querySelector(`#part-grade-bar-${pNum} .part-grade-btn`);
+            if (btn) {
+                const original = btn.dataset.original || btn.innerText;
+                btn.dataset.original = original;
+                btn.innerText = `✅ Part ${pNum}: đúng ${score}/${total} câu`;
+                clearTimeout(btn._resetTimer);
+                btn._resetTimer = setTimeout(() => { btn.innerText = original; }, 5000);
+            }
+        }
+
         // --- Application Logic ---
         let appMode = 'practice'; // 'practice' or 'exam'
         let currentPassage = 1;
@@ -791,6 +1061,16 @@
             initNavCircles();
             setupInputListeners();
 
+            // Exam mode: minimal white theme + single purple highlight colour, no
+            // per-part "chấm riêng" buttons (real exam only submits once at the end).
+            // Practice mode: original theme, full 4-colour highlight palette, and a
+            // per-part grade button on top of the shared "Nộp bài" button.
+            const isExam = appMode === 'exam';
+            document.body.classList.toggle('exam-mode', isExam);
+            document.querySelectorAll('.annot-color-practice').forEach(btn => btn.style.display = isExam ? 'none' : '');
+            document.querySelectorAll('.annot-color-exam').forEach(btn => btn.style.display = isExam ? '' : 'none');
+            document.querySelectorAll('.part-grade-bar').forEach(bar => bar.classList.toggle('visible', !isExam));
+
             if (appMode === 'practice') {
                 let p = parseInt(document.getElementById('passage-dropdown').value);
                 document.getElementById('passage-tabs').style.display = 'flex';
@@ -799,7 +1079,7 @@
                 document.getElementById('passage-tabs').style.display = 'flex'; // allow manual nav in exam
                 switchPassage(1);
                 document.getElementById('timer-display').style.display = 'block';
-                startTimer(90 * 60);
+                startTimer(60 * 60); // Reading section is 60 minutes in the real IELTS exam
             }
         }
 
@@ -889,15 +1169,11 @@
             }, 1000);
         }
 
-        function submitTest() {
-            if(timerInterval) clearInterval(timerInterval);
-
+        // Grades questions [startQ, endQ] inclusive, writing feedback into each
+        // question's #fb-N box, and returns the number correct. Shared by the
+        // full "Nộp bài" submit and the per-part "Chấm riêng Part N" buttons.
+        function gradeQuestionRange(startQ, endQ) {
             let score = 0;
-            // Always grade all 3 passages/parts at once (in both practice and exam mode),
-            // not just whichever passage tab happens to be active right now.
-            let startQ = 1, endQ = TOTAL_QUESTIONS;
-            let total = endQ - startQ + 1;
-
             for (let i = startQ; i <= endQ; i++) {
                 let uAns = "";
                 const inputs = document.getElementsByName(`q${i}`);
@@ -934,6 +1210,17 @@
                     }
                 }
             }
+            return score;
+        }
+
+        function submitTest() {
+            if(timerInterval) clearInterval(timerInterval);
+
+            // Always grade all 3 passages/parts at once (in both practice and exam mode),
+            // not just whichever passage tab happens to be active right now.
+            const startQ = 1, endQ = TOTAL_QUESTIONS;
+            const total = endQ - startQ + 1;
+            const score = gradeQuestionRange(startQ, endQ);
 
             // Show results
             document.getElementById('score-correct').innerText = score;
@@ -1112,11 +1399,14 @@
             });
         }
 
-        function applyHighlight(range, color) {
+        function applyHighlight(range, color, textColor) {
             wrapRangeNodes(range, () => {
                 const span = document.createElement('span');
                 span.className = 'user-annotation user-highlight';
                 span.style.backgroundColor = color;
+                // Dark highlight colors (e.g. exam mode's maroon/wine) need white text
+                // on top to stay readable; pastel practice colors leave text untouched.
+                if (textColor) span.style.color = textColor;
                 return span;
             });
         }
@@ -1165,7 +1455,7 @@
 
         document.querySelectorAll('.annot-color').forEach(btn => {
             btn.addEventListener('click', () => {
-                applyHighlight(savedRange, btn.dataset.color);
+                applyHighlight(savedRange, btn.dataset.color, btn.dataset.textColor || null);
                 cleanupAfterAnnotate();
             });
         });
@@ -1348,6 +1638,82 @@
 
         updateVocabCount();
 
+    </script>
+
+    <!-- ============ BÁO CÁO KẾT QUẢ VỀ FIRESTORE (chỉ chạy khi bài test này được mở từ 1 bài
+         tập được giao qua "Bài tập" trên trang chủ — tức URL có ?assignmentId=&uid=). Tách riêng
+         thành 1 <script type="module"> độc lập, KHÔNG đụng vào script chính ở trên, để không phải
+         gắn lại hàng loạt hàm lên window. Script này chỉ đọc kết quả grading có sẵn (submitTest())
+         và ghi vào submissions/{assignmentId}_{uid}, không thay đổi hành vi làm bài bình thường. -->
+    <script type="module">
+        (function () {
+            var params = new URLSearchParams(location.search);
+            var assignmentId = params.get('assignmentId');
+            var uid = params.get('uid');
+            var scope = params.get('scope') || 'all';
+            if (!assignmentId || !uid) return; // mở bài test bình thường (không phải bài được giao) -> bỏ qua
+
+            // TODO(night): dán ĐÚNG firebaseConfig của project "b-s-english-house" — PHẢI GIỐNG HỆT
+            // khối config trong index.html / listeningtypegenerator.html, nếu không kết quả sẽ ghi
+            // nhầm sang project khác và giáo viên sẽ không thấy được.
+            var FB_CONFIG = {
+                apiKey: "AIzaSyDuoosjvJe3EoF22h9UJ6M95os5s_boQ-o",
+                authDomain: "b-s-english-house.firebaseapp.com",
+                projectId: "b-s-english-house",
+                storageBucket: "b-s-english-house.firebasestorage.app",
+                messagingSenderId: "946574286636",
+                appId: "1:946574286636:web:44624fb938e6b5dc961689",
+                measurementId: "G-YZR2QFWQGR"
+            };
+
+            Promise.all([
+                import('https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js'),
+                import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js')
+            ]).then(function (mods) {
+                var appMod = mods[0], fsMod = mods[1];
+                var app = appMod.initializeApp(FB_CONFIG, 'bseh-reading-report-' + Date.now());
+                var db = fsMod.getFirestore(app);
+                var subRef = fsMod.doc(db, 'submissions', assignmentId + '_' + uid);
+
+                // Bọc submitTest() gốc: chấm bài vẫn chạy y như cũ, chỉ thêm bước báo kết quả về
+                // Firestore ngay sau đó. submitTest là function khai báo ở top-level của <script>
+                // thường (không phải module) nên tự gắn lên window — an toàn để bọc lại ở đây vì
+                // module này chạy sau khi script chính đã thực thi xong (defer mặc định của module).
+                var origSubmitTest = window.submitTest;
+                window.submitTest = function () {
+                    if (typeof origSubmitTest === 'function') origSubmitTest();
+                    try { reportAssignmentResult(); } catch (e) { console.warn('BSEH: report failed', e); }
+                };
+
+                function reportAssignmentResult() {
+                    // submitTest() ở trên luôn chấm CẢ 3 passage rồi hiện tổng điểm ở #score-correct/#score-total.
+                    var fullCorrectEl = document.getElementById('score-correct');
+                    var fullTotalEl = document.getElementById('score-total');
+                    var reportCorrect = fullCorrectEl ? (parseInt(fullCorrectEl.innerText, 10) || 0) : 0;
+                    var reportTotal = fullTotalEl ? (parseInt(fullTotalEl.innerText, 10) || 0) : 0;
+
+                    // Nếu giáo viên chỉ giao 1 Passage (thường gặp nhất), báo điểm riêng của đúng
+                    // Passage đó thay vì điểm cả đề — chấm lại đúng khoảng câu hỏi của passage này
+                    // (an toàn để gọi lại: gradeQuestionRange ghi đè fbBox chứ không cộng dồn).
+                    if ((scope === '1' || scope === '2' || scope === '3') &&
+                        window.passageRanges && typeof window.gradeQuestionRange === 'function') {
+                        var range = window.passageRanges[parseInt(scope, 10) - 1];
+                        if (range) {
+                            reportCorrect = window.gradeQuestionRange(range[0], range[1]);
+                            reportTotal = range[1] - range[0] + 1;
+                        }
+                    }
+
+                    var percent = reportTotal > 0 ? Math.round(reportCorrect / reportTotal * 100) : 0;
+                    fsMod.setDoc(subRef, {
+                        status: 'done',
+                        percent: percent,
+                        score: reportCorrect + '/' + reportTotal,
+                        completedAt: fsMod.serverTimestamp()
+                    }, { merge: true }).catch(function (e) { console.warn('BSEH: submissions write failed', e); });
+                }
+            }).catch(function (e) { console.warn('BSEH: firebase init failed', e); });
+        })();
     </script>
 </body>
 </html>
