@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Night IELTS — Listening Type Generator</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config={theme:{extend:{colors:{primary:{50:'#f0f9ff',100:'#e0f2fe',200:'#99f6e4',300:'#7dd3fc',400:'#38bdf8',500:'#0ea5e9',600:'#0d9488',700:'#0369a1',800:'#075985',900:'#134e4a'}},boxShadow:{card:'0 10px 30px rgba(20,184,166,.08)',floating:'0 20px 45px rgba(15,23,42,.12)'}}}};
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}html,body{margin:0;background:#f8fafc;color:#1e293b;font-family:'Plus Jakarta Sans',sans-serif;}
+button,input,select,textarea{font-family:'Plus Jakarta Sans',sans-serif;outline:none;}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;}
+.scrollbar::-webkit-scrollbar{width:8px;height:8px}.scrollbar::-webkit-scrollbar-thumb{background:#99f6e4;border-radius:99px}
+.hidden{display:none!important}
+</style>
+</head>
+<body class="antialiased">
+
+<!-- ================= AUTH GATE (chỉ giáo viên/admin mới vào được) ================= -->
+<div id="authGate" class="fixed inset-0 z-[999] bg-slate-900/95 flex items-center justify-center p-6">
+  <div class="bg-white rounded-[28px] p-8 max-w-sm w-full text-center shadow-floating">
+    <div class="text-[10px] font-extrabold tracking-[.2em] text-primary-500 uppercase">NIGHT IELTS</div>
+    <h1 class="text-xl font-extrabold text-slate-800 mt-1">Listening Type Generator</h1>
+    <p id="authGateMsg" class="text-sm text-slate-500 mt-3">Công cụ này chỉ dành cho giáo viên. Vui lòng đăng nhập bằng tài khoản Google quản trị.</p>
+    <button id="authGateLoginBtn" class="mt-5 w-full px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm shadow-floating transition">
+      Đăng nhập bằng Google
+    </button>
+  </div>
+</div>
+
+<!-- ================= GITHUB SETTINGS MODAL ================= -->
+<div id="ghSettingsModal" class="hidden fixed inset-0 z-[900] bg-slate-900/60 items-center justify-center p-4">
+  <div class="bg-white rounded-[28px] p-6 max-w-md w-full shadow-floating">
+    <h3 class="text-lg font-extrabold text-slate-800">⚙️ Cấu hình GitHub</h3>
+    <p class="text-xs text-slate-500 mt-1">Dùng để đăng bài trực tiếp lên repo GitHub Pages của web. Token chỉ lưu trên trình duyệt này (localStorage), không gửi cho ai ngoài GitHub.</p>
+    <div class="mt-4 space-y-3">
+      <div><label class="text-[11px] font-bold text-slate-500">Owner (username GitHub)</label>
+        <input id="ghOwner" class="mt-1 w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 focus:border-primary-400 text-sm font-bold"></div>
+      <div><label class="text-[11px] font-bold text-slate-500">Repo</label>
+        <input id="ghRepo" class="mt-1 w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 focus:border-primary-400 text-sm font-bold"></div>
+      <div><label class="text-[11px] font-bold text-slate-500">Branch</label>
+        <input id="ghBranch" value="main" class="mt-1 w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 focus:border-primary-400 text-sm font-bold"></div>
+      <div><label class="text-[11px] font-bold text-slate-500">Personal Access Token (quyền Contents: Read &amp; Write)</label>
+        <input id="ghToken" type="password" class="mt-1 w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 focus:border-primary-400 text-sm font-bold mono"></div>
+    </div>
+    <div id="ghSettingsMsg" class="text-xs mt-3 min-h-[16px]"></div>
+    <div class="flex gap-3 mt-4">
+      <button id="ghSettingsCancel" class="flex-1 px-4 py-3 rounded-xl bg-slate-100 text-slate-600 font-extrabold text-sm">Đóng</button>
+      <button id="ghSettingsSave" class="flex-1 px-4 py-3 rounded-xl bg-slate-900 text-white font-extrabold text-sm">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= PUBLISH TO FOLDER MODAL ================= -->
+<div id="publishModal" class="hidden fixed inset-0 z-[900] bg-slate-900/60 items-center justify-center p-4">
+  <div class="bg-white rounded-[28px] p-6 max-w-md w-full shadow-floating">
+    <h3 class="text-lg font-extrabold text-slate-800">📁 Đăng lên thư mục có sẵn</h3>
+    <p class="text-xs text-slate-500 mt-1">Bài sẽ nằm vĩnh viễn trong thư mục này trên trang chủ, cho tới khi thầy bấm xoá.</p>
+    <div class="mt-4">
+      <label class="text-[11px] font-bold text-slate-500">Chọn thư mục</label>
+      <select id="publishFolderSelect" class="mt-1 w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 focus:border-primary-400 text-sm font-bold"></select>
+    </div>
+    <div id="publishMsg" class="text-xs mt-3 min-h-[16px]"></div>
+    <div class="flex gap-3 mt-4">
+      <button id="publishCancel" class="flex-1 px-4 py-3 rounded-xl bg-slate-100 text-slate-600 font-extrabold text-sm">Huỷ</button>
+      <button id="publishConfirm" class="flex-1 px-4 py-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-sm">🚀 Đăng bài</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ASSIGN TO STUDENT MODAL ================= -->
+<div id="assignModal" class="hidden fixed inset-0 z-[900] bg-slate-900/60 items-center justify-center p-4">
+  <div class="bg-white rounded-[28px] p-6 max-w-md w-full shadow-floating">
+    <h3 class="text-lg font-extrabold text-slate-800">🎯 Giao cho học sinh</h3>
+    <p class="text-xs text-slate-500 mt-1">Bài giao riêng cho học sinh sẽ tự động biến mất sau 20 ngày kể từ lúc giao.</p>
+    <div id="assignTargetBanner" class="hidden mt-3 p-3 rounded-xl bg-primary-50 border border-primary-100 text-xs font-bold text-primary-700"></div>
+    <div class="mt-4 space-y-3">
+      <div id="assignStudentField"><label class="text-[11px] font-bold text-slate-500">Học sinh</label>
+        <select id="assignStudentSelect" class="mt-1 w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 focus:border-primary-400 text-sm font-bold"></select></div>
+      <div><label class="text-[11px] font-bold text-slate-500">Hạn nộp (không bắt buộc)</label>
+        <input id="assignDeadline" type="date" class="mt-1 w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 focus:border-primary-400 text-sm font-bold"></div>
+    </div>
+    <div id="assignMsg" class="text-xs mt-3 min-h-[16px]"></div>
+    <div class="flex gap-3 mt-4">
+      <button id="assignCancel" class="flex-1 px-4 py-3 rounded-xl bg-slate-100 text-slate-600 font-extrabold text-sm">Huỷ</button>
+      <button id="assignConfirm" class="flex-1 px-4 py-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-sm">🚀 Giao bài</button>
+    </div>
+  </div>
+</div>
+
+<div id="appRoot" class="hidden min-h-screen">
+  <header class="border-b border-slate-200 bg-white/90 backdrop-blur-md sticky top-0 z-20 px-5 md:px-10 py-5">
+    <div class="max-w-[1400px] mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <div class="text-[10px] font-extrabold tracking-[.2em] text-primary-500 uppercase">NIGHT IELTS</div>
+        <h1 class="text-xl md:text-2xl font-extrabold text-slate-800 mt-0.5">Listening Type Generator</h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="authUserBadge" class="text-xs font-bold text-slate-500 hidden sm:inline"></span>
+        <button id="ghSettingsBtn" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center" title="Cấu hình GitHub">⚙️</button>
+        <button id="genLogoutBtn" class="text-xs font-bold text-slate-400 hover:text-rose-500">Đăng xuất</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-[1400px] mx-auto p-5 md:p-10 grid lg:grid-cols-[440px_1fr] gap-6 items-start">
+
+    <!-- EDITOR PANEL -->
+    <section class="bg-white border border-slate-200 rounded-[28px] p-6 md:p-7 shadow-card">
+      <div class="text-[10px] font-extrabold tracking-widest text-primary-500 uppercase">Bước 1</div>
+      <h2 class="text-lg font-extrabold text-slate-800 mt-1">Tên bài tập</h2>
+      <p class="text-xs text-slate-500 mt-2">Tên này sẽ hiện ngay trên bài tập, và cũng được dùng để đặt tên file khi tải về.</p>
+
+      <input id="titleInput" type="text" placeholder="VD: Bài tập cho Ánh · 23 tháng 8"
+        class="mt-2 w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-primary-400 transition text-sm font-bold text-slate-700">
+      <p class="text-[11px] text-slate-400 mt-1.5">Tên file tự động bỏ dấu, cách nhau bằng gạch dưới. VD: <b class="text-primary-600">Bài tập cho Ánh · 23 tháng 8</b> → file <b class="text-primary-600">bai_tap_cho_anh_23_thang_8.html</b>.</p>
+
+      <div class="text-[10px] font-extrabold tracking-widest text-primary-500 uppercase mt-7">Bước 2</div>
+      <h2 class="text-lg font-extrabold text-slate-800 mt-1">Màu chủ đề</h2>
+      <p class="text-xs text-slate-500 mt-2">Chọn màu chính cho giao diện bài tập (mặc định: xanh dương / Lam).</p>
+      <div id="colorPicker" class="flex flex-wrap gap-3 mt-3"></div>
+
+      <div class="text-[10px] font-extrabold tracking-widest text-primary-500 uppercase mt-7">Bước 3</div>
+      <h2 class="text-lg font-extrabold text-slate-800 mt-1">Dán từ vựng &amp; câu luyện tập</h2>
+      <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+        Mỗi dòng 1 mục, phân cách bằng dấu <b class="text-primary-600">/</b>, theo đúng thứ tự:
+      </p>
+      <div class="mt-2 bg-primary-50 border border-primary-100 rounded-xl px-3 py-2.5 text-[11px] font-bold text-primary-700 mono">
+        cụm từ / nghĩa cụm từ / câu ví dụ / nghĩa câu
+      </div>
+      <p class="text-[11px] text-slate-400 mt-2">Dòng bắt đầu bằng # sẽ bị bỏ qua (dùng để ghi chú). Dòng trống cũng được bỏ qua.</p>
+
+      <textarea id="dataInput" rows="14" spellcheck="false"
+        class="mt-3 w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-primary-400 transition text-[13px] leading-relaxed mono scrollbar"
+      ># Xoá các dòng ví dụ này rồi dán nội dung của thầy vào
+get up / thức dậy / Ava gets up at around 7am. / Ava thức dậy vào khoảng 7 giờ sáng.
+have breakfast / ăn sáng / Ava gets up and has breakfast. / Ava thức dậy và ăn sáng.
+live near the coast / sống gần bờ biển / Most people in Australia live near the coast. / Hầu hết người dân ở Úc sống gần bờ biển.
+take the bus / đi xe buýt / She usually takes the bus to college. / Cô ấy thường đi xe buýt đến trường.
+go to bed / đi ngủ / I go to bed at about 10pm. / Tôi đi ngủ vào khoảng 10 giờ tối.</textarea>
+
+      <button id="generateBtn" onclick="generateLesson()"
+        class="mt-5 w-full px-6 py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm shadow-floating transition">
+        ⚡ Generate bài tập
+      </button>
+      <div id="genStatus" class="mt-3 min-h-[20px]"></div>
+    </section>
+
+    <!-- PREVIEW PANEL -->
+    <section class="bg-white border border-slate-200 rounded-[28px] p-4 md:p-5 shadow-card min-h-[70vh] flex flex-col">
+      <div id="previewPlaceholder" class="flex-1 flex flex-col items-center justify-center text-center p-10">
+        <div class="w-16 h-16 rounded-2xl bg-primary-50 text-primary-500 flex items-center justify-center text-3xl">▶</div>
+        <div class="text-slate-800 font-extrabold mt-4">Bài tập sẽ hiện ở đây</div>
+        <p class="text-sm text-slate-400 mt-2 max-w-xs">Điền tên bài + dán danh sách bên trái, rồi bấm Generate để xem &amp; thử ngay trong khung này.</p>
+      </div>
+
+      <div id="previewWrap" class="hidden flex-1 flex flex-col min-h-0">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-3 px-1">
+          <button onclick="showEditor()" class="text-xs font-extrabold text-primary-600 hover:text-primary-700">← Sửa lại nội dung</button>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="downloadLesson()" class="px-4 py-3 rounded-xl bg-white border-2 border-slate-200 hover:border-primary-300 text-slate-600 text-xs font-extrabold">⬇ Tải file</button>
+            <button onclick="openPublishModal()" class="px-4 py-3 rounded-xl bg-white border-2 border-slate-200 hover:border-primary-300 text-slate-600 text-xs font-extrabold">📁 Đăng lên thư mục</button>
+            <button onclick="openAssignModal()" class="px-4 py-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-xs font-extrabold shadow-card">🎯 Giao cho học sinh</button>
+          </div>
+        </div>
+        <iframe id="previewFrame" title="Xem thử bài tập" class="w-full flex-1 rounded-2xl border-2 border-slate-100" style="min-height:70vh;"></iframe>
+        <p class="text-[11px] text-slate-400 mt-2 px-1">Nếu nút Tải về không phản hồi trong khung xem trước, hãy mở file HTML này ra ngoài trình duyệt (Chrome/Safari) rồi thử lại.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="text-center text-[11px] text-slate-400 py-8">Night IELTS · by Mr. Night</footer>
+</div>
+
+<script>
+// ============================================================================
+// SLUGIFY / PARSE
+// ============================================================================
+function slugify(str){
+  var map = {'đ':'d','Đ':'D'};
+  var s = String(str||'').replace(/[đĐ]/g, function(m){ return map[m]; });
+  s = s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+  s = s.toLowerCase().trim();
+  s = s.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  return s || 'listening-type-exercise';
+}
+
+function slugifyUnderscore(str){
+  var map = {'đ':'d','Đ':'D'};
+  var s = String(str||'').replace(/[đĐ]/g, function(m){ return map[m]; });
+  s = s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+  s = s.toLowerCase().trim();
+  s = s.replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  return s || 'listening_type_exercise';
+}
+
+// ============================================================================
+// THEME COLORS (7 sắc cầu vồng)
+// ============================================================================
+var PALETTES = {
+  red:    {50:'#fef2f2',100:'#fee2e2',200:'#fecaca',300:'#fca5a5',400:'#f87171',500:'#ef4444',600:'#dc2626',700:'#b91c1c',800:'#991b1b',900:'#7f1d1d'},
+  orange: {50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#fb923c',500:'#f97316',600:'#ea580c',700:'#c2410c',800:'#9a3412',900:'#7c2d12'},
+  yellow: {50:'#fffbeb',100:'#fef3c7',200:'#fde68a',300:'#fcd34d',400:'#fbbf24',500:'#f59e0b',600:'#d97706',700:'#b45309',800:'#92400e',900:'#78350f'},
+  green:  {50:'#f0fdf4',100:'#dcfce7',200:'#bbf7d0',300:'#86efac',400:'#4ade80',500:'#22c55e',600:'#16a34a',700:'#15803d',800:'#166534',900:'#14532d'},
+  blue:   {50:'#f0f9ff',100:'#e0f2fe',200:'#99f6e4',300:'#7dd3fc',400:'#38bdf8',500:'#0ea5e9',600:'#0d9488',700:'#0369a1',800:'#075985',900:'#134e4a'},
+  indigo: {50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca',800:'#3730a3',900:'#312e81'},
+  violet: {50:'#faf5ff',100:'#f3e8ff',200:'#e9d5ff',300:'#d8b4fe',400:'#c084fc',500:'#a855f7',600:'#9333ea',700:'#7e22ce',800:'#6b21a8',900:'#581c87'}
+};
+var COLOR_OPTIONS = [
+  {key:'red', label:'Đỏ', swatch:'#ef4444'},
+  {key:'orange', label:'Cam', swatch:'#f97316'},
+  {key:'yellow', label:'Vàng', swatch:'#f59e0b'},
+  {key:'green', label:'Lục', swatch:'#22c55e'},
+  {key:'blue', label:'Lam', swatch:'#0ea5e9'},
+  {key:'indigo', label:'Chàm', swatch:'#4f46e5'},
+  {key:'violet', label:'Tím', swatch:'#a855f7'}
+];
+var selectedColorKey = 'blue';
+
+function renderColorPicker(){
+  var wrap = document.getElementById('colorPicker');
+  if(!wrap) return;
+  wrap.innerHTML = COLOR_OPTIONS.map(function(c){
+    var isSel = c.key === selectedColorKey;
+    return '<button type="button" onclick="selectColor(\'' + c.key + '\')" title="' + c.label + '" class="w-10 h-10 rounded-full border-2 transition flex items-center justify-center ' + (isSel ? 'border-slate-800 scale-110 shadow-card' : 'border-white') + '" style="background:' + c.swatch + '">' + (isSel ? '<span class="text-white text-xs">&#10003;</span>' : '') + '</button>';
+  }).join('');
+}
+function selectColor(key){ selectedColorKey = key; renderColorPicker(); }
+renderColorPicker();
+
+function parseItems(raw){
+  var lines = String(raw||'').split('\n');
+  var items = [];
+  var errors = [];
+  lines.forEach(function(line, idx){
+    var trimmed = line.trim();
+    if(!trimmed || trimmed.charAt(0) === '#') return;
+    var parts = trimmed.split('/').map(function(p){ return p.trim(); });
+    if(parts.length < 3 || !parts[0] || !parts[2]){
+      errors.push('Dòng ' + (idx+1) + ': thiếu dữ liệu (cần ít nhất cụm từ / nghĩa / câu ví dụ).');
+      return;
+    }
+    items.push({
+      phrase: parts[0],
+      meaningVi: parts[1] || '',
+      sentence: parts[2],
+      sentenceVi: parts[3] || parts[1] || ''
+    });
+  });
+  return { items: items, errors: errors };
+}
+
+// ============================================================================
+// GENERATE / DOWNLOAD
+// ============================================================================
+var currentItems = [];
+var currentTitle = '';
+var currentColorKey = 'blue';
+var currentFilename = '';
+
+// Khi công cụ này được mở từ nút "Giao Bài Tập" ở trang chủ (admin/listeningtypegenerator.html?embedded=1&...),
+// lớp/học sinh đích đã được chọn sẵn bên đó — đọc lại từ query string để khỏi phải chọn lại.
+var embeddedTarget = null;
+(function parseEmbeddedTarget(){
+  try {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('embedded') === '1') {
+      var studentIdsStr = params.get('studentIds') || '';
+      embeddedTarget = {
+        targetType: params.get('targetType') || 'student',
+        targetId: params.get('targetId') || '',
+        targetLabel: params.get('targetLabel') || '',
+        studentIds: studentIdsStr ? studentIdsStr.split(',').filter(Boolean) : []
+      };
+    }
+  } catch (e) {}
+})();
+
+function generateLesson(){
+  var titleEl = document.getElementById('titleInput');
+  var dataEl = document.getElementById('dataInput');
+  var statusEl = document.getElementById('genStatus');
+  var title = titleEl.value.trim() || 'Listening Type Practice';
+  var parsed = parseItems(dataEl.value);
+
+  if(parsed.items.length === 0){
+    statusEl.innerHTML = '<div class="text-rose-600 font-bold text-xs">Chưa có dòng nào hợp lệ. Kiểm tra lại format: cụm từ / nghĩa / câu ví dụ / nghĩa câu.</div>';
+    return;
+  }
+
+  currentItems = parsed.items;
+  currentTitle = title;
+  currentColorKey = selectedColorKey;
+  currentFilename = title;
+
+  var html = buildLessonHTML(title, currentItems, currentColorKey);
+  document.getElementById('previewFrame').srcdoc = html;
+  document.getElementById('previewPlaceholder').classList.add('hidden');
+  document.getElementById('previewWrap').classList.remove('hidden');
+
+  var msg = 'Đã tạo ' + parsed.items.length + ' mục — thử ngay trong khung bên phải.';
+  if(parsed.errors.length) msg += ' (' + parsed.errors.length + ' dòng bị bỏ qua vì sai format.)';
+  statusEl.innerHTML = '<div class="text-emerald-600 font-bold text-xs">' + msg + '</div>';
+  if(parsed.errors.length) console.warn(parsed.errors.join('\n'));
+}
+
+function showEditor(){
+  document.getElementById('previewWrap').classList.add('hidden');
+  document.getElementById('previewPlaceholder').classList.remove('hidden');
+}
+
+function downloadLesson(){
+  if(!currentItems.length) return;
+  var html = buildLessonHTML(currentTitle, currentItems, currentColorKey);
+  var blob = new Blob([html], {type:'text/html'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = slugifyUnderscore(currentFilename) + '.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+}
+
+function buildLessonHTML(title, items, colorKey){
+  var palette = PALETTES[colorKey] || PALETTES.blue;
+  var paletteJson = JSON.stringify(palette);
+  var sparkColorsJson = JSON.stringify([palette[500], palette[400], palette[200], palette[600], palette[300]]);
+  var dataJson = JSON.stringify({ title: title, items: items });
+  dataJson = dataJson.split('</').join('<\\/');
+
+  var html = LESSON_TEMPLATE;
+  html = html.replace('%%PRIMARY_PALETTE_JSON%%', function(){ return paletteJson; });
+  html = html.replace('%%CHAR_UNTYPED_BORDER%%', function(){ return palette[200]; });
+  html = html.replace('%%CHAR_TYPED_COLOR%%', function(){ return palette[900]; });
+  html = html.replace('%%CHAR_TYPED_BORDER%%', function(){ return palette[600]; });
+  html = html.replace('%%SPARK_COLORS_JSON%%', function(){ return sparkColorsJson; });
+  html = html.replace('%%LESSON_DATA_JSON%%', function(){ return dataJson; });
+  return html;
+}
+
+// ============================================================================
+// GITHUB PUBLISH HELPERS (đăng bài lên folder có sẵn, thẳng vào repo GitHub)
+// ============================================================================
+var GH_CFG_KEY = 'nightIeltsGithubCfg';
+function ghLoadCfg(){
+  try { return JSON.parse(localStorage.getItem(GH_CFG_KEY) || '{}'); } catch(e){ return {}; }
+}
+function ghSaveCfg(cfg){ localStorage.setItem(GH_CFG_KEY, JSON.stringify(cfg)); }
+
+function utf8ToB64(str){
+  var bytes = new TextEncoder().encode(str);
+  var binary = '';
+  for(var i=0;i<bytes.length;i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+function b64ToUtf8(b64){
+  var binary = atob(String(b64||'').replace(/\n/g,''));
+  var bytes = new Uint8Array(binary.length);
+  for(var i=0;i<binary.length;i++) bytes[i] = binary.charCodeAt(i);
+  return new TextDecoder('utf-8').decode(bytes);
+}
+function ghApiBase(cfg){ return 'https://api.github.com/repos/' + cfg.owner + '/' + cfg.repo + '/contents/'; }
+
+function ghGetFile(cfg, path){
+  return fetch(ghApiBase(cfg) + path + '?ref=' + encodeURIComponent(cfg.branch || 'main'), {
+    headers: { 'Authorization': 'Bearer ' + cfg.token, 'Accept': 'application/vnd.github+json' }
+  }).then(function(res){
+    if(!res.ok) return res.text().then(function(t){ throw new Error('GitHub GET lỗi (' + res.status + '): ' + path + ' — ' + t); });
+    return res.json();
+  }).then(function(j){ return { sha: j.sha, text: b64ToUtf8(j.content) }; });
+}
+function ghPutFile(cfg, path, text, message, sha){
+  var body = { message: message, content: utf8ToB64(text), branch: cfg.branch || 'main' };
+  if(sha) body.sha = sha;
+  return fetch(ghApiBase(cfg) + path, {
+    method: 'PUT',
+    headers: { 'Authorization': 'Bearer ' + cfg.token, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  }).then(function(res){
+    if(!res.ok) return res.text().then(function(t){ throw new Error('GitHub PUT lỗi (' + res.status + '): ' + t); });
+    return res.json();
+  });
+}
+function ghDeleteFile(cfg, path, message, sha){
+  return fetch(ghApiBase(cfg) + path, {
+    method: 'DELETE',
+    headers: { 'Authorization': 'Bearer ' + cfg.token, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: message, sha: sha, branch: cfg.branch || 'main' })
+  }).then(function(res){
+    if(!res.ok) return res.text().then(function(t){ throw new Error('GitHub DELETE lỗi (' + res.status + '): ' + t); });
+  });
+}
+function extractLessonDataArrayText(fullText){
+  var marker = 'const LESSON_DATA = ';
+  var startIdx = fullText.indexOf(marker);
+  if(startIdx === -1) throw new Error('Không tìm thấy LESSON_DATA trong index.html');
+  var i = startIdx + marker.length;
+  while(fullText[i] !== '[') i++;
+  var arrStart = i;
+  var depth = 0, inStr = false, strCh = '', esc = false;
+  for(; i < fullText.length; i++){
+    var c = fullText[i];
+    if(inStr){
+      if(esc){ esc = false; }
+      else if(c === '\\'){ esc = true; }
+      else if(c === strCh){ inStr = false; }
+      continue;
+    }
+    if(c === '"' || c === "'" || c === '`'){ inStr = true; strCh = c; continue; }
+    if(c === '[') depth++;
+    else if(c === ']'){ depth--; if(depth === 0){ i++; break; } }
+  }
+  var arrEnd = i;
+  return { marker: marker, startIdx: startIdx, arrStart: arrStart, arrEnd: arrEnd, arrayText: fullText.slice(arrStart, arrEnd) };
+}
+function parseLessonData(arrayText){ return (new Function('return ' + arrayText))(); }
+function serializeLessonData(dataArray){ return JSON.stringify(dataArray, null, 4); }
+function replaceLessonDataInFile(fullText, newArrayText){
+  var r = extractLessonDataArrayText(fullText);
+  return fullText.slice(0, r.arrStart) + newArrayText + fullText.slice(r.arrEnd);
+}
+
+function ghPublishToFolder(cfg, folderId, title, items, colorKey, buildLessonHTMLFn){
+  var genId = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+  var filePath = 'homework/generated/' + slugifyUnderscore(title) + '_' + genId + '.html';
+  var html = buildLessonHTMLFn(title, items, colorKey);
+  return ghPutFile(cfg, filePath, html, 'Night IELTS: thêm bài "' + title + '"', undefined).then(function(){
+    return ghGetFile(cfg, 'index.html');
+  }).then(function(res){
+    var data = parseLessonData(extractLessonDataArrayText(res.text).arrayText);
+    var folder = data.find(function(f){ return f.id === folderId; });
+    if(!folder) throw new Error('Không tìm thấy folder: ' + folderId);
+    var d = new Date();
+    var dateStr = String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
+    folder.tests.unshift({ title: title, date: dateStr, questions: items.length, link: filePath, gen: genId });
+    var newFullText = replaceLessonDataInFile(res.text, serializeLessonData(data));
+    return ghPutFile(cfg, 'index.html', newFullText, 'Night IELTS: đăng bài "' + title + '" vào folder ' + folderId, res.sha);
+  }).then(function(){ return { genId: genId, filePath: filePath }; });
+}
+
+// ============================================================================
+// PUBLISH-TO-FOLDER MODAL
+// ============================================================================
+var FALLBACK_FOLDERS = [
+  {id:"LINH TINH", name:"Linh Tinh"},
+  {id:"listening - cac giao trinh", name:"listening - các giáo trình"},
+  {id:"bai tap pre-listening", name:"pre-listening"},
+  {id:"Mindset-foundation", name:"Mindset0"},
+  {id:"mindset 2 - giáo trình - interactive lessons", name:"speaking mindset2"},
+  {id:"mindset0", name:"mindset foundation"},
+  {id:"nguphap", name:"ngữ pháp tổng hợp"},
+  {id:"Vocab Practice Mindset 2", name:"Vocab Practice Mindset 2"},
+  {id:"writing1", name:"Writing Task 1"},
+  {id:"Boya1", name:"Boya1"},
+  {id:"empty_demo", name:"Thư mục mới"}
+];
+
+function openPublishModal(){
+  if(!currentItems.length){ alert('Bấm Generate trước đã nhé.'); return; }
+  var sel = document.getElementById('publishFolderSelect');
+  sel.innerHTML = FALLBACK_FOLDERS.map(function(f){
+    return '<option value="' + f.id.replace(/"/g,'&quot;') + '">' + f.name + '</option>';
+  }).join('') + '<option value="__custom__">-- ID folder khác (gõ tay) --</option>';
+  document.getElementById('publishMsg').innerHTML = '';
+  document.getElementById('publishModal').classList.remove('hidden');
+  document.getElementById('publishModal').classList.add('flex');
+}
+function closePublishModal(){
+  document.getElementById('publishModal').classList.add('hidden');
+  document.getElementById('publishModal').classList.remove('flex');
+}
+document.addEventListener('DOMContentLoaded', function(){
+  document.getElementById('publishCancel').onclick = closePublishModal;
+  document.getElementById('publishConfirm').onclick = function(){
+    var sel = document.getElementById('publishFolderSelect');
+    var folderId = sel.value;
+    var msgEl = document.getElementById('publishMsg');
+    if(folderId === '__custom__'){
+      folderId = prompt('Nhập chính xác ID folder (xem trong index.html, phân biệt hoa/thường):', '');
+      if(!folderId) return;
+    }
+    var cfg = ghLoadCfg();
+    if(!cfg.owner || !cfg.repo || !cfg.token){
+      msgEl.innerHTML = '<span class="text-rose-600 font-bold">Chưa cấu hình GitHub — bấm ⚙️ ở góc trên để nhập trước.</span>';
+      return;
+    }
+    var btn = document.getElementById('publishConfirm');
+    btn.disabled = true; btn.innerText = 'Đang đăng...';
+    ghPublishToFolder(cfg, folderId, currentTitle, currentItems, currentColorKey, buildLessonHTML).then(function(){
+      msgEl.innerHTML = '<span class="text-emerald-600 font-bold">Đã đăng bài lên folder thành công! Vài giây sau sẽ hiện trên trang chủ.</span>';
+      btn.disabled = false; btn.innerText = '🚀 Đăng bài';
+      setTimeout(closePublishModal, 1500);
+    }).catch(function(e){
+      msgEl.innerHTML = '<span class="text-rose-600 font-bold">Lỗi: ' + e.message + '</span>';
+      btn.disabled = false; btn.innerText = '🚀 Đăng bài';
+    });
+  };
+
+  // ============================================================================
+  // ASSIGN-TO-STUDENT MODAL
+  // ============================================================================
+  document.getElementById('assignCancel').onclick = closeAssignModal;
+  document.getElementById('assignConfirm').onclick = function(){
+    // Nếu mở từ trang chủ (nút "Giao Bài Tập") thì đã có sẵn danh sách studentIds (có thể là
+    // cả 1 lớp); nếu mở trực tiếp công cụ này như trước thì vẫn dùng dropdown chọn 1 học sinh.
+    var studentIds, targetType, targetId, targetLabel;
+    if (embeddedTarget && embeddedTarget.studentIds.length > 0) {
+      studentIds = embeddedTarget.studentIds;
+      targetType = embeddedTarget.targetType;
+      targetId = embeddedTarget.targetId;
+      targetLabel = embeddedTarget.targetLabel;
+    } else {
+      var studentId = document.getElementById('assignStudentSelect').value;
+      studentIds = studentId ? [studentId] : [];
+      targetType = 'student';
+      targetId = studentId;
+      targetLabel = '';
+    }
+    var deadlineStr = document.getElementById('assignDeadline').value;
+    var msgEl = document.getElementById('assignMsg');
+    if(!studentIds.length){ msgEl.innerHTML = '<span class="text-rose-600 font-bold">Chọn học sinh trước đã.</span>'; return; }
+    if(!currentItems.length){ msgEl.innerHTML = '<span class="text-rose-600 font-bold">Chưa có bài nào được generate.</span>'; return; }
+    if(!window.__db){ msgEl.innerHTML = '<span class="text-rose-600 font-bold">Chưa kết nối được hệ thống, thử tải lại trang.</span>'; return; }
+    var btn = document.getElementById('assignConfirm');
+    btn.disabled = true; btn.innerText = 'Đang giao...';
+    var now = Date.now();
+    var deadlineAt = deadlineStr ? new Date(deadlineStr + 'T23:59:59').getTime() : null;
+    var expiresAt = now + 20*24*60*60*1000;
+    var creator = window.__currentUser || { uid: '', name: '' };
+    window.__addDoc(window.__collection(window.__db, 'assignments'), {
+      type: 'listening',
+      title: currentTitle,
+      // Giữ lại studentId (học sinh đầu tiên) để tương thích ngược với dữ liệu/luồng cũ chỉ giao 1 người;
+      // studentIds mới là nguồn thật cho mọi tính năng mới (lớp, hộp thư bài tập, tiến độ...).
+      studentId: studentIds[0],
+      studentIds: studentIds,
+      targetType: targetType,
+      targetId: targetId,
+      targetLabel: targetLabel,
+      vocabList: currentItems,
+      colorKey: currentColorKey,
+      createdBy: creator.uid,
+      createdByName: creator.name,
+      createdAt: now,
+      deadline: deadlineStr || null,
+      deadlineAt: deadlineAt,
+      expiresAt: expiresAt,
+      completedIndices: []
+    }).then(function(assignRef){
+      var writes = studentIds.map(function(uid){
+        return window.__setDoc(window.__doc(window.__db, 'submissions', assignRef.id + '_' + uid), {
+          assignmentId: assignRef.id, studentId: uid, teacherId: creator.uid,
+          assignmentTitle: currentTitle, assignmentType: 'listening',
+          status: 'pending', percent: 0, score: null,
+          createdAt: now
+        });
+      });
+      return Promise.all(writes);
+    }).then(function(){
+      msgEl.innerHTML = '<span class="text-emerald-600 font-bold">Đã giao bài cho ' + studentIds.length + ' học sinh! (Tự xoá sau 20 ngày)</span>';
+      btn.disabled = false; btn.innerText = '🚀 Giao bài';
+      setTimeout(closeAssignModal, 1200);
+    }).catch(function(e){
+      msgEl.innerHTML = '<span class="text-rose-600 font-bold">Lỗi: ' + e.message + '</span>';
+      btn.disabled = false; btn.innerText = '🚀 Giao bài';
+    });
+  };
+
+  // ============================================================================
+  // GITHUB SETTINGS MODAL
+  // ============================================================================
+  document.getElementById('ghSettingsBtn').onclick = function(){
+    var cfg = ghLoadCfg();
+    document.getElementById('ghOwner').value = cfg.owner || '';
+    document.getElementById('ghRepo').value = cfg.repo || '';
+    document.getElementById('ghBranch').value = cfg.branch || 'main';
+    document.getElementById('ghToken').value = cfg.token || '';
+    document.getElementById('ghSettingsMsg').innerHTML = '';
+    document.getElementById('ghSettingsModal').classList.remove('hidden');
+    document.getElementById('ghSettingsModal').classList.add('flex');
+  };
+  document.getElementById('ghSettingsCancel').onclick = function(){
+    document.getElementById('ghSettingsModal').classList.add('hidden');
+    document.getElementById('ghSettingsModal').classList.remove('flex');
+  };
+  document.getElementById('ghSettingsSave').onclick = function(){
+    var cfg = {
+      owner: document.getElementById('ghOwner').value.trim(),
+      repo: document.getElementById('ghRepo').value.trim(),
+      branch: document.getElementById('ghBranch').value.trim() || 'main',
+      token: document.getElementById('ghToken').value.trim()
+    };
+    ghSaveCfg(cfg);
+    document.getElementById('ghSettingsMsg').innerHTML = '<span class="text-emerald-600 font-bold">Đã lưu.</span>';
+    setTimeout(function(){
+      document.getElementById('ghSettingsModal').classList.add('hidden');
+      document.getElementById('ghSettingsModal').classList.remove('flex');
+    }, 700);
+  };
+
+  document.getElementById('genLogoutBtn').onclick = function(){
+    if(window.__signOut) window.__signOut();
+  };
+});
+
+function openAssignModal(){
+  if(!currentItems.length){ alert('Bấm Generate trước đã nhé.'); return; }
+  document.getElementById('assignModal').classList.remove('hidden');
+  document.getElementById('assignModal').classList.add('flex');
+  document.getElementById('assignMsg').innerHTML = '';
+  var banner = document.getElementById('assignTargetBanner');
+  var fieldWrap = document.getElementById('assignStudentField');
+  var sel = document.getElementById('assignStudentSelect');
+
+  if (embeddedTarget && embeddedTarget.studentIds.length > 0) {
+    // Đã biết sẵn lớp/học sinh từ trang chủ — không cần chọn lại.
+    var icon = embeddedTarget.targetType === 'class' ? '🏫' : '🧑';
+    banner.classList.remove('hidden');
+    banner.innerHTML = icon + ' Đang giao cho: <b>' + (embeddedTarget.targetLabel || (embeddedTarget.studentIds.length + ' học sinh')) + '</b> (' + embeddedTarget.studentIds.length + ' học sinh)';
+    fieldWrap.classList.add('hidden');
+    return;
+  }
+
+  banner.classList.add('hidden');
+  fieldWrap.classList.remove('hidden');
+  sel.innerHTML = '<option value="">-- Đang tải học sinh... --</option>';
+  if(!window.__db){ sel.innerHTML = '<option value="">Chưa kết nối được hệ thống</option>'; return; }
+  window.__getDocs(window.__query(window.__collection(window.__db, 'users'), window.__where('role','==','student'))).then(function(snap){
+    var html = '<option value="">-- Chọn học sinh --</option>';
+    snap.forEach(function(d){
+      var s = d.data();
+      html += '<option value="' + d.id + '">' + (s.name || s.email || d.id) + (s.email ? ' (' + s.email + ')' : '') + '</option>';
+    });
+    sel.innerHTML = html;
+  }).catch(function(e){
+    sel.innerHTML = '<option value="">Lỗi tải học sinh</option>';
+  });
+}
+function closeAssignModal(){
+  document.getElementById('assignModal').classList.add('hidden');
+  document.getElementById('assignModal').classList.remove('flex');
+}
+
+// ============================================================================
+// STANDALONE LESSON ENGINE TEMPLATE (used for both live preview + download)
+// This is a full, self-contained HTML document. It is 100% static except for
+// the JSON data block, which is injected via a safe string.replace above.
+// ============================================================================
+var LESSON_TEMPLATE = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Listening Type Practice</title>
+<script src="https://cdn.tailwindcss.com"><\/script>
+<script>
+tailwind.config={theme:{extend:{colors:{primary:%%PRIMARY_PALETTE_JSON%%},boxShadow:{card:'0 10px 30px rgba(20,184,166,.08)'}}}};
+<\/script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}html,body{margin:0;background:#f7fffc;color:#1e293b;font-family:'Plus Jakarta Sans',sans-serif;overscroll-behavior-y:none;}
+button,input,select,textarea{font-family:'Plus Jakarta Sans',sans-serif;outline:none;}
+.fade{animation:fade .3s ease both}@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.glass{background:rgba(255,255,255,.85);backdrop-filter:blur(16px)}
+#fireworks{position:fixed;inset:0;pointer-events:none;z-index:90;overflow:hidden}.spark{position:absolute;width:7px;height:7px;border-radius:50%;animation:burst 1.05s ease-out forwards}@keyframes burst{0%{transform:translate(0,0) scale(.5);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1);opacity:0}}
+.char-box{display:inline-block;min-width:0.8em;border-bottom:3px solid transparent;text-align:center;margin:0 2px;transition:all .15s ease-in-out;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:1.15em;}
+.char-untyped{color:#cbd5e1;border-bottom:3px solid %%CHAR_UNTYPED_BORDER%%;}
+.char-masked{color:#cbd5e1;}
+.char-typed{color:%%CHAR_TYPED_COLOR%%;border-bottom:3px solid %%CHAR_TYPED_BORDER%%;transform:translateY(-2px);}
+.char-error{color:#fff;background-color:#ef4444;border-radius:6px;border-bottom:3px solid #b91c1c;transform:translateY(-2px);box-shadow:0 4px 10px rgba(239,68,68,.3);animation:shake .3s ease-in-out;}
+.char-hint{color:#d97706;background-color:#fef3c7;border-radius:6px;font-weight:800;border-bottom:3px solid transparent;transform:translateY(-2px);box-shadow:0 4px 10px rgba(251,191,36,.15);opacity:.8;}
+@keyframes shake{0%,100%{transform:translateX(0) translateY(-2px);}25%{transform:translateX(-4px) translateY(-2px);}75%{transform:translateX(4px) translateY(-2px);}}
+</style>
+</head>
+<body class="bg-primary-50 text-slate-800 antialiased">
+<div id="app"></div><div id="fireworks"></div>
+<script type="application/json" id="lesson-data">%%LESSON_DATA_JSON%%<\/script>
+<script>
+var DATA = JSON.parse(document.getElementById('lesson-data').textContent);
+var TITLE = DATA.title || 'Listening Type Practice';
+var ITEMS = DATA.items || [];
+
+var voices = [];
+var audioCtx = null;
+var selectedVoiceName = null;
+
+var state = {
+  viewMode: 'cards',
+  practiceType: 'phrase',
+  practiceIndex: 0,
+  input: '',
+  revealed: false,
+  completed: false,
+  hintActive: false,
+  hintEndIndex: -1,
+  errorIndex: -1
+};
+
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function attrJson(v){ return esc(JSON.stringify(v)); }
+
+var ICON_VOLUME = '<svg class="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10v4h4l5 4V6l-5 4z"/><path d="M17 9.5a4 4 0 0 1 0 5M19.5 7a7.5 7.5 0 0 1 0 10"/></svg>';
+var ICON_KEYBOARD = '<svg class="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M6 9h1M10 9h1M14 9h1M18 9h1M6 13h1M10 13h1M14 13h4M7 16h10"/></svg>';
+var ICON_PLAY = '<svg class="w-full h-full" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+var ICON_ROTATE = '<svg class="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11a8 8 0 0 0-13.7-4L4 9"/><path d="M4 5v4h4"/><path d="M4 13a8 8 0 0 0 13.7 4L20 15"/><path d="M20 19v-4h-4"/></svg>';
+var ICON_TURTLE = '<svg class="w-full h-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 14.5c0-3 2.2-5.5 5.2-5.5h1.3c2.4 0 4.3 1.8 4.3 4.1 0 2.5-2.1 4.4-4.7 4.4H10c-2 0-3.5-1.2-3.5-3z"/><path d="M8 13H5.5c-1.1 0-2-.9-2-2s.9-2 2-2h1.2M8 18.5l-1 2M12 18.5v2M17 17.8l1.2 1.8M18.3 11.3c.8-.8 1.8-1.2 2.7-.9"/></svg>';
+
+// ---------------- AUDIO ----------------
+var audioUnlocked = false;
+function unlockAudio(){
+  if(audioUnlocked) return;
+  audioUnlocked = true;
+  if('speechSynthesis' in window){
+    var dummy = new SpeechSynthesisUtterance(' ');
+    dummy.volume = 0;
+    window.speechSynthesis.speak(dummy);
+  }
+  if(!audioCtx && (window.AudioContext || window.webkitAudioContext)) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+document.addEventListener('touchstart', unlockAudio, {once:true});
+document.addEventListener('click', unlockAudio, {once:true});
+
+function englishVoices(){ return voices.filter(function(v){ return /en(-|_)/i.test(v.lang); }); }
+
+function loadVoices(){
+  voices = speechSynthesis.getVoices() || [];
+  var s = document.getElementById('voiceSelect');
+  if(!s) return;
+  var vs = englishVoices();
+  s.innerHTML = vs.length ? vs.map(function(v){ return '<option value="' + esc(v.name) + '">' + esc(v.name) + ' (' + esc(v.lang) + ')</option>'; }).join('') : '<option>System Voice</option>';
+  var best = vs.find(function(v){ return v.name === selectedVoiceName; }) ||
+             vs.find(function(v){ return v.name.indexOf('Google US English') !== -1; }) ||
+             vs.find(function(v){ return v.lang === 'en-US'; }) || vs[0];
+  if(best){ s.value = best.name; if(!selectedVoiceName) selectedVoiceName = best.name; }
+}
+if('speechSynthesis' in window){
+  speechSynthesis.onvoiceschanged = loadVoices;
+  setTimeout(loadVoices, 250);
+}
+
+function updateVoice(name){ selectedVoiceName = name; previewVoice(); }
+function previewVoice(){ speak('The sport grew in popularity after it became legal.', 1); }
+
+function speak(text, rate){
+  rate = rate || 1;
+  if(!('speechSynthesis' in window) || !text) return;
+  var synth = window.speechSynthesis;
+  synth.cancel();
+  setTimeout(function(){
+    try{
+      var u = new SpeechSynthesisUtterance(String(text));
+      u.lang = 'en-GB'; u.rate = rate; u.pitch = 1; u.volume = 1;
+      var selEl = document.getElementById('voiceSelect');
+      var selected = selEl ? selEl.value : null;
+      var v = voices.find(function(x){ return x.name === selectedVoiceName; }) ||
+              voices.find(function(x){ return x.name === selected; }) ||
+              englishVoices().find(function(x){ return /^en(-|_)/i.test(x.lang); }) || voices[0];
+      if(v) u.voice = v;
+      u.onerror = function(){};
+      synth.speak(u);
+    }catch(e){}
+  }, 80);
+}
+
+function ac(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function beep(freq, d, vol, type){
+  d = d || 0.06; vol = vol || 0.03; type = type || 'sine';
+  try{
+    var c = ac(), o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + d);
+    o.connect(g); g.connect(c.destination);
+    o.start(); o.stop(c.currentTime + d);
+  }catch(e){}
+}
+function completeSound(){ [523,659,784,988].forEach(function(f,i){ setTimeout(function(){ beep(f,0.15,0.05); }, i*80); }); }
+function errorSound(){ beep(150, 0.15, 0.05, 'sawtooth'); }
+function fireworks(){
+  var r = document.getElementById('practiceBurst') || document.getElementById('fireworks');
+  if(!r) return;
+  r.innerHTML = '';
+  for(var i=0;i<44;i++){
+    var s = document.createElement('span');
+    var a = Math.random()*Math.PI*2, rad = 80+Math.random()*180;
+    s.className = 'spark';
+    s.style.left = (42+Math.random()*16)+'%';
+    s.style.top = (32+Math.random()*24)+'%';
+    s.style.background = (%%SPARK_COLORS_JSON%%)[i%5];
+    s.style.setProperty('--dx', Math.cos(a)*rad+'px');
+    s.style.setProperty('--dy', Math.sin(a)*rad+'px');
+    r.appendChild(s);
+  }
+  setTimeout(function(){ r.innerHTML=''; }, 1200);
+}
+
+// ---------------- TYPING ENGINE ----------------
+function current(){
+  var item = ITEMS[state.practiceIndex] || ITEMS[0] || {phrase:'',meaningVi:'',sentence:'',sentenceVi:''};
+  var isPhrase = state.practiceType === 'phrase';
+  return {
+    target: isPhrase ? item.phrase : item.sentence,
+    promptVi: isPhrase ? item.meaningVi : (item.sentenceVi || item.meaningVi),
+    audioText: isPhrase ? item.phrase : item.sentence,
+    kind: isPhrase ? 'PHRASE' : 'SENTENCE'
+  };
+}
+function normalizeSpaces(str){
+  return str
+    .replace(/[\\u2018\\u2019\\u201A\\u201B\\u2032\\u02BC\\uFF07]/g, "'")
+    .replace(/[\\u201C\\u201D\\u201E\\u201F\\u2033\\uFF02]/g, '"')
+    .replace(/\\s+/g, ' ');
+}
+
+function handleKeyInput(e){
+  if(state.completed || state.revealed) return;
+  var c = current();
+  var targetStr = normalizeSpaces(c.target);
+  var typedStr = normalizeSpaces(e.target.value);
+
+  var isValid = true, errIdx = -1;
+  for(var i=0;i<typedStr.length;i++){
+    if(typedStr[i].toLowerCase() !== (targetStr[i]||'').toLowerCase()){ isValid=false; errIdx=i; break; }
+  }
+  if(!isValid){
+    errorSound();
+    e.target.value = typedStr.substring(0, errIdx);
+    state.input = e.target.value;
+    state.errorIndex = errIdx;
+    updateTyping();
+    clearTimeout(window.errorTimer);
+    window.errorTimer = setTimeout(function(){ state.errorIndex = -1; updateTyping(); }, 350);
+    return;
+  }
+  state.errorIndex = -1;
+  state.input = typedStr;
+  if(state.hintActive && typedStr.length >= state.hintEndIndex) state.hintActive = false;
+  if(typedStr.length > 0) beep(620+Math.min(typedStr.length,12)*24, 0.055, 0.022);
+
+  if(typedStr.toLowerCase() === targetStr.toLowerCase()){
+    state.completed = true; state.revealed = true; state.input = c.target; e.target.value = c.target;
+    completeSound();
+    setTimeout(fireworks, 60);
+  }
+  updateTyping();
+}
+
+function giveHint(){
+  if(state.completed || state.revealed) return;
+  var c = current();
+  var targetStr = normalizeSpaces(c.target);
+  if(state.input.length < targetStr.length){
+    var startIdx = state.input.length;
+    if(targetStr[startIdx] === ' ') startIdx++;
+    var nextSpace = targetStr.indexOf(' ', startIdx);
+    if(nextSpace === -1) nextSpace = targetStr.length;
+    state.hintActive = true; state.hintEndIndex = nextSpace;
+    updateTyping();
+    setTimeout(function(){ var el=document.getElementById('hiddenInput'); if(el) el.focus(); }, 50);
+  }
+}
+
+function updateTyping(){
+  var c = current();
+  var targetStr = normalizeSpaces(c.target);
+  var typedStr = state.input;
+  var totalLetters = targetStr.length;
+
+  var visualBox = document.getElementById('visualInputBox');
+  if(visualBox){
+    var html = '';
+    for(var i=0;i<targetStr.length;i++){
+      var actualChar = targetStr[i];
+      var isSpace = actualChar === ' ';
+      var displayChar = isSpace ? '&nbsp;' : '*';
+      if(i < typedStr.length){
+        html += '<span class="char-box char-typed">' + (isSpace ? '&nbsp;' : esc(typedStr[i])) + '</span>';
+      }else if(i === state.errorIndex){
+        html += '<span class="char-box char-error">' + (isSpace ? '&nbsp;' : esc(actualChar)) + '</span>';
+      }else if(state.hintActive && i >= typedStr.length && i < state.hintEndIndex){
+        html += '<span class="char-box char-hint">' + esc(actualChar) + '</span>';
+      }else{
+        if(state.revealed || state.completed){
+          html += '<span class="char-box char-untyped" style="border-bottom-color: transparent;">' + (isSpace ? '&nbsp;' : esc(actualChar)) + '</span>';
+        }else{
+          html += '<span class="char-box char-untyped"><span class="char-masked">' + displayChar + '</span></span>';
+        }
+      }
+    }
+    visualBox.innerHTML = html;
+  }
+
+  var progressBar = document.getElementById('purpleProgressBar');
+  if(progressBar){
+    var percentage = totalLetters ? (typedStr.length/totalLetters)*100 : 0;
+    progressBar.style.width = percentage + '%';
+    if(state.completed){ progressBar.classList.remove('bg-primary-500'); progressBar.classList.add('bg-emerald-500'); }
+    else{ progressBar.classList.remove('bg-emerald-500'); progressBar.classList.add('bg-primary-500'); }
+  }
+
+  var wrapper = document.getElementById('inputWrapper');
+  if(wrapper){
+    if(state.completed) wrapper.className = 'relative w-full max-w-3xl mx-auto mt-8 bg-emerald-50 border-2 border-emerald-200 rounded-2xl shadow-[0_10px_30px_rgba(16,185,129,0.1)] text-emerald-800 cursor-text overflow-hidden transition-all duration-300';
+    else if(state.revealed) wrapper.className = 'relative w-full max-w-3xl mx-auto mt-8 bg-white border-2 border-slate-200 rounded-2xl shadow-card cursor-text overflow-hidden transition-all duration-300';
+    else wrapper.className = 'relative w-full max-w-3xl mx-auto mt-8 bg-white border-2 border-primary-100 rounded-2xl shadow-card cursor-text focus-within:border-primary-400 focus-within:shadow-[0_10px_30px_rgba(139,92,246,0.15)] transition-all duration-300 overflow-hidden group';
+  }
+
+  var hiddenInp = document.getElementById('hiddenInput');
+  if(hiddenInp){ hiddenInp.value = state.input; hiddenInp.disabled = state.completed || state.revealed; }
+
+  var fb = document.getElementById('typingFeedback');
+  if(fb){
+    if(state.completed) fb.innerHTML = '<span class="text-emerald-600 font-extrabold">&#10003; Xuất sắc!</span>';
+    else if(state.revealed) fb.innerHTML = '<span class="text-slate-500 font-bold">Đáp án đã hiện. Nghe lại và ôn tập.</span>';
+    else fb.innerHTML = '<span class="text-primary-600/80 font-bold tracking-widest text-[10px] uppercase">Nghe rồi gõ lại chính xác</span>';
+  }
+}
+
+// ---------------- NAVIGATION ----------------
+function mainScroll(){ var m = document.querySelector('main'); return m ? m.scrollTop : 0; }
+function setViewMode(m){
+  var y = mainScroll();
+  state.viewMode = m;
+  if(m === 'type'){
+    state.practiceIndex = 0; state.practiceType = 'phrase'; state.input=''; state.revealed=false; state.completed=false; state.hintActive=false; state.hintEndIndex=-1; state.errorIndex=-1;
+  }
+  render(y);
+  if(m === 'type'){ speak(current().audioText, 1); setTimeout(function(){ var el=document.getElementById('hiddenInput'); if(el) el.focus(); }, 120); }
+}
+function goCards(){ setViewMode('cards'); }
+function goType(){ setViewMode('type'); }
+
+function changeType(t){
+  var y = mainScroll();
+  state.practiceType = t; state.practiceIndex = 0; state.input=''; state.revealed=false; state.completed=false; state.hintActive=false; state.hintEndIndex=-1; state.errorIndex=-1;
+  render(y);
+  speak(current().audioText, 1);
+  setTimeout(function(){ var el=document.getElementById('hiddenInput'); if(el) el.focus(); }, 120);
+}
+function setPhraseMode(){ changeType('phrase'); }
+function setSentenceMode(){ changeType('sentence'); }
+
+function next(){
+  var y = mainScroll();
+  state.practiceIndex = (state.practiceIndex+1) % ITEMS.length;
+  state.input=''; state.revealed=false; state.completed=false; state.hintActive=false; state.hintEndIndex=-1; state.errorIndex=-1;
+  render(y); speak(current().audioText,1);
+  setTimeout(function(){ var el=document.getElementById('hiddenInput'); if(el) el.focus(); }, 120);
+}
+function prev(){
+  var y = mainScroll();
+  state.practiceIndex = (state.practiceIndex-1+ITEMS.length) % ITEMS.length;
+  state.input=''; state.revealed=false; state.completed=false; state.hintActive=false; state.hintEndIndex=-1; state.errorIndex=-1;
+  render(y); speak(current().audioText,1);
+  setTimeout(function(){ var el=document.getElementById('hiddenInput'); if(el) el.focus(); }, 120);
+}
+function retryItem(){
+  state.input=''; state.revealed=false; state.completed=false; state.hintActive=false; state.hintEndIndex=-1; state.errorIndex=-1;
+  updateTyping();
+  setTimeout(function(){ var el=document.getElementById('hiddenInput'); if(el) el.focus(); }, 50);
+}
+function reveal(){
+  state.revealed = true; state.completed = false; state.input = current().target; state.hintActive=false; state.errorIndex=-1;
+  updateTyping();
+}
+
+// ---------------- RENDER ----------------
+function header(){
+  return '<header class="sticky top-0 z-30 glass border-b border-primary-50 px-5 md:px-8 py-4 flex flex-wrap items-center justify-between gap-3">' +
+    '<div>' +
+      '<div class="text-[9px] font-extrabold tracking-widest text-primary-500 uppercase">NIGHT IELTS &middot; LISTENING TYPE</div>' +
+      '<h1 class="text-lg md:text-xl font-extrabold text-slate-800 mt-0.5">' + esc(TITLE) + '</h1>' +
+    '</div>' +
+    '<div class="flex items-center gap-2 flex-wrap">' +
+      '<span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider hidden sm:inline">Voice</span>' +
+      '<select id="voiceSelect" onchange="updateVoice(this.value)" class="max-w-[170px] md:max-w-[220px] text-xs font-bold text-primary-700 border border-primary-200 rounded-xl px-3 py-2 bg-primary-50/50 hover:bg-primary-50 transition outline-none cursor-pointer"></select>' +
+      '<button onclick="previewVoice()" class="text-[10px] font-extrabold uppercase tracking-wider bg-primary-100 text-primary-700 px-3 py-2 rounded-xl hover:bg-primary-200 transition">Nghe thử</button>' +
+    '</div>' +
+  '</header>';
+}
+
+function cardsView(){
+  var cards = ITEMS.map(function(item){
+    return '<article class="bg-white border border-primary-100/50 rounded-[26px] p-6 hover:-translate-y-1 hover:shadow-card transition-all">' +
+      '<div class="flex justify-between items-center mb-4">' +
+        '<span class="text-[9px] font-extrabold px-3 py-1.5 rounded-xl uppercase tracking-widest border bg-purple-100 text-purple-700 border-purple-200">CHUNK</span>' +
+        '<button onclick="speak(' + attrJson(item.phrase) + ',1)" class="w-10 h-10 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center">' + ICON_VOLUME + '</button>' +
+      '</div>' +
+      '<div class="text-[21px] font-extrabold text-slate-800 leading-tight">' + esc(item.phrase) + '</div>' +
+      '<div class="text-[13px] font-bold text-slate-500 mt-2">' + esc(item.meaningVi) + '</div>' +
+      '<div class="mt-6 p-4 rounded-2xl bg-slate-50 border border-slate-100">' +
+        '<div class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-2">CÂU VÍ DỤ</div>' +
+        '<div class="text-sm font-semibold text-slate-700 leading-relaxed">' + esc(item.sentence) + '</div>' +
+        '<button onclick="speak(' + attrJson(item.sentence) + ',1)" class="mt-3 text-xs font-extrabold text-primary-600">🔊 Nghe</button>' +
+      '</div>' +
+    '</article>';
+  }).join('');
+
+  return '<div class="space-y-7 fade">' +
+    '<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">' +
+      '<div>' +
+        '<div class="text-[10px] font-extrabold tracking-widest text-primary-500 uppercase">TỪ VỰNG &amp; CÂU</div>' +
+        '<h2 class="text-3xl font-extrabold text-slate-800 mt-1.5">Danh sách học</h2>' +
+        '<p class="text-sm font-medium text-slate-500 mt-2">' + ITEMS.length + ' mục &middot; Nghe trước, rồi bấm bắt đầu để luyện gõ.</p>' +
+      '</div>' +
+      '<button onclick="goType()" class="px-8 py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold shadow-[0_8px_20px_rgba(15,23,42,0.3)] transition-all flex items-center gap-3"><span class="w-5 h-5">' + ICON_KEYBOARD + '</span> BẮT ĐẦU LISTENING TYPE</button>' +
+    '</div>' +
+    '<div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">' + cards + '</div>' +
+  '</div>';
+}
+
+function typeView(){
+  if(!ITEMS.length) return '<div class="p-12 text-center text-slate-400">Chưa có dữ liệu.</div>';
+  var c = current();
+  var list = ITEMS;
+
+  return '<div class="space-y-6 fade max-w-[1100px] mx-auto">' +
+    '<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4">' +
+      '<div>' +
+        '<button onclick="goCards()" class="text-xs font-extrabold text-primary-500 flex items-center gap-1.5 mb-3 hover:text-primary-600 transition"><span class="text-lg leading-none">&larr;</span> Quay lại danh sách</button>' +
+        '<div class="text-[10px] font-extrabold tracking-widest text-emerald-500 uppercase">LISTEN &rarr; TYPE</div>' +
+        '<h2 class="text-3xl font-extrabold text-slate-800 mt-1.5">' + esc(TITLE) + '</h2>' +
+      '</div>' +
+      '<div class="flex flex-wrap gap-2 p-1.5 bg-white border border-primary-100 rounded-[20px] shadow-sm">' +
+        '<button onclick="setPhraseMode()" class="px-6 py-3 rounded-2xl text-[13px] font-extrabold transition-all duration-200 ' + (state.practiceType==='phrase' ? 'bg-primary-50 text-primary-700 shadow-sm' : 'text-slate-500 hover:bg-slate-50') + '">01. Cụm từ</button>' +
+        '<button onclick="setSentenceMode()" class="px-6 py-3 rounded-2xl text-[13px] font-extrabold transition-all duration-200 ' + (state.practiceType==='sentence' ? 'bg-primary-50 text-primary-700 shadow-sm' : 'text-slate-500 hover:bg-slate-50') + '">02. Câu</button>' +
+      '</div>' +
+    '</div>' +
+    '<section class="bg-white border border-primary-100/50 rounded-[36px] overflow-hidden relative shadow-card">' +
+      '<div id="practiceBurst" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>' +
+      '<div class="px-8 py-5 border-b border-primary-50 flex justify-between items-center bg-white">' +
+        '<span class="text-[11px] font-extrabold tracking-widest text-slate-400">MỤC ' + (state.practiceIndex+1) + ' / ' + list.length + '</span>' +
+        '<span class="px-4 py-1.5 rounded-xl bg-slate-50 border border-slate-100 text-slate-500 text-[10px] font-extrabold tracking-widest uppercase">' + c.kind + '</span>' +
+      '</div>' +
+      '<div class="p-8 md:p-12">' +
+        '<div class="text-center relative">' +
+          '<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-primary-100/50 rounded-full animate-ping pointer-events-none"></div>' +
+          '<button aria-label="Nghe" onclick="speak(' + attrJson(c.audioText) + ',1); setTimeout(function(){var el=document.getElementById(\\'hiddenInput\\');if(el)el.focus();},50);" class="relative w-24 h-24 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-[0_12px_30px_rgba(15,23,42,0.35)] mx-auto hover:bg-slate-800 hover:scale-105 transition-all duration-300 z-10">' +
+            '<span class="w-10 h-10 inline-block pl-1">' + ICON_PLAY + '</span>' +
+          '</button>' +
+        '</div>' +
+        '<div class="mt-8 text-center">' +
+          '<div class="text-[10px] font-extrabold tracking-widest uppercase text-primary-400/80 mb-2">' + (c.kind==='PHRASE' ? 'Nghĩa cụm từ' : 'Nghĩa câu') + '</div>' +
+          '<div class="text-xl md:text-2xl font-extrabold text-slate-800">' + esc(c.promptVi) + '</div>' +
+        '</div>' +
+        '<div id="inputWrapper" class="relative w-full max-w-3xl mx-auto mt-10 bg-white border-2 border-primary-100 rounded-2xl shadow-sm cursor-text focus-within:border-primary-400 transition-all duration-300 overflow-hidden group" onclick="var el=document.getElementById(\\'hiddenInput\\');if(el)el.focus();">' +
+          '<div id="visualInputBox" class="w-full text-center text-[26px] md:text-[32px] font-bold px-6 py-10 flex justify-center flex-wrap leading-[2.2]"></div>' +
+          '<input id="hiddenInput" value="' + esc(state.input) + '" oninput="handleKeyInput(event)" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="text" class="absolute opacity-0 pointer-events-none w-full h-full top-0 left-0"' + (state.completed||state.revealed ? ' disabled' : '') + '>' +
+          '<div id="purpleProgressBar" class="absolute bottom-0 left-0 h-2 bg-primary-500 transition-all duration-300 ease-out" style="width: 0%"></div>' +
+        '</div>' +
+        '<div id="typingFeedback" class="mt-6 text-center text-sm font-bold text-slate-400 h-6">Nghe rồi gõ lại chính xác</div>' +
+      '</div>' +
+      '<div class="border-t border-primary-50 bg-white p-6 md:p-8 flex flex-wrap justify-between gap-4 items-center">' +
+        '<button onclick="prev()" class="px-6 py-3.5 rounded-2xl bg-white border-2 border-slate-100 text-[13px] font-extrabold text-slate-500 hover:border-slate-200 hover:bg-slate-50 transition">&larr; Trước</button>' +
+        '<div class="flex flex-wrap gap-2.5 justify-center">' +
+          '<button onclick="speak(' + attrJson(c.audioText) + ',1); setTimeout(function(){var el=document.getElementById(\\'hiddenInput\\');if(el)el.focus();},50);" class="px-6 py-3.5 rounded-2xl bg-slate-50 text-[13px] font-extrabold text-slate-700 flex items-center gap-2 hover:bg-slate-100 transition"><span class="w-4 h-4 text-slate-500">' + ICON_VOLUME + '</span> Nghe lại</button>' +
+          '<button onclick="retryItem()" class="px-6 py-3.5 rounded-2xl bg-slate-50 text-[13px] font-extrabold text-slate-700 flex items-center gap-2 hover:bg-slate-100 transition"><span class="w-4 h-4 text-slate-500">' + ICON_ROTATE + '</span> Làm lại</button>' +
+          '<button onclick="speak(' + attrJson(c.audioText) + ',.7); setTimeout(function(){var el=document.getElementById(\\'hiddenInput\\');if(el)el.focus();},50);" class="px-6 py-3.5 rounded-2xl bg-slate-50 text-[13px] font-extrabold text-slate-700 flex items-center gap-2 hover:bg-slate-100 transition"><span class="w-4 h-4 text-slate-500">' + ICON_TURTLE + '</span> Chậm</button>' +
+          (!state.revealed ? '<button onclick="giveHint()" class="px-6 py-3.5 rounded-2xl bg-primary-50 text-primary-700 text-[13px] font-extrabold hover:bg-primary-100 transition">Gợi ý</button>' : '') +
+          (!state.revealed ? '<button onclick="reveal()" class="px-6 py-3.5 rounded-2xl bg-slate-100 text-slate-600 text-[13px] font-extrabold hover:bg-slate-200 transition">Xem đáp án</button>' : '') +
+        '</div>' +
+        '<button onclick="next()" class="px-10 py-3.5 rounded-2xl bg-slate-900 text-white text-[14px] font-extrabold shadow-lg hover:bg-slate-800 transition transform hover:-translate-y-0.5">Tiếp &rarr;</button>' +
+      '</div>' +
+    '</section>' +
+  '</div>';
+}
+
+function render(scrollTop){
+  var old = (scrollTop===null||scrollTop===undefined) ? mainScroll() : scrollTop;
+  var content = state.viewMode === 'type' ? typeView() : cardsView();
+  document.getElementById('app').innerHTML =
+    '<div class="min-h-screen flex flex-col">' +
+      header() +
+      '<main class="flex-1 min-w-0 overflow-y-auto relative">' +
+        '<div class="max-w-[1300px] mx-auto p-5 md:p-8 lg:p-10 pb-24">' + content + '</div>' +
+      '</main>' +
+    '</div>';
+  loadVoices();
+  requestAnimationFrame(function(){
+    var m = document.querySelector('main');
+    if(m) m.scrollTop = old;
+    if(state.viewMode === 'type') updateTyping();
+  });
+}
+render(0);
+<\/script>
+</body>
+</html>`;
+</script>
+
+<!-- ================= FIREBASE AUTH GATE (chỉ admin mới dùng được công cụ này) ================= -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+  // TODO(night): dán ĐÚNG firebaseConfig của project "b-s-english-house" vào đây — PHẢI GIỐNG HỆT
+  // khối config đang dùng trong index.html (Firebase Console → ⚙️ Project settings → General →
+  // "Your apps"), nếu không 2 trang sẽ nói chuyện với 2 project khác nhau và role/lớp/bài tập sẽ
+  // không đồng bộ được với nhau. Config cũ bên dưới (night-ielts-land) là project KHÔNG dùng nữa.
+  const firebaseConfig = {
+    apiKey: "PASTE_YOUR_API_KEY_HERE",
+    authDomain: "b-s-english-house.firebaseapp.com",
+    projectId: "b-s-english-house",
+    storageBucket: "b-s-english-house.appspot.com",
+    messagingSenderId: "PASTE_YOUR_SENDER_ID",
+    appId: "PASTE_YOUR_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+
+  // Bridge cho script chính phía trên dùng Firestore (giao bài / lấy học sinh)
+  window.__db = db;
+  window.__collection = collection;
+  window.__query = query;
+  window.__where = where;
+  window.__getDocs = getDocs;
+  window.__addDoc = addDoc;
+  window.__doc = doc;
+  window.__setDoc = setDoc;
+  window.__signOut = function(){ signOut(auth); };
+  window.__currentUser = null; // set khi qua được cổng phân quyền bên dưới
+
+  // Cùng 1 khái niệm phân quyền với index.html: dev / head_teacher / teacher được coi là "staff"
+  // (được dùng công cụ này); student / pending / chưa có hồ sơ thì KHÔNG được vào.
+  function isStaffRole(role) { return role === 'dev' || role === 'head_teacher' || role === 'teacher'; }
+
+  const authGate = document.getElementById('authGate');
+  const authGateMsg = document.getElementById('authGateMsg');
+  const authGateLoginBtn = document.getElementById('authGateLoginBtn');
+  const appRoot = document.getElementById('appRoot');
+
+  function doLogin(){
+    authGateLoginBtn.disabled = true;
+    authGateLoginBtn.innerText = 'Đang đăng nhập...';
+    signInWithPopup(auth, provider).catch(function(err){
+      authGateMsg.innerHTML = '<span class="text-rose-600 font-bold">Đăng nhập lỗi: ' + err.message + '</span>';
+      authGateLoginBtn.disabled = false;
+      authGateLoginBtn.innerText = 'Đăng nhập bằng Google';
+    });
+  }
+  authGateLoginBtn.onclick = doLogin;
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      authGate.classList.remove('hidden');
+      appRoot.classList.add('hidden');
+      authGateMsg.innerText = 'Công cụ này chỉ dành cho giáo viên. Vui lòng đăng nhập bằng tài khoản Google quản trị.';
+      authGateLoginBtn.disabled = false;
+      authGateLoginBtn.innerText = 'Đăng nhập bằng Google';
+      authGateLoginBtn.onclick = doLogin;
+      return;
+    }
+    authGateMsg.innerText = 'Đang kiểm tra quyền truy cập...';
+    try {
+      const userSnap = await getDoc(doc(db, 'users', user.uid));
+      const role = userSnap.exists() ? userSnap.data().role : null;
+      if (isStaffRole(role)) {
+        window.__currentUser = { uid: user.uid, name: user.displayName || user.email || '', email: user.email || '' };
+        authGate.classList.add('hidden');
+        appRoot.classList.remove('hidden');
+        const badge = document.getElementById('authUserBadge');
+        if (badge) badge.innerText = user.displayName || user.email || '';
+        if (window.__onStaffReady) window.__onStaffReady();
+      } else {
+        window.__currentUser = null;
+        authGate.classList.remove('hidden');
+        appRoot.classList.add('hidden');
+        authGateMsg.innerHTML = '<span class="text-rose-600 font-bold">Tài khoản (' + (user.email || '') + ') không có quyền giáo viên/head teacher. Vui lòng đăng xuất và đăng nhập bằng tài khoản khác, hoặc nhờ Head Teacher phân quyền ở trang chủ.</span>';
+        authGateLoginBtn.disabled = false;
+        authGateLoginBtn.innerText = 'Đăng xuất';
+        authGateLoginBtn.onclick = function(){ signOut(auth); };
+      }
+    } catch (e) {
+      authGateMsg.innerHTML = '<span class="text-rose-600 font-bold">Lỗi kiểm tra quyền: ' + e.message + '</span>';
+    }
+  });
+</script>
+</body>
+</html>
