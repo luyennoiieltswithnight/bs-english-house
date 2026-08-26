@@ -59,28 +59,55 @@
         const db = getFirestore(app); // Khởi động Firestore
         const provider = new GoogleAuthProvider();
 
+        // Nhãn hiển thị khi báo "vai trò của bạn là..." sau khi đăng nhập.
+        function roleLabel(role) {
+            return { dev: 'DEV', head_teacher: 'HEAD TEACHER', teacher: 'GIÁO VIÊN', student: 'HỌC SINH', pending: 'CHƯA PHÂN QUYỀN (chờ Head Teacher gán)' }[role] || 'CHƯA PHÂN QUYỀN';
+        }
+
         document.getElementById('loginBtn').addEventListener('click', () => {
             signInWithPopup(auth, provider)
                 .then(async (result) => {
                     const user = result.user;
                     const email = user.email;
 
-                    // KIỂM TRA & CẬP NHẬT DỮ LIỆU VÀO FIRESTORE
-                    const userRef = doc(db, "users", email); // Tìm kiếm email này trong bảng users
+                    // QUAN TRỌNG: hồ sơ users/{uid} được key theo UID của Firebase Auth (KHÔNG phải
+                    // email nữa) — đồng bộ với index.html / listeningtypegenerator.html / engine_template.html.
+                    // Trước đây bản cũ key theo email nên nếu đổi hẳn sẽ làm "mất" role của các tài khoản
+                    // đã có từ trước; vì vậy bên dưới có bước "di cư" 1 lần: nếu chưa có hồ sơ theo uid mà
+                    // đã có hồ sơ CŨ theo email (do bản cũ tạo ra), thì lấy role cũ đó gắn sang hồ sơ mới
+                    // theo uid, thay vì cho về pending.
+                    const userRef = doc(db, "users", user.uid);
                     const userSnap = await getDoc(userRef);
 
-                    let userRole = "student"; // Mặc định ai mới vào cũng là học sinh
+                    let userRole;
 
                     if (userSnap.exists()) {
-                        // Nếu đã có tên trong sổ (như tài khoản nightruan31 của bạn), thì lấy quyền hiện tại của họ
-                        userRole = userSnap.data().role; 
+                        userRole = userSnap.data().role || 'pending';
+                        // Đồng bộ lại tên/ảnh mới nhất từ Google (không đụng vào role đã gán)
+                        if (userSnap.data().name !== user.displayName || userSnap.data().photo !== user.photoURL) {
+                            await setDoc(userRef, { name: user.displayName || '', photo: user.photoURL || '' }, { merge: true }).catch(() => {});
+                        }
                     } else {
-                        // Nếu chưa có (tài khoản mới toanh), thì ghi đè tên họ vào sổ và gán quyền student
+                        // Chưa có hồ sơ theo uid — thử tìm hồ sơ CŨ theo email để di cư role sang.
+                        let migratedRole = null;
+                        if (email) {
+                            try {
+                                const legacyRef = doc(db, "users", email);
+                                const legacySnap = await getDoc(legacyRef);
+                                if (legacySnap.exists()) migratedRole = legacySnap.data().role || null;
+                            } catch (e) { /* bỏ qua, coi như không có hồ sơ cũ */ }
+                        }
+
+                        // Tài khoản đăng nhập lần đầu (không di cư được role nào) sẽ ở trạng thái
+                        // "pending" (khách, CHƯA phải học sinh) — Head Teacher/Dev vào mục "Phân Quyền
+                        // Tài Khoản" ở trang chủ để gán Head Teacher / Giáo viên / Học sinh cho họ.
+                        userRole = migratedRole || "pending";
                         await setDoc(userRef, {
                             name: user.displayName,
                             email: email,
-                            role: "student",
-                            createdAt: new Date() // Lưu luôn ngày tháng đăng ký
+                            photo: user.photoURL || '',
+                            role: userRole,
+                            createdAt: new Date()
                         });
                     }
 
@@ -90,7 +117,7 @@
                     localStorage.setItem('userPhoto', user.photoURL);
                     localStorage.setItem('userRole', userRole); // Quan trọng: LƯU QUYỀN ĐỂ PHÂN LOẠI
 
-                    alert(`Đăng nhập thành công! Vai trò của bạn là: ${userRole.toUpperCase()}`);
+                    alert(`Đăng nhập thành công! Vai trò của bạn là: ${roleLabel(userRole)}`);
                     window.location.href = "index.html";
                 })
                 .catch((error) => {
