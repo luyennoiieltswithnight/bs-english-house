@@ -248,6 +248,11 @@
         }
         .user-row .save-role-btn:hover { background: var(--dark-green); }
         .user-row .save-role-btn.saved { background: #2e7d32; }
+        .user-row.user-row-locked { background: #f4f0e6; border-color: #e0d6b8; }
+        .user-row .role-locked-note {
+            font-size: 12px; font-weight: 800; color: #7a6a2e; background: #fff3cd;
+            border: 2px solid #e0c05c; border-radius: 8px; padding: 6px 10px; white-space: nowrap;
+        }
 
         /* --- Quản lý lớp --- */
         .class-card { border: 2px solid #eee; border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; background: #fafafa; }
@@ -567,6 +572,13 @@
         function roleLabel(role) {
             return { dev: 'Dev', head_teacher: 'Head Teacher', teacher: 'Giáo viên', student: 'Học sinh', pending: 'Chưa phân quyền' }[role] || 'Chưa phân quyền';
         }
+        // Nhãn HIỂN THỊ CÔNG KHAI (nav bar, mọi người đều thấy) — tài khoản dev vẫn được hiển thị
+        // như một giáo viên bình thường, KHÔNG lộ ra là "Dev". Vai trò thật trong Firestore (role
+        // === 'dev') không đổi và mọi logic phân quyền nội bộ (isHeadOrDevRole, isStaffRole, các
+        // panel dashboard...) vẫn dùng role thật như cũ — chỉ CHỮ hiển thị trên nav là đổi thôi.
+        function publicRoleLabel(role) {
+            return role === 'dev' ? 'Giáo viên' : roleLabel(role);
+        }
 
         let currentUser = null;      // Firebase Auth user object
         let currentUserDoc = null;   // { uid, name, email, photo, role }
@@ -652,7 +664,7 @@
             loginBtn.innerHTML = `
                 <img src="${userDoc.photo || ''}" alt="Avatar" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid #7A9051;">
                 <span>Hi, ${escapeHtmlIndex(firstName)}</span>
-                <span class="role-badge r-${userDoc.role}">${roleLabel(userDoc.role)}</span>
+                <span class="role-badge r-${userDoc.role}">${publicRoleLabel(userDoc.role)}</span>
             `;
             loginBtn.href = '#';
             loginBtn.onclick = function (e) {
@@ -948,8 +960,23 @@
         }
 
         function buildUserRoleRow(u) {
+            // Vai trò "dev" KHÔNG bao giờ là một lựa chọn có thể gán qua giao diện này — không ai
+            // (kể cả dev khác) được phép cấp quyền dev cho người khác từ đây. Dev chỉ có thể được
+            // tạo/gỡ trực tiếp trong Firestore console.
             const roleOptions = ['pending', 'student', 'teacher', 'head_teacher'];
-            if (currentUserDoc && currentUserDoc.role === 'dev') roleOptions.push('dev');
+            // Tài khoản ĐANG là dev: khóa cứng hàng này lại, không cho đổi/xoá quyền dev qua UI.
+            if (u.role === 'dev') {
+                return `
+                    <div class="user-row user-row-locked" id="user-row-${u.uid}">
+                        <img src="${u.photo || ''}" alt="">
+                        <div class="u-info">
+                            <div class="u-name">${escapeHtmlIndex(u.name || '(chưa có tên)')} <span class="role-badge r-${u.role}">${roleLabel(u.role)}</span></div>
+                            <div class="u-email">${escapeHtmlIndex(u.email || '')}</div>
+                        </div>
+                        <div class="role-locked-note" title="Vai trò Dev được khóa — không ai có thể đổi hoặc xoá qua giao diện này">🔒 Vai trò Dev (đã khóa)</div>
+                    </div>
+                `;
+            }
             const options = roleOptions.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${roleLabel(r)}</option>`).join('');
             return `
                 <div class="user-row" id="user-row-${u.uid}">
@@ -968,7 +995,20 @@
             const sel = document.getElementById('role-select-' + uid);
             const newRole = sel.value;
             const btn = sel.nextElementSibling;
+            // Chặn phòng thủ kép: không cho phép gán role 'dev' qua đường này dù có bị can thiệp
+            // vào DOM đi nữa, và không cho đổi role của một tài khoản ĐANG là dev (phải khớp với
+            // role hiện đang hiển thị trên hàng đó).
+            if (newRole === 'dev') {
+                alert('Không thể gán vai trò Dev qua giao diện này.');
+                return;
+            }
             try {
+                const targetSnap = await getDoc(doc(db, 'users', uid));
+                if (targetSnap.exists() && targetSnap.data().role === 'dev') {
+                    alert('Tài khoản này là Dev — vai trò Dev được khóa, không thể thay đổi qua giao diện.');
+                    loadRolesList();
+                    return;
+                }
                 await updateDoc(doc(db, 'users', uid), { role: newRole });
                 btn.textContent = '✔ Đã lưu';
                 btn.classList.add('saved');
