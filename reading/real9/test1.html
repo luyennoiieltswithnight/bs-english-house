@@ -358,6 +358,44 @@
         .match-slot.filled { border-style: solid; border-color: var(--border-color); background: white; color: var(--text-color); }
         .match-slot.drag-over { background: var(--hover-bg); border-color: var(--primary-button); }
 
+        /* --- Matching Headings / Matching Names-Claims-Sentence Endings (dropdown-based) --- */
+        .match-legend .match-chip-static { cursor: default; }
+        .lettered-select {
+            border: 1px solid #ccc;
+            border-bottom: 2px solid var(--border-color);
+            background: white;
+            padding: 6px 8px;
+            font-family: inherit;
+            font-size: 14px;
+            border-radius: 4px;
+            min-width: 220px;
+            max-width: 100%;
+        }
+
+        /* --- Matching Information / Names / Features (grid/matrix) --- */
+        .grid-scroll-wrap { overflow-x: auto; margin: 10px 0; }
+        table.match-grid {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 13px;
+        }
+        table.match-grid th, table.match-grid td {
+            border: 1px solid #ddd;
+            padding: 8px 10px;
+            text-align: center;
+        }
+        table.match-grid thead th { background: #f5f5f5; font-weight: 800; }
+        table.match-grid td.grid-row-label { text-align: left; font-weight: 600; min-width: 220px; }
+        .grid-q-num {
+            display: inline-flex; width: 22px; height: 22px; font-size: 11px;
+            margin-right: 6px; vertical-align: middle;
+        }
+        table.match-grid input.grid-radio { width: 18px; height: 18px; cursor: pointer; }
+
+        /* --- "Choose N of M" multi-select checkboxes --- */
+        .multi-group .multi-hint { margin: 0 0 10px 0; font-weight: 700; color: #555; }
+        .multi-check-label input.multi-check { width: 16px; height: 16px; cursor: pointer; }
+
         /* --- Per-part grading bar (Practice mode only) --- */
         .part-grade-bar { display: none; margin-bottom: 20px; text-align: right; }
         .part-grade-bar.visible { display: block; }
@@ -652,7 +690,10 @@
     <!-- Results Modal -->
     <div id="results-modal" class="overlay" style="display: none;">
         <div class="modal-box">
-            <h2>Kết quả làm bài</h2>
+            <h2 id="results-modal-title">Kết quả làm bài</h2>
+            <div id="homework-success-banner" style="display:none; margin-bottom:14px; padding:10px 14px; border-radius:10px; background:#e6f4d9; border:2px solid #4b7a2a; color:#2B4214; font-weight:800;">
+                ✅ Đã nộp homework thành công! Giáo viên sẽ thấy kết quả này.
+            </div>
             <div class="score-display">
                 <span id="score-correct">0</span> / <span id="score-total">40</span>
             </div>
@@ -698,7 +739,7 @@
                     <p style="color: #666; font-size: 14px;">READING PASSAGE 1</p>
                     <h2>The Baobabs of Madagascar</h2>
                     <p>The ancient baobabs of Madagascar are some of the largest and most distinctive trees in the world, but they face an uncertain future</p>
-<p>The island of Madagascar in the Indian Ocean is the best place in the world to see baobabs. These spectacular trees, with their massive trunks and distinctiye horizontal root-like branches, can live over 800 years. <span id="loc-1">Of the eight known species, six are found only there, while a seventh has made its way across the Mozambique Channel from mainland Africa</span> with a certain amount of human help. Some of the most visited and photographed baobabs in Madagascar are at the Avenue des Baobabs in the western province of Menabe, close to the town of Morondava. There, a dozen trees straddle a narrow sandy road, soaring 30 metres into the sky. Known as renala – ‘mother of the forest’ - in the local Malagasy* language, these trees belong to the tallest baobab species in the world: Adansonia grandidieri, <span id="loc-2">named after two great 19th-century French botanists, Michel Adanson and Alfred Grandidier</span>.</p>
+<p>The island of Madagascar in the Indian Ocean is the best place in the world to see baobabs. These spectacular trees, with their massive trunks and distinctive horizontal root-like branches, can live over 800 years. <span id="loc-1">Of the eight known species, six are found only there, while a seventh has made its way across the Mozambique Channel from mainland Africa</span> with a certain amount of human help. Some of the most visited and photographed baobabs in Madagascar are at the Avenue des Baobabs in the western province of Menabe, close to the town of Morondava. There, a dozen trees straddle a narrow sandy road, soaring 30 metres into the sky. Known as renala – ‘mother of the forest’ - in the local Malagasy* language, these trees belong to the tallest baobab species in the world: Adansonia grandidieri, <span id="loc-2">named after two great 19th-century French botanists, Michel Adanson and Alfred Grandidier</span>.</p>
 <p>Baobabs have religious and spiritual significance for many Malagasy tribes, although the majority of the island’s population will probably never see one – <span id="loc-3">they only grow along the western margin of the island and not in the more populous central highlands</span>. However, as the national tree and the national emblem, the trees are an ideal symbol for increasing awareness not only of the endangered forests, but also of the traditional beliefs of the people who live alongside them. But what does the future hold for the Malagasy baobabs?</p>
 <p>The Avenue des Baobabs is something of a contradiction; the ‘natural’ scene that tourists visit is actually man-made. While the trees themselves are natural enough, the surrounding landscape was created by humans. Back in the early 20th century, <span id="loc-4">much of the Morondava plain was cleared for rice and sugar-cane fields</span>. However, many baobabs were spared because <span id="loc-5">they are valuable as a food source and renewable building material</span>, or they simply survived the fires that were set to clear the dry deciduous forest around them. These days many stand alone in fields, a reminder of where the forest once was. But now it seems that even the mighty baobabs are falling down. ‘Every year I see new trees that have fallen,’ says Jim Bond, an ethnobotanist who has studied Madagascar’s baobabs for more than a decade. <span id="loc-6">The exact cause of the falling baobabs is uncertain</span>, but some people think that <span id="loc-7">the water used to irrigate the nearby fields is partly to blame</span>. Baobabs are adapted to the annual wet season, but their roots can’t cope with constantly waterlogged soils. <span id="loc-8">Lone trees separated from the surrounding forest are also susceptible to cyclones</span>, which reach speeds of over 200 kph in the area, and can easily uproot even a 30-metre baobab.</p>
 <p>Baobabs elsewhere on the island are also facing a host of threats, with three of the six native species now listed as endangered by the World Conservation Union. David Baum from the University of Wisconsin has spent years researching Malagasy baobabs. ‘The main threat to their survival is <span id="loc-9">land clearance for farming</span>, which probably suppresses regeneration,’ he says. Burning is the usual method of clearing land, and while baobabs have some resistance to this, they will eventually succumb to repeated burning. <span id="loc-10">Human disturbance in the forest, such as logging, is also a problem</span>. This practice may be promoting the rapid spread of shrubby undergrowth, which quickly fills in the bright forest gaps needed for baobab germination. Another problem the trees face is the dispersal of their seeds. Baum suggests that dispersal is being limited by <span id="loc-11">the absence of two large, now extinct animals</span>– a gorilla – sized lemur and the three-metre-tall elephant bird. Passage through the digestive tract of these giant fruit-eating animals probably once played a vital role in the distribution of the renala baobabs in particular.</p>
@@ -709,7 +750,7 @@
                 <div id="passage-2-text" class="content-wrapper" data-title="Coins – the first form of money">
                     <p style="color: #666; font-size: 14px;">READING PASSAGE 2</p>
                     <h2>Coins – the first form of money</h2>
-                    <p>Few people pay much attention to coins; we take them for granted. Since the advent of paper currency and the abandonment of a monetary system based on intrinsic of actual value, they have been demoted to the status of change: what is left when you have paid for something with ‘paper’ money. <span id="loc-14">There is even a belief that they will one day be obsolete</span>, as will paper or plastic notes, and money will at last have achieved the pure status of a mathematical formulation, a system of electronic credits and debits.</p>
+                    <p>Few people pay much attention to coins; we take them for granted. Since the advent of paper currency and the abandonment of a monetary system based on intrinsic or actual value, they have been demoted to the status of change: what is left when you have paid for something with ‘paper’ money. <span id="loc-14">There is even a belief that they will one day be obsolete</span>, as will paper or plastic notes, and money will at last have achieved the pure status of a mathematical formulation, a system of electronic credits and debits.</p>
 <p>In the modern media environment, the sheer number of visual images is overwhelming, but it makes one stop to think that coins are among the most durable of our artefacts, and future archaeologists will scrutinise coins in order to learn about their distant ancestors. This is exactly the way ancient coins have informed us for over four millennia. There are thousands of different coins, each designed to carry meaning as well as value, <span id="loc-15">tiny but rich sources of documentary evidence about events and cultural attitudes</span>, frequently produced with exquisite craftsmanship.</p>
 <p>Coins in Europe date from 2,500 to 2,700 years ago, and seem to have originated in the ancient kingdom of Lydia, in what is now Turkey. <span id="loc-24">Before coins, trade was based on barter</span>: the direct trade of commodities. Barter required the physical presence of both commodities that were being traded. <span id="loc-16">Metal coins were far more portable</span>, and not subject to the same spoilage on long sea journeys as a commodity like grain might be if it became wet. However, they could also be accumulated, and these hoards could be stolen. Coins were therefore a temptation to criminals. The Greeks, however, were the first to realise the full potential of the new invention. They were a trading people of seafarers. <span id="loc-23">Their civilisation, which was composed of dozens of city-states</span>, was highly decentralised. Despite the potential for theft, the Greeks realised that they could benefit enormously from a system that used coins, because it meant that they no longer had to carry goods with them to barter.</p>
 <p><span id="loc-17">The value of coins was generally based on the intrinsic value of the metal they were made of</span>. At first this was mostly silver, and this meant that <span id="loc-25">the discovery of silver mines on Greek territory</span> actually increased the quantity of money they could produce. Had the Greek mining been on a larger scale, it could have caused problems similar to those faced by the Spanish centuries later, when so much gold from the New World was brought into their economy that <span id="loc-26">it resulted in serious inflation</span>. One advantage of intrinsic value was that coins could be weighed to determine the amount of metal they contained, so that the only thing an issuing state had to guarantee was the purity of the metal to prevent accusations of fraud and cheating, which could cause fighting and unrest. This was quite difficult to do, especially with coins made of gold, until Archimedes realised that different metals have different weight-volume ratios, and that by measuring the amount of displacement when coins were immersed in water, it was possible to establish whether gold was alloyed with silver.</p>
@@ -727,8 +768,8 @@
 <p>C. Taste research is a booming business these days, with scientists delving into all five basics: sweet, bitter, sour, salty, and umami (the savory taste of protein). However, <span id="loc-31">bitterness is of special interest to the food industry because it is present in so many different types of food</span>. There are thousands of bitter-tasting compounds in nature. They defend plants by warning animals away and protect animals by <span id="loc-35">letting them know when a plant may be poisonous</span>. But the system isn’t foolproof. Grapefruit and bitter green vegetables like Brussels sprouts and kale are nutritious despite - and sometimes because of - their bitter-tasting components.</p>
 <p>D. ‘Humans are the only species that enjoys a bitter taste,’ says Charles Zuker, a neuroscientist at the University of California School of Medicine at San Diego. ‘<span id="loc-33">Every other species is averse to bitter because it means bad news. But we have learned to enjoy it.</span> We drink coffee, which is bitter, and quinine (in tonic water) too. We enjoy having that spice in our lives.’ Because bitterness can be pleasant in small quantities but repellent when intense, bitter blockers like AMP could make a whole range of foods, drinks and medicines more palatable.</p>
 <p>E. People have varying capacities for tasting bitterness and <span id="loc-29"><span id="loc-36">the differences appear to be genetic</span></span>. About 75% of people are sensitive to the taste of some well-identified bitter compounds. Those who are sensitive seem to be less likely than others to eat bitter vegetables, according to Stephen Wooding, a geneticist at the University of Utah. Some people who have an unusually high number of taste buds, and <span id="loc-37">are known as ‘supertasters’</span>, are especially sensitive to these compounds. Supertasters tend to shun all kinds of bitter-tasting things, including vegetables, coffee, and dark chocolate.</p>
-<p>F. <span id="loc-38">The tongue is covered with taste buds</span>. Under the microscope each one looks like an onion, consisting of 50 to 100 elongated cells running from the top of the taste buds to the bottom. At the top is a group of receptors that captures the taste molecules, known as tastants, in food and drink. The receptors function much like those for sight and smell. <span id="loc-39">Once a bitter signal has been received, it is relayed via proteins known as G proteins</span>. The G protein involved in the perception of bitterness, sweetness and umami was identified in the early 1990s by Robert Margolskee, at Mount Sinai School of Medicine in New York. <span id="loc-30">The protein triggers a cascade of chemical reactions that lead to ion concentrations within the cell</span>. Ultimately, this delivers a signal to the brain that registers as bitter.</p>
-<p>G. Once they understood the taste mechanism, scientists began to think of ways to interfere with it. They tried AMP, an organic compound found in breast milk and other substances, that is created as cells break down food. <span id="loc-40">AMP has no bitterness of its own, but when put in foods</span>, as Margolskee and his colleagues discovered, it attaches to bitter-taste receptors. As effective as it is, AMP may not be able to dampen every type of bitter taste because it probably doesn’t attach to all 30 bitter-taste receptors.</p>
+<p>F. <span id="loc-38">The tongue is covered with taste buds</span>. Under the microscope each one looks like an onion, consisting of 50 to 100 elongated cells running from the top of the taste buds to the bottom. At the top is a group of receptors that captures the taste molecules, known as tastants, in food and drink. The receptors function much like those for sight and smell. <span id="loc-39">Once a bitter signal has been received, it is relayed via proteins known as G proteins</span>. The G protein involved in the perception of bitterness, sweetness and umami was identified in the early 1990s by Robert Margolskee, at Mount Sinai School of Medicine in New York. The protein triggers a cascade of chemical reactions that lead to ion concentrations within the cell. <span id="loc-30">Ultimately, this delivers a signal to the brain that registers as bitter</span>.</p>
+<p>G. Once they understood the taste mechanism, scientists began to think of ways to interfere with it. They tried AMP, an organic compound found in breast milk and other substances, that is created as cells break down food. <span id="loc-40">AMP has no bitterness of its own, but when put in foods, as Margolskee and his colleagues discovered, it attaches to bitter-taste receptors</span>. As effective as it is, AMP may not be able to dampen every type of bitter taste because it probably doesn’t attach to all 30 bitter-taste receptors.</p>
 <p>H. Some taste researchers believe that, in time, compounds like AMP will help make processed foods less unhealthy. Consider, for example, that a single cup of canned chicken noodle soup contains 850 milligrams of sodium chloride, or table salt - more than a third of the recommended daily allowance. The salt masks the bitterness created by the high temperatures used in the canning process, which cause sugars and amino acids to react. <span id="loc-32">Part of the table salt could be replaced by another type of salt, potassium chloride</span>, which tends to be scarce in some people’s diets because of its bitter taste. But that bitter taste could be eliminated with a dose of AMP. Bitter blockers could also be used in place of sugary cherry and grape flavourings in children’s cough syrups, and <span id="loc-28">they could dampen the bitterness of drugs like antihistamines, antibiotics and other similar products</span>.</p>
 <p>I. A number of foodmakers have already begun to experiment with AMP in their products, and other bitter blockers are being developed. In a few years, perhaps, after food companies have taken the bitterness from canned soup and improved the taste of medicines, they can set their sights on something more useful: a bitter blocker in a bottle that any of us can sprinkle on our Brussels sprouts or stir into our grapefruit juice.</p>
                 </div>
@@ -750,7 +791,22 @@
     <script>
         // --- Data Structure (generated by the Test Builder tool) ---
         // questionsData[passageIndex] = array of question groups for that passage
-        const questionsData = [[{"instruction":"TRUE / FALSE / NOT GIVEN","type":"tfng","reference":"","imageUrl":"","labels":["TRUE","FALSE","NOT GIVEN"],"questions":[{"text":"All of the baobab species found on Madagascar are unique to the island.","answer":"FALSE","exp":"Chỉ sáu trong tám loài chỉ được tìm thấy ở Madagascar; loài thứ bảy có nguồn gốc từ lục địa châu Phi. Vì vậy không phải tất cả các loài đều đặc hữu của đảo.","loc":"loc-1"},{"text":"Adanson and Grandidier were the first foreign botanists to visit Madagascar.","answer":"NOT GIVEN","exp":"Bài chỉ cho biết họ là hai nhà thực vật học người Pháp nổi tiếng thế kỷ 19. Không có thông tin cho biết họ là những nhà thực vật học nước ngoài đầu tiên đến Madagascar.","loc":"loc-2"},{"text":"The baobab can be found in most areas of Madagascar.","answer":"FALSE","exp":"Baobab chỉ mọc dọc phía tây Madagascar và không mọc ở vùng cao nguyên trung tâm, nên không thể nói chúng được tìm thấy ở hầu hết các khu vực.","loc":"loc-3"},{"text":"The landscape around the Avenue des Baobabs is the result of agricultural development.","answer":"TRUE","exp":"Cảnh quan xung quanh được con người tạo ra khi phần lớn đồng bằng Morondava được phát quang để trồng lúa và mía.","loc":"loc-4"},{"text":"The baobab provides useful products for the local people.","answer":"TRUE","exp":"Baobab có giá trị như một nguồn thực phẩm và vật liệu xây dựng có thể tái tạo, nên cung cấp các sản phẩm hữu ích cho người dân địa phương.","loc":"loc-5"},{"text":"There is general agreement about the reasons for baobabs falling down.","answer":"FALSE","exp":"Nguyên nhân chính xác vẫn chưa được xác định. Chỉ một số người cho rằng nước tưới từ các cánh đồng gần đó có thể là một phần nguyên nhân, nên không có sự đồng thuận chung.","loc":"loc-6"}]},{"instruction":"Write ONE WORD ONLY from the passage for each answer.","type":"text","reference":"","imageUrl":"","questions":[{"text":"Trees may be falling down because of ______ from nearby fields.","answer":"water","exp":"Một số người cho rằng nước dùng để tưới các cánh đồng gần đó có thể góp phần khiến cây baobab bị đổ.","loc":"loc-7"},{"text":"Lone trees are at risk from ______.","answer":"cyclones","exp":"Những cây mọc đơn lẻ, tách khỏi khu rừng xung quanh, dễ bị các cơn bão mạnh quật đổ.","loc":"loc-8"},{"text":"Land clearance is mainly carried out by burning to create space for ______ activity.","answer":"farming","exp":"Mối đe dọa chính là việc phát quang đất để phục vụ farming; đốt là phương pháp thường được dùng để phát quang.","loc":"loc-9"},{"text":"The practice of ______ makes seed germination difficult.","answer":"logging","exp":"Logging thúc đẩy sự phát triển của cây bụi thấp, làm lấp các khoảng trống sáng trong rừng cần thiết cho sự nảy mầm của baobab.","loc":"loc-10"},{"text":"The disappearance of certain ______ limited the dispersal of baobab seeds.","answer":"animals","exp":"Hai loài động vật lớn đã tuyệt chủng từng đóng vai trò quan trọng trong việc phát tán hạt, nên sự biến mất của chúng làm hạn chế quá trình này.","loc":"loc-11"},{"text":"Jim Bond worked on making ______ of areas of relatively undamaged baobab forest.","answer":"maps","exp":"Bond cùng người dân địa phương tìm kiếm và lập bản đồ sự phân bố của baobab trong các khu rừng.","loc":"loc-12"},{"text":"Jim Bond planned on producing a ______ showing the importance of baobab in local culture.","answer":"book","exp":"Bond dự định biên soạn một cuốn sách thiếu nhi có minh họa về các câu chuyện dân gian địa phương để lan truyền nhận thức về tầm quan trọng văn hóa của baobab.","loc":"loc-13"}]}],[{"instruction":"Choose the correct heading for each paragraph.","type":"text","reference":"i. A simpler, more efficient way of trading<br>ii. A form of regional promotion<br>iii. Calculating what a coin was worth<br>iv. Calculating what a coin was worth<br>v. A simpler, more efficient way of trading<br>vi. Putting a face to famous historical names<br>vii. An uncertain future<br>viii. The importance of coins as historical evidence<br>ix. Unchanging coins signalled trustworthiness<br>x. The development of paper money<br>xi. Significant records of past societies","imageUrl":"","questions":[{"text":"Paragraph 1","answer":"vii","exp":"Đoạn này nói về khả năng tiền xu và tiền giấy, tiền nhựa sẽ trở nên lỗi thời khi tiền tệ chuyển sang hệ thống tín dụng và ghi nợ điện tử.","loc":"loc-14"},{"text":"Paragraph 2","answer":"xi","exp":"Tiền xu cổ được mô tả là nguồn tư liệu phong phú giúp con người và các nhà khảo cổ tìm hiểu các sự kiện và thái độ văn hóa của các xã hội trong quá khứ.","loc":"loc-15"},{"text":"Paragraph 3","answer":"v","exp":"Tiền kim loại dễ vận chuyển và không bị hư hỏng như hàng hóa trong những chuyến đi biển dài, giúp việc trao đổi trở nên đơn giản và hiệu quả hơn.","loc":"loc-16"},{"text":"Paragraph 4","answer":"iv","exp":"Đoạn này giải thích cách giá trị của tiền xu được xác định dựa trên giá trị nội tại của kim loại và cách kiểm tra lượng, độ tinh khiết của kim loại.","loc":"loc-17"},{"text":"Paragraph 5","answer":"ii","exp":"Tiền xu có chức năng kép: đơn vị giá trị và biểu tượng bản sắc của thành bang. Chúng cũng giúp quảng bá những đặc điểm của từng thành bang.","loc":"loc-18"},{"text":"Paragraph 6","answer":"ix","exp":"Thiết kế đồng tiền Athens được giữ gần như không thay đổi trong nhiều năm, và sự thống nhất này được xem là biểu hiện của tính toàn vẹn và đáng tin cậy.","loc":"loc-19"},{"text":"Paragraph 7","answer":"vi","exp":"Đoạn cuối giải thích việc thay hình các vị thần trên tiền xu bằng chân dung các vị vua và cách tiền xu lưu giữ hình ảnh của những nhân vật lịch sử nổi tiếng.","loc":"loc-20"}]},{"instruction":"Choose TWO correct answers.","type":"matching","reference":"","imageUrl":"","options":["A. There is no record of the names of the coin makers.","B. Coins were not popular as payment for traded objects.","C. Coins with the same design often looked quite different.","D. Greek coins were more beautiful in design than Roman coins.","E. At times, too many coins were produced in Greece."],"questions":[{"text":"Which TWO of these comments about ancient coins are made by the writer of the text? — Comment 1","answer":"A","exp":"Những người chế tác tiền xu được mô tả là anonymous craftsmen, tức những người thợ vô danh, cho thấy không có tên của họ được ghi lại.","loc":"loc-21"},{"text":"Which TWO of these comments about ancient coins are made by the writer of the text? — Comment 2","answer":"C","exp":"Các đồng tiền có cùng thiết kế có thể trông khác nhau vì khuôn đúc phải được làm lại nhiều lần bởi nhiều nghệ nhân khác nhau.","loc":"loc-22"}]},{"instruction":"Write ONE WORD ONLY from the passage for each answer.","type":"text","reference":"","imageUrl":"","questions":[{"text":"The ancient Greek ______ was made up of many city-states which were spread over a large area.","answer":"civilisation","exp":"Đoạn văn nói nền văn minh Hy Lạp gồm hàng chục thành bang và có tính phi tập trung cao.","loc":"loc-23"},{"text":"Before coins, Greek traders used ______ when exchanging goods.","answer":"barter","exp":"Trước khi có tiền xu, hoạt động thương mại dựa trên barter, tức trao đổi trực tiếp hàng hóa.","loc":"loc-24"},{"text":"The Greeks had a plentiful supply of ______ which they mined themselves.","answer":"silver","exp":"Tiền xu ban đầu chủ yếu được làm từ bạc và người Hy Lạp có các mỏ bạc trên lãnh thổ của mình.","loc":"loc-25"},{"text":"The Greeks were able to avoid the problem of ______ which the Spanish encountered much later.","answer":"inflation","exp":"Bài nói nếu hoạt động khai thác của Hy Lạp lớn hơn, họ có thể gặp vấn đề tương tự Tây Ban Nha, khi quá nhiều kim loại quý đưa vào nền kinh tế gây ra lạm phát nghiêm trọng.","loc":"loc-26"}]}],[{"instruction":"Which paragraph contains the following information?","type":"matching","reference":"","imageUrl":"","options":["A. Paragraph A","B. Paragraph B","C. Paragraph C","D. Paragraph D","E. Paragraph E","F. Paragraph F","G. Paragraph G","H. Paragraph H","I. Paragraph I"],"questions":[{"text":"Details of an experiment in taste comparison","answer":"B","exp":"Đoạn B mô tả thí nghiệm trong đó năm người thử hai mẫu nước ép 304 và 305 và so sánh vị của chúng.","loc":"loc-27"},{"text":"Examples of medications that could be improved using compounds that remove bitterness","answer":"H","exp":"Đoạn H đưa ra các ví dụ về thuốc có thể được cải thiện bằng bitter blockers, bao gồm thuốc kháng histamine và kháng sinh.","loc":"loc-28"},{"text":"A biological reason why some people don’t like bitter-tasting foods","answer":"E","exp":"Đoạn E giải thích sự khác biệt về khả năng cảm nhận vị đắng có vẻ mang tính di truyền, và những người nhạy cảm thường ít ăn rau đắng.","loc":"loc-29"},{"text":"An explanation of how the taste process works","answer":"F","exp":"Đoạn F mô tả quá trình các receptor tiếp nhận phân tử vị giác, tín hiệu được truyền qua G proteins và cuối cùng được truyền đến não.","loc":"loc-30"},{"text":"Why bitterness is more interesting commercially than other tastes","answer":"C","exp":"Đoạn C giải thích vị đắng đặc biệt được ngành công nghiệp thực phẩm quan tâm vì nó xuất hiện trong rất nhiều loại thực phẩm.","loc":"loc-31"},{"text":"An example of how compounds that remove bitterness could indirectly benefit health","answer":"H","exp":"Đoạn H cho thấy AMP có thể loại bỏ vị đắng của potassium chloride, từ đó cho phép thay thế một phần muối ăn bằng loại muối có thể hữu ích hơn trong chế độ ăn.","loc":"loc-32"},{"text":"A reason why people have different taste preferences from animals","answer":"D","exp":"Đoạn D giải thích rằng động vật tránh vị đắng vì nó thường báo hiệu điều nguy hiểm, trong khi con người đã học cách thưởng thức vị đắng.","loc":"loc-33"}]},{"instruction":"Write NO MORE THAN TWO WORDS from the passage for each answer.","type":"text","reference":"","imageUrl":"","questions":[{"text":"The grapefruit used to make drinks is chosen because it contains a smaller amount of a substance called ______.","answer":"naringin","exp":"Các nhà sản xuất nước ép thường chọn bưởi có hàm lượng naringin thấp vì naringin tạo ra vị đắng.","loc":"loc-34"},{"text":"Animals associate a bitter taste with ______ plants.","answer":"poisonous","exp":"Vị đắng giúp động vật nhận biết rằng một loại cây có thể độc.","loc":"loc-35"},{"text":"Our varying degree of sensitivity to bitter tastes is thought to be ______.","answer":"genetic","exp":"Sự khác biệt về khả năng cảm nhận vị đắng giữa con người dường như có liên quan đến yếu tố di truyền.","loc":"loc-36"},{"text":"People who are extremely aware of bitter tastes are called ______.","answer":"supertasters","exp":"Những người có số lượng taste buds cao bất thường và đặc biệt nhạy cảm với các hợp chất đắng được gọi là supertasters.","loc":"loc-37"},{"text":"Receptors inside the ______ on the tongue detect the taste of food and drink.","answer":"taste buds","exp":"Lưỡi được bao phủ bởi taste buds, bên trong đó có các receptor tiếp nhận các phân tử vị giác trong thức ăn và đồ uống.","loc":"loc-38"}]},{"instruction":"Choose the correct answer.","type":"mcq","reference":"","imageUrl":"","questions":[{"text":"The G protein identified by Robert Margolskee","options":["A. is responsible for transmitting bitter tastes.","B. causes dangerous reactions in the cells of the tongue.","C. has a similar function to sight and smell receptors.","D. can be found only in sweetness and umami."],"answer":"A","exp":"Tín hiệu vị đắng được truyền qua G proteins và cuối cùng tạo ra tín hiệu đến não. Vì vậy đáp án A đúng.","loc":"loc-39"},{"text":"AMP is an organic compound which is","options":["A. found only in breast milk.","B. bitter-tasting when added to food.","C. able to reduce some bitter tastes.","D. found in bitter taste receptors."],"answer":"C","exp":"AMP không có vị đắng riêng và khi được đưa vào thực phẩm, nó gắn vào các thụ thể vị đắng để làm giảm một số vị đắng.","loc":"loc-40"}]}]];
+        const questionsData = [[{"instruction":"TRUE / FALSE / NOT GIVEN","type":"tfng","reference":"","imageUrl":"","labels":["TRUE","FALSE","NOT GIVEN"],"questions":[{"text":"All of the baobab species found on Madagascar are unique to the island.","answer":"FALSE","exp":"Có tám loài được biết đến, nhưng chỉ sáu loài chỉ được tìm thấy ở Madagascar; loài thứ bảy đã đến từ lục địa châu Phi. Vì vậy, không phải tất cả đều là loài đặc hữu của đảo.","loc":"loc-1"},{"text":"Adanson and Grandidier were the first foreign botanists to visit Madagascar.","answer":"NOT GIVEN","exp":"Bài chỉ nói Adanson và Grandidier là hai nhà thực vật học người Pháp nổi tiếng thế kỷ 19, không nói họ là những nhà thực vật học nước ngoài đầu tiên đến Madagascar.","loc":"loc-2"},{"text":"The baobab can be found in most areas of Madagascar.","answer":"FALSE","exp":"Baobab chỉ mọc dọc vùng phía tây Madagascar và không mọc ở vùng cao nguyên trung tâm, nên không thể được tìm thấy ở hầu hết các khu vực.","loc":"loc-3"},{"text":"The landscape around the Avenue des Baobabs is the result of agricultural development.","answer":"TRUE","exp":"Cảnh quan xung quanh được con người tạo ra; phần lớn đồng bằng Morondava đã được phát quang để trồng lúa và mía.","loc":"loc-4"},{"text":"The baobab provides useful products for the local people.","answer":"TRUE","exp":"Baobab có giá trị như nguồn thực phẩm và vật liệu xây dựng có thể tái tạo, nên cung cấp các sản phẩm hữu ích cho người dân địa phương.","loc":"loc-5"},{"text":"There is general agreement about the reasons for baobabs falling down.","answer":"FALSE","exp":"Nguyên nhân chính xác của việc cây đổ vẫn chưa được xác định. Chỉ một số người cho rằng nước tưới từ các cánh đồng gần đó có thể là một phần nguyên nhân.","loc":"loc-6"}]},{"instruction":"Write ONE WORD ONLY from the passage for each answer.","type":"text","reference":"","imageUrl":"","questions":[{"text":"Trees may be falling down because of ______ from nearby fields.","answer":"water","exp":"Một số người cho rằng nước được dùng để tưới các cánh đồng gần đó có thể góp phần khiến baobab bị đổ.","loc":"loc-7"},{"text":"Lone trees are at risk from ______.","answer":"cyclones","exp":"Những cây mọc đơn lẻ, tách khỏi khu rừng xung quanh, dễ bị các cơn bão mạnh quật đổ.","loc":"loc-8"},{"text":"Land clearance is mainly carried out by burning to create space for ______ activity.","answer":"farming","exp":"Mối đe dọa chính là phát quang đất để phục vụ farming; đốt là phương pháp thường được sử dụng để phát quang đất.","loc":"loc-9"},{"text":"The practice of ______ makes seed germination difficult.","answer":"logging","exp":"Logging thúc đẩy sự lan rộng của cây bụi thấp, làm lấp các khoảng trống sáng cần thiết cho sự nảy mầm của baobab.","loc":"loc-10"},{"text":"The disappearance of certain ______ limited the dispersal of baobab seeds.","answer":"animals","exp":"Hai loài động vật lớn đã tuyệt chủng từng đóng vai trò quan trọng trong việc phát tán hạt, nên sự biến mất của chúng làm hạn chế quá trình này.","loc":"loc-11"},{"text":"Jim Bond worked on making ______ of areas of relatively undamaged baobab forest.","answer":"maps","exp":"Bond làm việc cùng người dân địa phương để tìm kiếm và lập bản đồ sự phân bố của baobab.","loc":"loc-12"},{"text":"Jim Bond planned on producing a ______ showing the importance of baobab in local culture.","answer":"book","exp":"Bond dự định biên soạn một cuốn sách thiếu nhi có minh họa về các câu chuyện dân gian địa phương nhằm lan truyền nhận thức về tầm quan trọng của baobab trong văn hóa Malagasy.","loc":"loc-13"}]}],[{"instruction":"Choose the correct heading for each paragraph from the list of headings below.","type":"heading","reference":"","imageUrl":"","options":["i. Training coin makers","ii. A form of regional promotion","iii. More gold than silver in Greece","iv. Calculating what a coin was worth","v. A simpler, more efficient way of trading","vi. Putting a face to famous historical names","vii. An uncertain future","viii. Careless workmanship caused breakages","ix. Unchanging coins signalled trustworthiness","x. Reading the writing on coins","xi. Significant records of past societies"],"questions":[{"text":"Paragraph 1","answer":"vii","exp":"Đoạn này nói về khả năng tiền xu trở nên lỗi thời trong tương lai khi tiền tệ chuyển sang hệ thống tín dụng và ghi nợ điện tử.","loc":"loc-14"},{"text":"Paragraph 2","answer":"xi","exp":"Tiền xu cổ được xem là nguồn tư liệu phong phú giúp các nhà khảo cổ tìm hiểu các sự kiện và thái độ văn hóa của các xã hội trong quá khứ.","loc":"loc-15"},{"text":"Paragraph 3","answer":"v","exp":"Tiền kim loại dễ mang theo hơn hàng hóa và không dễ hư hỏng trong những chuyến đi biển dài, giúp hoạt động trao đổi hiệu quả hơn.","loc":"loc-16"},{"text":"Paragraph 4","answer":"iv","exp":"Đoạn này tập trung vào cách xác định giá trị của tiền xu dựa trên giá trị nội tại của kim loại và cách kiểm tra lượng kim loại trong đồng xu.","loc":"loc-17"},{"text":"Paragraph 5","answer":"ii","exp":"Tiền xu vừa là đơn vị giá trị vừa là biểu tượng bản sắc của thành bang, đồng thời quảng bá những đặc điểm của từng thành bang.","loc":"loc-18"},{"text":"Paragraph 6","answer":"ix","exp":"Thiết kế của tiền xu Athens được giữ gần như không thay đổi trong nhiều năm, và sự thống nhất này được xem là dấu hiệu của tính toàn vẹn và đáng tin cậy.","loc":"loc-19"},{"text":"Paragraph 7","answer":"vi","exp":"Đoạn này nói về việc thay hình các vị thần trên tiền xu bằng chân dung các vị vua và cách tiền xu lưu giữ hình ảnh của những nhân vật lịch sử nổi tiếng.","loc":"loc-20"}]},{"instruction":"Choose TWO correct answers.","type":"multi","reference":"","imageUrl":"","options":["A. There is no record of the names of the coin makers.","B. Coins were not popular as payment for traded objects.","C. Coins with the same design often looked quite different.","D. Greek coins were more beautiful in design than Roman coins.","E. At times, too many coins were produced in Greece."],"pickCount":2,"questions":[{"text":"","answer":"A","exp":"Tác giả nói các đồng tiền là sản phẩm của những người thợ vô danh, nên không có tên của những người chế tác được ghi lại.","loc":"loc-21"},{"text":"","answer":"C","exp":"Các đồng tiền có cùng thiết kế thường có sự khác biệt lớn vì khuôn đúc phải được làm lại nhiều lần bởi nhiều nghệ nhân khác nhau.","loc":"loc-22"}]},{"instruction":"Write ONE WORD ONLY from the passage for each answer.","type":"text","reference":"","imageUrl":"","questions":[{"text":"The ancient Greek ______ was made up of many city-states which were spread over a large area.","answer":"civilisation","exp":"Đoạn văn nói nền văn minh Hy Lạp gồm hàng chục thành bang và có tính phi tập trung cao.","loc":"loc-23"},{"text":"Many Greeks were seafarers who travelled the seas trading. Before coins, they had to do this through ______.","answer":"barter","exp":"Trước khi có tiền xu, người Hy Lạp phải trao đổi hàng hóa trực tiếp, tức barter.","loc":"loc-24"},{"text":"The Greeks had a plentiful supply of ______ which they mined themselves.","answer":"silver","exp":"Ban đầu tiền xu chủ yếu được làm từ bạc và người Hy Lạp có các mỏ bạc trên lãnh thổ của mình.","loc":"loc-25"},{"text":"The Greeks were able to avoid the problem of ______ which the Spanish encountered much later, after they allowed too much gold from the New World to enter their economy.","answer":"inflation","exp":"Quá nhiều kim loại quý đưa vào nền kinh tế có thể gây lạm phát nghiêm trọng, vấn đề mà Tây Ban Nha gặp phải sau này.","loc":"loc-26"}]}],[{"instruction":"Which paragraph contains the following information? Choose the correct letter, A-I. You may use any letter more than once.","type":"grid","reference":"","imageUrl":"","options":["A","B","C","D","E","F","G","H","I"],"questions":[{"text":"Details of an experiment in taste comparison","answer":"B","exp":"Đoạn B mô tả chi tiết thí nghiệm trong đó năm người thử và so sánh hai mẫu nước ép 304 và 305.","loc":"loc-27"},{"text":"Examples of medications that could be improved using compounds that remove bitterness","answer":"H","exp":"Đoạn H đưa ra ví dụ về thuốc kháng histamine và kháng sinh có thể được cải thiện bằng chất chặn vị đắng.","loc":"loc-28"},{"text":"A biological reason why some people don’t like bitter-tasting foods","answer":"E","exp":"Đoạn E cho biết khả năng cảm nhận vị đắng khác nhau giữa người với người và sự khác biệt này có vẻ mang tính di truyền.","loc":"loc-29"},{"text":"An explanation of how the taste process works","answer":"F","exp":"Đoạn F giải thích quá trình receptor nhận phân tử vị giác, tín hiệu truyền qua G proteins và cuối cùng được gửi đến não.","loc":"loc-30"},{"text":"Why bitterness is more interesting commercially than other tastes","answer":"C","exp":"Đoạn C giải thích vị đắng đặc biệt được ngành công nghiệp thực phẩm quan tâm vì nó xuất hiện trong rất nhiều loại thực phẩm.","loc":"loc-31"},{"text":"An example of how compounds that remove bitterness could indirectly benefit health","answer":"H","exp":"Đoạn H cho thấy AMP có thể loại bỏ vị đắng của potassium chloride, giúp có thể thay thế một phần muối ăn bằng loại muối khác có thể có lợi hơn cho chế độ ăn.","loc":"loc-32"},{"text":"A reason why people have different taste preferences from animals","answer":"D","exp":"Đoạn D giải thích động vật tránh vị đắng vì nó thường báo hiệu điều xấu hoặc nguy hiểm, trong khi con người đã học cách thưởng thức vị đắng.","loc":"loc-33"}]},{"instruction":"Write NO MORE THAN TWO WORDS from the passage for each answer.","type":"text","reference":"","imageUrl":"","questions":[{"text":"The grapefruit used to make drinks is chosen because it contains a smaller amount of a substance called ______.","answer":"naringin","exp":"Các nhà sản xuất nước ép thường chọn bưởi có hàm lượng naringin thấp vì naringin tạo ra vị đắng.","loc":"loc-34"},{"text":"Animals associate a bitter taste with ______ plants.","answer":"poisonous","exp":"Vị đắng giúp động vật nhận biết rằng một loại cây có thể độc.","loc":"loc-35"},{"text":"Our varying degree of sensitivity to bitter tastes is thought to be ______.","answer":"genetic","exp":"Sự khác biệt về mức độ nhạy cảm với vị đắng được cho là có liên quan đến yếu tố di truyền.","loc":"loc-36"},{"text":"People who are extremely aware of bitter tastes are called ______.","answer":"supertasters","exp":"Những người có số lượng nụ vị giác nhiều bất thường và đặc biệt nhạy cảm với các hợp chất đắng được gọi là supertasters.","loc":"loc-37"},{"text":"Receptors inside the ______ on the tongue detect the taste of food and drink.","answer":"taste buds","exp":"Lưỡi được bao phủ bởi taste buds, bên trong đó có các receptor tiếp nhận các phân tử vị giác trong thức ăn và đồ uống.","loc":"loc-38"}]},{"instruction":"Choose the correct answer, A, B, C or D.","type":"mcq","reference":"","imageUrl":"","questions":[{"text":"The G protein identified by Robert Margolskee","options":["A. is responsible for transmitting bitter tastes.","B. causes dangerous reactions in the cells of the tongue.","C. has a similar function to sight and smell receptors.","D. can be found only in sweetness and umami."],"answer":"A","exp":"G proteins tham gia truyền tín hiệu vị đắng; sau chuỗi phản ứng hóa học, tín hiệu cuối cùng được truyền đến não.","loc":"loc-39"},{"text":"AMP is an organic compound which is","options":["A. found only in breast milk.","B. bitter-tasting when added to food.","C. able to reduce some bitter tastes.","D. found in bitter taste receptors."],"answer":"C","exp":"AMP không có vị đắng riêng và có thể gắn vào các thụ thể vị đắng để làm giảm một số vị đắng trong thực phẩm.","loc":"loc-40"}]}]];
+
+        // --- Chế độ "làm bài tập được giao" ---
+        // Khi trang này được mở từ nút "Bài tập" bên trang chủ (index.html), URL sẽ có kèm
+        // assignmentId+uid (và scope = 'all'/'1'/'2'/'3'). Lúc đó đây KHÔNG phải luyện tập tự do
+        // mà là một bài homework cụ thể — giao diện + nút "Nộp bài" cần rõ ràng theo đúng phạm vi
+        // (1 Passage hay cả bài) mà giáo viên đã giao, thay vì luôn mở full 3 Passage mập mờ.
+        const __assignParams = new URLSearchParams(location.search);
+        const ASSIGN_ID = __assignParams.get('assignmentId') || '';
+        const ASSIGN_UID = __assignParams.get('uid') || '';
+        const ASSIGN_SCOPE = __assignParams.get('scope') || 'all'; // 'all' | '1' | '2' | '3'
+        const IS_ASSIGNMENT_MODE = !!(ASSIGN_ID && ASSIGN_UID);
+        function assignmentScopeLabel() {
+            return (ASSIGN_SCOPE === '1' || ASSIGN_SCOPE === '2' || ASSIGN_SCOPE === '3')
+                ? `Passage ${ASSIGN_SCOPE}` : 'Cả bài (3 Passage)';
+        }
 
         const testData = {};
         const passageRanges = [];
@@ -789,6 +845,31 @@
             dd.innerHTML = opts.join('');
         })();
 
+        // Khi đang làm 1 bài tập được giao (IS_ASSIGNMENT_MODE): ẩn phần chọn chế độ Luyện
+        // tập/Thi thật (không liên quan tới homework), thay bằng 1 dòng thông báo rõ ràng giáo
+        // viên đã giao đúng phạm vi nào, tự chọn sẵn đúng Passage đó trong dropdown (ẩn), và đổi
+        // chữ trên nút nộp bài chính (header) thành "Nộp homework (...)" để không còn mập mờ.
+        (function initAssignmentMode() {
+            if (!IS_ASSIGNMENT_MODE) return;
+
+            const modeSelectEl = document.querySelector('#setup-screen .mode-select');
+            const passageSelectorEl = document.getElementById('passage-selector');
+            const setupIntro = document.querySelector('#setup-screen .modal-box > p');
+            if (modeSelectEl) modeSelectEl.style.display = 'none';
+            if (passageSelectorEl) passageSelectorEl.style.display = 'none';
+            if (setupIntro) {
+                setupIntro.innerHTML = `📩 Bạn đang làm <strong>BÀI TẬP được giao</strong>: <strong>${assignmentScopeLabel()}</strong>. Làm xong nhớ bấm nút <strong>"Nộp homework"</strong> ở góc trên bên phải để nộp bài nhé!`;
+            }
+
+            const dd = document.getElementById('passage-dropdown');
+            if (dd && (ASSIGN_SCOPE === '1' || ASSIGN_SCOPE === '2' || ASSIGN_SCOPE === '3')) {
+                dd.value = ASSIGN_SCOPE;
+            }
+
+            const mainSubmitBtn = document.getElementById('main-submit-btn');
+            if (mainSubmitBtn) mainSubmitBtn.textContent = `📩 Nộp homework (${assignmentScopeLabel()})`;
+        })();
+
         // --- HTML Question Templates Generation ---
         function generateQuestionsHTML() {
             let html = '';
@@ -811,6 +892,18 @@
                     }
                     if (g.type === 'matching') {
                         html += genMatching(groupCounter, g.options || [], g.questions);
+                    } else if (g.type === 'heading' || g.type === 'list_match') {
+                        // Matching Headings / Matching Names-Claims-Sentence Endings: cùng 1 logic
+                        // dùng chung — 1 bảng chú thích (legend) các lựa chọn có chữ cái A/i/ii...
+                        // + mỗi câu hỏi có 1 dropdown chọn đáp án đúng (không cần kéo thả).
+                        html += genLettered(groupCounter, g.options || [], g.questions);
+                    } else if (g.type === 'grid') {
+                        // Matching Information / Matching Names / Matching Features dạng bảng: mỗi
+                        // dòng là 1 câu, mỗi cột là 1 chữ cái — click radio ở đúng ô giao nhau.
+                        html += genGrid(groupCounter, g.options || [], g.questions);
+                    } else if (g.type === 'multi') {
+                        // "Choose TWO/THREE correct answers": checkbox dùng chung cho cả nhóm câu.
+                        html += genMulti(groupCounter, g.options || [], g.questions, g.pickCount || g.questions.length);
                     } else {
                         g.questions.forEach(q => {
                             if (g.type === 'tfng') {
@@ -902,6 +995,133 @@
 
             return `<div class="match-bank" id="bank-${groupId}">${bankHtml}</div>${rowsHtml}`;
         }
+
+        // Matching Headings (chọn heading cho từng đoạn) / Matching Names-Claims-Sentence Endings
+        // (nối người/mệnh đề với đáp án đúng, A-G...): CÙNG 1 logic dùng chung — một bảng chú
+        // thích tĩnh (legend) liệt kê hết các lựa chọn, và mỗi câu hỏi có 1 dropdown <select> để
+        // chọn đáp án đúng. Dùng <select> (bấm chọn) thay vì kéo-thả để chấm điểm tái dùng nguyên
+        // logic có sẵn của gradeQuestionRange() (so sánh .value như câu điền từ) và hoạt động ổn
+        // định trên mọi thiết bị (không phụ thuộc con trỏ/chạm như kéo-thả).
+        function genLettered(groupId, options, questions) {
+            const legendHtml = `<div class="match-bank match-legend" id="bank-${groupId}">${options.map(opt =>
+                `<div class="match-chip match-chip-static">${opt}</div>`).join('')}</div>`;
+
+            const rowsHtml = questions.map(q => {
+                const optHtml = options.map(opt => {
+                    const letter = (opt.split('.')[0] || '').trim();
+                    return `<option value="${letter}">${opt}</option>`;
+                }).join('');
+                return `<div class="question-item match-row" id="q-container-${q.qNum}">
+                            <div class="q-num">${q.qNum}</div>
+                            <span class="match-prompt-text">${q.text}</span>
+                            <select name="q${q.qNum}" class="lettered-select">
+                                <option value="">-- Chọn đáp án --</option>${optHtml}
+                            </select>
+                            <div class="feedback-box" id="fb-${q.qNum}" style="width:100%; margin-top:5px;"></div>
+                        </div>`;
+            }).join('');
+
+            return `${legendHtml}${rowsHtml}`;
+        }
+
+        // Matching Information / Matching Names / Matching Features dạng LƯỚI (grid/matrix): mỗi
+        // dòng là 1 câu (đoạn văn/thông tin cần tìm), mỗi cột là 1 chữ cái (A-I, A-F...) — bấm
+        // radio ở đúng ô giao giữa dòng và cột. Cho phép dùng lại cùng 1 chữ cái cho nhiều dòng
+        // (mỗi dòng có input name="qN" RIÊNG nên các radio ở các dòng khác nhau không loại trừ
+        // lẫn nhau — chỉ những ô CÙNG dòng mới loại trừ nhau, đúng chuẩn "may use any letter more
+        // than once").
+        function genGrid(groupId, options, questions) {
+            const letters = options.map(opt => (opt.split('.')[0] || opt).trim());
+            const hasLegend = options.some(opt => opt.includes('.'));
+            const legendHtml = hasLegend
+                ? `<div class="match-bank match-legend" id="bank-${groupId}">${options.map(opt =>
+                    `<div class="match-chip match-chip-static">${opt}</div>`).join('')}</div>`
+                : '';
+
+            const headerCells = letters.map(l => `<th>${l}</th>`).join('');
+            const rowsHtml = questions.map(q => {
+                const cells = letters.map(l =>
+                    `<td><input type="radio" name="q${q.qNum}" value="${l}" class="grid-radio"></td>`).join('');
+                return `<tr id="q-container-${q.qNum}"><td class="grid-row-label"><span class="q-num grid-q-num">${q.qNum}</span> ${q.text}</td>${cells}</tr>`;
+            }).join('');
+            const feedbackHtml = questions.map(q =>
+                `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+
+            return `${legendHtml}
+                <div class="grid-scroll-wrap">
+                    <table class="match-grid"><thead><tr><th></th>${headerCells}</tr></thead><tbody>${rowsHtml}</tbody></table>
+                </div>
+                ${feedbackHtml}`;
+        }
+
+        // "Choose TWO/THREE correct answers" (chọn N trong M đáp án bằng checkbox, dùng chung 1
+        // danh sách lựa chọn cho cả nhóm câu). Mỗi checkbox KHÔNG gắn trực tiếp vào 1 câu — thay
+        // vào đó, mỗi lần tick/bỏ tick sẽ đồng bộ danh sách chữ cái đang được chọn xuống các
+        // <input type="hidden" name="qN"> riêng của từng câu trong nhóm (xem initMultiSelect() bên
+        // dưới): nếu chữ cái đúng của câu N nằm trong tập đang chọn thì input đó = đáp án đúng
+        // (chấm ĐÚNG), ngược lại = danh sách học sinh đã chọn (chấm SAI, vẫn hiển thị rõ học sinh
+        // đã chọn gì) — nhờ vậy gradeQuestionRange() ở dưới chấm điểm y hệt các dạng câu khác mà
+        // không cần thêm logic riêng.
+        function genMulti(groupId, options, questions, pickCount) {
+            const optsHtml = options.map(opt => {
+                const letter = (opt.split('.')[0] || '').trim();
+                return `<label class="radio-label multi-check-label">
+                            <input type="checkbox" class="multi-check" value="${letter}"> ${opt}
+                        </label>`;
+            }).join('');
+
+            const qNums = questions.map(q => q.qNum);
+            const firstQ = qNums[0], lastQ = qNums[qNums.length - 1];
+            const qLabel = firstQ === lastQ ? String(firstQ) : `${firstQ}-${lastQ}`;
+
+            const perQFeedback = qNums.map(n => `
+                <div class="question-item" id="q-container-${n}" style="margin:8px 0 0 0;">
+                    <div class="q-num" style="width:24px;height:24px;font-size:12px;">${n}</div>
+                    <div style="flex:1;">
+                        <input type="hidden" name="q${n}" id="input-q${n}" value="">
+                        <div class="feedback-box" id="fb-${n}" style="width:100%; margin-top:0;"></div>
+                    </div>
+                </div>`).join('');
+
+            return `<div class="question-item multi-group" data-multi-group="${groupId}" data-pick-count="${pickCount}">
+                        <div class="q-num">${qLabel}</div>
+                        <div style="flex:1;">
+                            <p class="multi-hint">☑️ Chọn đúng <strong>${pickCount}</strong> đáp án.</p>
+                            <div class="mcq-options">${optsHtml}</div>
+                            ${perQFeedback}
+                        </div>
+                    </div>`;
+        }
+
+        // Đồng bộ checkbox "Choose N of M" -> các input hidden qN riêng của từng câu trong nhóm
+        // (xem giải thích ở genMulti() phía trên). Giới hạn tối đa đúng pickCount checkbox được
+        // tick cùng lúc để học sinh không "ăn gian" bằng cách tick hết.
+        (function initMultiSelect() {
+            document.addEventListener('change', e => {
+                if (!e.target.classList || !e.target.classList.contains('multi-check')) return;
+                const container = e.target.closest('.multi-group');
+                if (!container) return;
+                const pickCount = parseInt(container.dataset.pickCount, 10) || 1;
+                const allChecks = container.querySelectorAll('.multi-check');
+                const checked = Array.from(allChecks).filter(c => c.checked);
+
+                if (checked.length > pickCount) {
+                    e.target.checked = false;
+                    return;
+                }
+
+                const checkedLetters = checked.map(c => c.value.toUpperCase());
+                container.querySelectorAll('input[type="hidden"]').forEach(hidden => {
+                    const qNum = hidden.name.substring(1);
+                    const info = testData[qNum];
+                    if (!info) return;
+                    const correctLetter = (info.answer || '').toUpperCase();
+                    const isRight = checkedLetters.includes(correctLetter);
+                    hidden.value = isRight ? info.answer : checkedLetters.join(', ');
+                    hidden.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+            });
+        })();
 
         // --- Matching drag-and-drop engine (Pointer Events, so it works the same
         //     with mouse, touch and pen — unlike the native HTML5 DnD API, which
@@ -1152,8 +1372,21 @@
                     let isAnswered = false;
                     if (e.target.type === 'text') isAnswered = e.target.value.trim() !== '';
                     if (e.target.type === 'radio') isAnswered = e.target.checked;
+                    // 'hidden' = ô đồng bộ của nhóm "Choose N of M" (genMulti); 'select-one' = dropdown
+                    // của Matching Headings / Matching Names-Claims (genLettered).
+                    if (e.target.type === 'hidden' || e.target.type === 'select-one') isAnswered = e.target.value.trim() !== '';
 
                     circle.classList.toggle('answered', isAnswered);
+                }
+            });
+            // <select> chỉ tự bắn ra sự kiện 'change', không phải 'input' trên mọi trình duyệt —
+            // lắng thêm 'change' và tái dùng lại đúng logic ở trên cho chắc chắn nút tròn số câu
+            // hỏi luôn sáng lên khi học sinh đã chọn xong dropdown.
+            document.addEventListener('change', e => {
+                if (e.target.tagName === 'SELECT' && e.target.name && e.target.name.startsWith('q')) {
+                    const qNum = e.target.name.substring(1);
+                    const circle = document.getElementById(`nav-q${qNum}`);
+                    if (circle) circle.classList.toggle('answered', e.target.value.trim() !== '');
                 }
             });
         }
@@ -1216,9 +1449,15 @@
         function submitTest() {
             if(timerInterval) clearInterval(timerInterval);
 
-            // Always grade all 3 passages/parts at once (in both practice and exam mode),
-            // not just whichever passage tab happens to be active right now.
-            const startQ = 1, endQ = TOTAL_QUESTIONS;
+            // Mặc định: chấm cả 3 passage/part cùng lúc (luyện tập tự do / thi thử), không chỉ
+            // passage tab đang mở. NHƯNG nếu đây là 1 bài tập được giao (IS_ASSIGNMENT_MODE) chỉ
+            // cho ĐÚNG 1 Passage, thì CHỈ chấm đúng Passage đó — để điểm hiển thị khớp với chính
+            // xác phần bài giáo viên đã giao, tránh gây hiểu nhầm "làm 1 đoạn nhưng điểm tính cả bài".
+            let startQ = 1, endQ = TOTAL_QUESTIONS;
+            if (IS_ASSIGNMENT_MODE && (ASSIGN_SCOPE === '1' || ASSIGN_SCOPE === '2' || ASSIGN_SCOPE === '3')) {
+                const range = passageRanges[parseInt(ASSIGN_SCOPE, 10) - 1];
+                if (range) { startQ = range[0]; endQ = range[1]; }
+            }
             const total = endQ - startQ + 1;
             const score = gradeQuestionRange(startQ, endQ);
 
@@ -1233,6 +1472,19 @@
             document.getElementById('band-score').innerText = band;
 
             saveProgressRecord(score, total, band);
+
+            // Khi đang nộp 1 bài tập được giao: hiện rõ banner "Đã nộp homework thành công" +
+            // đổi tiêu đề modal, để học sinh biết chắc chắn bài đã được ghi nhận (không chỉ là
+            // "xem điểm luyện tập" như bình thường).
+            const successBanner = document.getElementById('homework-success-banner');
+            const resultsTitle = document.getElementById('results-modal-title');
+            if (IS_ASSIGNMENT_MODE) {
+                if (successBanner) successBanner.style.display = 'block';
+                if (resultsTitle) resultsTitle.innerText = `Đã nộp homework thành công! (${assignmentScopeLabel()})`;
+            } else {
+                if (successBanner) successBanner.style.display = 'none';
+                if (resultsTitle) resultsTitle.innerText = 'Kết quả làm bài';
+            }
 
             document.getElementById('results-modal').style.display = 'flex';
         }
