@@ -208,6 +208,88 @@
         .word-del-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: #c62828; flex-shrink: 0; }
         .empty-hint { color: #888; text-align: center; padding: 30px 10px; font-size: 15px; }
 
+        /* --- Role badge next to "Hi, [name]" --- */
+        .role-badge {
+            font-size: 11px; font-weight: 800; padding: 2px 9px; border-radius: 20px;
+            margin-left: 6px; vertical-align: middle; white-space: nowrap;
+        }
+        .role-badge.r-dev { background: #2B4214; color: white; }
+        .role-badge.r-head_teacher { background: #F4B036; color: #111; }
+        .role-badge.r-teacher { background: var(--card-list); color: white; }
+        .role-badge.r-student { background: var(--card-read); color: white; }
+        .role-badge.r-pending { background: #eee; color: #888; }
+
+        /* Nút "Bài tập" (chỉ hiện cho học sinh) */
+        #btnAssignments {
+            display: none; padding: 10px 20px; background: var(--card-write); color: white;
+            border-radius: 30px; font-weight: 800; cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 2px solid #111; transition: 0.2s;
+        }
+        #btnAssignments:hover { background: #c04f61; transform: translateY(-2px); }
+        .hw-count-dot {
+            display: inline-block; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 10px;
+            background: #c62828; color: white; font-size: 11px; font-weight: 900; line-height: 18px;
+            margin-left: 4px; text-align: center;
+        }
+
+        /* --- Quản lý người dùng / phân quyền --- */
+        .user-row {
+            display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+            border: 2px solid #eee; border-radius: 12px; margin-bottom: 8px; background: #fafafa;
+        }
+        .user-row img { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; }
+        .user-row .u-info { flex: 1; min-width: 0; }
+        .user-row .u-name { font-weight: 800; font-size: 14px; }
+        .user-row .u-email { font-size: 12px; color: #777; }
+        .user-row select { padding: 6px 10px; border-radius: 8px; border: 2px solid #ccc; font-weight: 700; font-size: 13px; }
+        .user-row .save-role-btn {
+            padding: 6px 12px; border-radius: 8px; border: 2px solid #111; background: var(--hero-bg);
+            color: white; font-weight: 800; font-size: 12px; cursor: pointer;
+        }
+        .user-row .save-role-btn:hover { background: var(--dark-green); }
+        .user-row .save-role-btn.saved { background: #2e7d32; }
+
+        /* --- Quản lý lớp --- */
+        .class-card { border: 2px solid #eee; border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; background: #fafafa; }
+        .class-card .cc-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .class-card .cc-name { font-weight: 900; font-size: 16px; color: var(--dark-green); }
+        .class-card .cc-count { font-size: 12px; color: #777; font-weight: 700; }
+        .class-card .cc-students { margin-top: 8px; font-size: 13px; color: #555; }
+        .student-checklist { max-height: 180px; overflow-y: auto; border: 2px solid #eee; border-radius: 10px; padding: 8px; margin-top: 6px; }
+        .student-checklist label { display: flex; align-items: center; gap: 8px; padding: 4px 2px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+        /* --- Giao bài tập (assignment composer) --- */
+        .assign-choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }
+        .assign-choice-card {
+            border: 3px solid #111; border-radius: 16px; padding: 20px; text-align: center;
+            cursor: pointer; transition: 0.2s; box-shadow: 4px 4px 0px #111; background: white;
+        }
+        .assign-choice-card:hover { transform: translateY(-3px); box-shadow: 6px 6px 0px #111; }
+        .assign-choice-card .ac-icon { font-size: 32px; margin-bottom: 8px; }
+        .assign-choice-card .ac-title { font-weight: 900; font-size: 15px; color: var(--dark-green); }
+        .assign-choice-card .ac-desc { font-size: 12px; color: #777; margin-top: 5px; }
+        .target-type-toggle { display: flex; gap: 10px; margin-bottom: 12px; }
+        .target-type-toggle button {
+            flex: 1; padding: 10px; border-radius: 10px; border: 2px solid #ccc; background: white;
+            font-weight: 800; cursor: pointer; font-size: 13px;
+        }
+        .target-type-toggle button.active { border-color: var(--hero-bg); background: var(--hero-bg); color: white; }
+
+        /* --- Bài tập (student inbox) --- */
+        .hw-item {
+            display: flex; justify-content: space-between; align-items: center; gap: 12px;
+            padding: 14px 16px; border-radius: 14px; margin-bottom: 10px; cursor: pointer;
+            border: 2px solid #eee; transition: 0.2s;
+        }
+        .hw-item:hover { transform: translateY(-2px); }
+        .hw-item.hw-pending { background: #fff8e6; border-color: #F4B036; }
+        .hw-item.hw-done { background: #eef7ee; border-color: #a5d6a7; opacity: 0.85; }
+        .hw-title { font-weight: 800; color: var(--dark-green); font-size: 15px; }
+        .hw-meta { font-size: 12px; color: #777; margin-top: 3px; }
+        .hw-status { font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+        .hw-status.pending { background: #F4B036; color: #111; }
+        .hw-status.done { background: #66bb6a; color: white; }
+
         @media (max-width: 1024px) {
             .hero-content h1 { font-size: 65px; }
             .mascot-wrapper { width: 500px; height: 500px; right: -10%; }
@@ -218,8 +300,9 @@
             .hero-content { text-align: center; margin-bottom: 300px; }
             .hero-content h1 { font-size: 48px; line-height: 1.2; }
             .mascot-wrapper { width: 380px; height: 380px; right: 50%; transform: translateX(50%); bottom: -20px; }
-            .test-links { grid-template-columns: repeat(2, 1fr); } 
+            .test-links { grid-template-columns: repeat(2, 1fr); }
             .action-grid { grid-template-columns: 1fr; }
+            .assign-choice-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -229,6 +312,7 @@
     <nav>
         <div class="logo brand-font">🐾 B's English House</div>
         <div class="nav-actions">
+            <button id="btnAssignments" onclick="openAssignmentsInbox()">📚 Bài tập<span id="hwPendingDot" class="hw-count-dot" style="display:none;">0</span></button>
             <button id="btnMyStuff" onclick="openMyStuff()">📊 Của Tôi</button>
             <button id="btnDashboard" onclick="openDashboard()">Bảng Điều Khiển</button>
             <a href="login.html" class="btn-google" id="mainLoginBtn">Đăng nhập Google</a>
@@ -286,11 +370,11 @@
             
             <div id="content-listening" class="skill-content">
                 <details class="course-group"><summary>📚 Bộ Cambridge (10-20)</summary><div class="course-items"><div id="cambridge-listening-container"></div></div></details>
-                <details class="course-group"><summary>🎯 Real IELTS (8-15)</summary><div class="course-items"><div id="real-listening-container"></div></div></details>
+                <details class="course-group"><summary>🎯 Bộ VOL</summary><div class="course-items"><div id="real-listening-container"></div></div></details>
             </div>
             <div id="content-reading" class="skill-content">
-                <details class="course-group"><summary>📚 Bộ Cambridge (10-20)</summary><div class="course-items"><div id="cambridge-reading-container"></div></div></details>
-                <details class="course-group"><summary>🎯 Real IELTS (8-15)</summary><div class="course-items"><div id="real-reading-container"></div></div></details>
+                <details class="course-group"><summary>📚 Bộ Cambridge</summary><div class="course-items"><div id="cambridge-reading-container"></div></div></details>
+                <details class="course-group"><summary>🎯 Bộ VOL</summary><div class="course-items"><div id="real-reading-container"></div></div></details>
             </div>
             <div id="content-speaking" class="skill-content">
                 <details class="course-group"><summary>🗣️ Speaking Forecast 2024</summary><div class="course-items"><div class="book-group" style="padding:15px;"><a href="#" class="test-link-item" style="display:block;">Tải tài liệu ➔</a></div></div></details>
@@ -314,36 +398,115 @@
                     <div class="action-btn primary">Tạo Bài Giảng Mới (Generate)</div>
                     <div class="action-btn">Quản Lý Đề Test</div>
                     <div class="action-btn">Cấu Hình Khóa Học</div>
-                    <div class="action-btn">Cấp Quyền Tài Khoản</div>
                     <div class="action-btn primary" onclick="window.open('admin/test-builder.html', '_blank')">📖 Tạo Đề Reading (Test Builder)</div>
                 </div>
             </div>
 
-            <!-- Khu vực của TEACHER -->
-            <div id="panel-teacher" class="dash-panel">
-                <h3>👨‍🏫 Lớp Học Của Tôi</h3>
-                <div class="action-grid" style="margin-bottom: 20px;">
-                    <div class="action-btn primary">Phát Bài Tập Về Nhà</div>
-                    <div class="action-btn">Chấm Bài Writing</div>
+            <!-- Khu vực của HEAD TEACHER / DEV: phân quyền tài khoản -->
+            <div id="panel-roles" class="dash-panel">
+                <h3>👤 Phân Quyền Tài Khoản</h3>
+                <p style="font-size:13px; color:#777; margin-bottom:12px;">Tài khoản đăng nhập lần đầu sẽ ở trạng thái "Chưa phân quyền" — chọn Head Teacher / Giáo viên / Học sinh cho từng người rồi bấm Lưu.</p>
+                <div id="roles-list"><p class="empty-hint">Đang tải danh sách tài khoản...</p></div>
+            </div>
+
+            <!-- Khu vực TEACHER-tier: Quản lý lớp -->
+            <div id="panel-classes" class="dash-panel">
+                <h3>🏫 Quản Lý Lớp</h3>
+                <div class="action-grid" style="grid-template-columns: 1fr; margin-bottom: 15px;">
+                    <div class="action-btn primary" onclick="toggleCreateClassForm()">+ Tạo lớp mới</div>
                 </div>
-                
-                <h4 style="margin-bottom: 10px;">📊 Tiến độ làm bài của học sinh</h4>
-                <div style="overflow-x: auto;">
-                    <table class="progress-table">
-                        <thead>
-                            <tr><th>Học sinh</th><th>Bài tập hiện tại</th><th>Trạng thái</th><th>Hành động</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td><strong>Huy</strong></td><td>Cam 12 - Test 1 (Reading)</td><td><span class="status-done">Đã Nộp (7.5)</span></td><td><a href="#">Xem</a></td></tr>
-                            <tr><td><strong>Kim Phụng</strong></td><td>Listening Chép chính tả</td><td><span class="status-done">Đã Nộp (8.0)</span></td><td><a href="#">Xem</a></td></tr>
-                            <tr><td><strong>Gia Hưng</strong></td><td>Speaking Part 2 - Forecast</td><td><span class="status-pending">Chưa Nộp</span></td><td><a href="#">Nhắc nhở</a></td></tr>
-                            <tr><td><strong>Michael</strong></td><td>Cam 15 - Test 3 (Writing)</td><td><span class="status-pending">Chưa Nộp</span></td><td><a href="#">Nhắc nhở</a></td></tr>
-                            <tr><td><strong>Peter</strong></td><td>Vocabulary Test</td><td><span class="status-done">Đã Nộp (9.0)</span></td><td><a href="#">Xem</a></td></tr>
-                        </tbody>
-                    </table>
+                <div id="create-class-form-slot"></div>
+                <div id="classes-list"><p class="empty-hint">Đang tải danh sách lớp...</p></div>
+            </div>
+
+            <!-- Khu vực TEACHER-tier: Giao bài + tiến độ thật -->
+            <div id="panel-teacher" class="dash-panel">
+                <h3>👨‍🏫 Bài Tập Đã Giao</h3>
+                <div class="action-grid" style="grid-template-columns: 1fr; margin-bottom: 20px;">
+                    <div class="action-btn primary" onclick="openAssignmentComposer()">📚 Giao Bài Tập</div>
+                </div>
+
+                <h4 style="margin-bottom: 10px;">📊 Tiến độ học sinh (chỉ hiện học sinh bạn đã giao bài)</h4>
+                <div id="teacher-progress-list"><p class="empty-hint">Đang tải tiến độ...</p></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- POPUP GIAO BÀI TẬP (ASSIGNMENT COMPOSER) -->
+    <div id="assignmentComposerModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 650px;">
+            <span class="close-btn" onclick="closeModal('assignmentComposerModal')">&times;</span>
+            <div class="modal-header"><h2 class="brand-font">Giao Bài Tập</h2></div>
+
+            <div id="ac-step-target">
+                <h4 style="margin-bottom:10px;">1. Giao cho ai?</h4>
+                <div class="target-type-toggle">
+                    <button id="ac-target-class-btn" class="active" onclick="acSetTargetType('class')">🏫 Cả 1 lớp</button>
+                    <button id="ac-target-student-btn" onclick="acSetTargetType('student')">🧑 1 học sinh</button>
+                </div>
+                <div class="field" style="margin-bottom:15px;">
+                    <select id="ac-target-select" style="width:100%; padding:10px; border-radius:8px; border:2px solid #ccc;"></select>
+                </div>
+
+                <h4 style="margin-bottom:10px;">2. Chọn loại bài tập</h4>
+                <div class="assign-choice-grid">
+                    <div class="assign-choice-card" onclick="acOpenReadingPicker()">
+                        <div class="ac-icon">📖</div>
+                        <div class="ac-title">Đề Reading có sẵn</div>
+                        <div class="ac-desc">Chọn từ các đề Cambridge/VOL đã xuất bản, có thể giao cả đề hoặc 1 Passage</div>
+                    </div>
+                    <div class="assign-choice-card" onclick="acOpenListeningGenerator()">
+                        <div class="ac-icon">🎧</div>
+                        <div class="ac-title">Bài tập tuỳ chỉnh (Listening)</div>
+                        <div class="ac-desc">Mở công cụ Listening Type Generator để soạn bài rồi giao trực tiếp từ đó</div>
+                    </div>
                 </div>
             </div>
 
+            <div id="ac-step-reading" style="display:none;">
+                <button class="btn-sm-back" onclick="acBackToChoices()" style="background:none;border:none;color:var(--hero-bg);font-weight:800;cursor:pointer;margin-bottom:10px;">← Quay lại</button>
+                <h4 style="margin-bottom:10px;">Chọn đề Reading</h4>
+                <div class="field" style="margin-bottom:10px;">
+                    <label style="font-size:12px;font-weight:700;color:#777;">Bộ đề</label>
+                    <select id="ac-reading-source" style="width:100%; padding:10px; border-radius:8px; border:2px solid #ccc;" onchange="acRefreshReadingBooks()">
+                        <option value="cam">📘 Cambridge</option>
+                        <option value="real">🎯 Bộ VOL</option>
+                    </select>
+                </div>
+                <div class="field" style="margin-bottom:10px;">
+                    <label style="font-size:12px;font-weight:700;color:#777;">Quyển</label>
+                    <select id="ac-reading-book" style="width:100%; padding:10px; border-radius:8px; border:2px solid #ccc;" onchange="acRefreshReadingTests()"></select>
+                </div>
+                <div class="field" style="margin-bottom:10px;">
+                    <label style="font-size:12px;font-weight:700;color:#777;">Test</label>
+                    <select id="ac-reading-test" style="width:100%; padding:10px; border-radius:8px; border:2px solid #ccc;"></select>
+                </div>
+                <div class="field" style="margin-bottom:15px;">
+                    <label style="font-size:12px;font-weight:700;color:#777;">Phạm vi giao (thường 1 giáo viên chỉ giao 1 Passage)</label>
+                    <select id="ac-reading-scope" style="width:100%; padding:10px; border-radius:8px; border:2px solid #ccc;">
+                        <option value="all">Cả đề (3 Passage)</option>
+                        <option value="1">Chỉ Passage 1</option>
+                        <option value="2">Chỉ Passage 2</option>
+                        <option value="3">Chỉ Passage 3</option>
+                    </select>
+                </div>
+                <div class="field" style="margin-bottom:15px;">
+                    <label style="font-size:12px;font-weight:700;color:#777;">Hạn nộp (không bắt buộc)</label>
+                    <input type="date" id="ac-reading-deadline" style="width:100%; padding:10px; border-radius:8px; border:2px solid #ccc;">
+                </div>
+                <button class="action-btn primary" style="width:100%;" onclick="acSubmitReadingAssignment()">🚀 Giao bài</button>
+                <div id="ac-reading-msg" style="margin-top:10px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP BÀI TẬP (STUDENT INBOX) -->
+    <div id="studentAssignmentsModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 650px;">
+            <span class="close-btn" onclick="closeModal('studentAssignmentsModal')">&times;</span>
+            <div class="modal-header"><h2 class="brand-font">Bài Tập Được Giao</h2></div>
+            <div id="hw-list"><p class="empty-hint">Đang tải bài tập...</p></div>
         </div>
     </div>
 
@@ -368,7 +531,132 @@
     </div>
 
     <!-- JAVASCRIPT -->
-    <script>
+    <script type="module">
+        // ============ FIREBASE (dùng chung 1 project với login.html / Listening Generator) ============
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import {
+            getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where,
+            getDocs, addDoc, deleteDoc, serverTimestamp, orderBy
+        } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // TODO(night): dán đúng firebaseConfig của project "b-s-english-house" vào đây
+        // (Firebase Console → ⚙️ Project settings → General → cuộn xuống "Your apps" → chọn/tạo app Web
+        // → copy khối `const firebaseConfig = {...}`). Cả index.html và listeningtypegenerator.html PHẢI
+        // dùng CHUNG 1 khối config này thì tài khoản/role/lớp/bài tập mới đồng bộ được với nhau.
+        const firebaseConfig = {
+            apiKey: "PASTE_YOUR_API_KEY_HERE",
+            authDomain: "b-s-english-house.firebaseapp.com",
+            projectId: "b-s-english-house",
+            storageBucket: "b-s-english-house.appspot.com",
+            messagingSenderId: "PASTE_YOUR_SENDER_ID",
+            appId: "PASTE_YOUR_APP_ID"
+        };
+        const fbApp = initializeApp(firebaseConfig);
+        const auth = getAuth(fbApp);
+        const db = getFirestore(fbApp);
+        window.__bsehAuth = auth;
+        window.__bsehDb = db;
+
+        // Thứ tự phân quyền (cao -> thấp): dev > head_teacher > teacher > student > pending (khách, chưa phân quyền)
+        const ROLE_RANK = { dev: 4, head_teacher: 3, teacher: 2, student: 1, pending: 0 };
+        function roleRank(role) { return ROLE_RANK[role] ?? 0; }
+        function isHeadOrDevRole(role) { return role === 'dev' || role === 'head_teacher'; }
+        function isStaffRole(role) { return role === 'dev' || role === 'head_teacher' || role === 'teacher'; }
+        function roleLabel(role) {
+            return { dev: 'Dev', head_teacher: 'Head Teacher', teacher: 'Giáo viên', student: 'Học sinh', pending: 'Chưa phân quyền' }[role] || 'Chưa phân quyền';
+        }
+
+        let currentUser = null;      // Firebase Auth user object
+        let currentUserDoc = null;   // { uid, name, email, photo, role }
+        let readingManifestReady = null; // Promise, resolves once reading/manifest.json đã fetch xong
+
+        // Tạo (nếu chưa có) hồ sơ users/{uid} — tài khoản đăng nhập lần đầu sẽ ở trạng thái
+        // "pending" (khách), CHƯA tự động là học sinh. Head Teacher/Dev sẽ vào mục "Phân Quyền
+        // Tài Khoản" để gán Head Teacher / Giáo viên / Học sinh cho tài khoản đó.
+        async function ensureUserDoc(user) {
+            const ref = doc(db, 'users', user.uid);
+            const snap = await getDoc(ref);
+            if (snap.exists()) {
+                const data = snap.data();
+                // Đồng bộ lại tên/ảnh mới nhất từ Google (không đụng vào role đã gán)
+                if (data.name !== user.displayName || data.photo !== user.photoURL) {
+                    await updateDoc(ref, { name: user.displayName || data.name || '', photo: user.photoURL || data.photo || '' }).catch(() => {});
+                }
+                return { uid: user.uid, role: 'pending', ...data };
+            }
+            const fresh = {
+                name: user.displayName || '',
+                email: user.email || '',
+                photo: user.photoURL || '',
+                role: 'pending',
+                createdAt: serverTimestamp()
+            };
+            await setDoc(ref, fresh);
+            return { uid: user.uid, ...fresh, role: 'pending' };
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                currentUser = null; currentUserDoc = null;
+                renderUserNav(null);
+                return;
+            }
+            currentUser = user;
+            try {
+                currentUserDoc = await ensureUserDoc(user);
+            } catch (e) {
+                console.warn('BSEH: không đọc được users/{uid}', e);
+                currentUserDoc = { uid: user.uid, name: user.displayName || '', email: user.email || '', photo: user.photoURL || '', role: 'pending' };
+            }
+            // Giữ localStorage đồng bộ để các trang test cũ (engine_template.html) vẫn nhận diện được người dùng
+            try {
+                localStorage.setItem('userName', currentUserDoc.name || '');
+                localStorage.setItem('userPhoto', currentUserDoc.photo || '');
+                localStorage.setItem('userRole', currentUserDoc.role || 'pending');
+                localStorage.setItem('userUid', user.uid);
+            } catch (e) {}
+            renderUserNav(currentUserDoc);
+        });
+
+        function renderUserNav(userDoc) {
+            const loginBtn = document.getElementById('mainLoginBtn');
+            const btnDashboard = document.getElementById('btnDashboard');
+            const btnMyStuff = document.getElementById('btnMyStuff');
+            const btnAssignments = document.getElementById('btnAssignments');
+
+            if (!userDoc) {
+                loginBtn.innerHTML = 'Đăng nhập Google';
+                loginBtn.href = 'login.html';
+                loginBtn.onclick = null;
+                btnDashboard.style.display = 'none';
+                btnMyStuff.style.display = 'none';
+                btnAssignments.style.display = 'none';
+                return;
+            }
+
+            const firstName = (userDoc.name || 'bạn').split(' ')[0];
+            loginBtn.innerHTML = `
+                <img src="${userDoc.photo || ''}" alt="Avatar" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid #7A9051;">
+                <span>Hi, ${escapeHtmlIndex(firstName)}</span>
+                <span class="role-badge r-${userDoc.role}">${roleLabel(userDoc.role)}</span>
+            `;
+            loginBtn.href = '#';
+            loginBtn.onclick = function (e) {
+                e.preventDefault();
+                if (confirm('Bạn có muốn đăng xuất tài khoản?')) {
+                    signOut(auth).finally(() => { localStorage.clear(); location.reload(); });
+                }
+            };
+
+            btnDashboard.style.display = isStaffRole(userDoc.role) ? 'block' : 'none';
+            btnMyStuff.style.display = 'block';
+            btnAssignments.style.display = userDoc.role === 'student' ? 'block' : 'none';
+
+            updateMyWordsCount();
+            if (userDoc.role === 'student') refreshAssignmentsBadge();
+        }
+
         // Tạo link tự động
         // readingManifest được nạp từ reading/manifest.json (do công cụ Test Builder tự
         // cập nhật mỗi khi xuất bản 1 đề Reading mới) — dùng để tự hiện link Test thật
@@ -376,24 +664,15 @@
         // speaking/writing) chưa có manifest nên vẫn giữ nguyên hành vi placeholder cũ.
         let readingManifest = null;
 
-        function generateTestLinks(prefix, start, end, skill) {
+        // Listening (and speaking/writing) don't have a manifest yet, so those keep
+        // the old fixed-range placeholder-link behaviour untouched.
+        function generateTestLinksPlaceholder(prefix, start, end, skill) {
             let html = '';
             for (let i = start; i <= end; i++) {
-                let bookName = prefix === 'cam' ? `📘 Cambridge ${i}` : `📕 Real IELTS ${i}`;
+                let bookName = prefix === 'cam' ? `📘 Cambridge ${i}` : `📕 VOL ${i}`;
                 let linksHtml = '';
                 for (let n = 1; n <= 4; n++) {
-                    let realPath = null;
-                    if (skill === 'reading' && readingManifest && readingManifest.reading &&
-                        readingManifest.reading[prefix] && readingManifest.reading[prefix][i]) {
-                        realPath = readingManifest.reading[prefix][i][n] || null;
-                    }
-                    if (realPath) {
-                        linksHtml += `<a href="${realPath}" class="test-link-item">Test ${n}</a>`;
-                    } else if (skill === 'reading') {
-                        linksHtml += `<span class="test-link-item test-link-empty" title="Chưa có đề">Test ${n}</span>`;
-                    } else {
-                        linksHtml += `<a href="nhap_link_${skill}_${prefix}${i}_test${n}" class="test-link-item">Test ${n}</a>`;
-                    }
+                    linksHtml += `<a href="nhap_link_${skill}_${prefix}${i}_test${n}" class="test-link-item">Test ${n}</a>`;
                 }
                 html += `
                 <details class="book-group">
@@ -404,11 +683,36 @@
             return html;
         }
 
+        // Reading is fully manifest-driven: renders exactly the books/tests that
+        // exist in reading/manifest.json (written by Test Builder on every publish).
+        // No fixed book-count/test-count assumption — publish a new test and a new
+        // button just appears here on next page load, nothing to hand-wire.
+        function generateTestLinksFromManifest(prefix, bookLabel, emoji) {
+            const booksObj = readingManifest && readingManifest.reading && readingManifest.reading[prefix];
+            if (!booksObj || Object.keys(booksObj).length === 0) {
+                return '<p style="padding:10px; color:#888; font-weight:600;">Chưa có đề nào được xuất bản.</p>';
+            }
+            const bookNums = Object.keys(booksObj).map(Number).filter(n => !isNaN(n)).sort((a, b) => a - b);
+            let html = '';
+            bookNums.forEach(bookNum => {
+                const testsObj = booksObj[bookNum] || {};
+                const testNums = Object.keys(testsObj).map(Number).filter(n => !isNaN(n)).sort((a, b) => a - b);
+                if (testNums.length === 0) return;
+                const linksHtml = testNums.map(n => `<a href="${testsObj[n]}" class="test-link-item">Test ${n}</a>`).join('');
+                html += `
+                <details class="book-group">
+                    <summary>${emoji} ${bookLabel} ${bookNum}</summary>
+                    <div class="test-links">${linksHtml}</div>
+                </details>`;
+            });
+            return html || '<p style="padding:10px; color:#888; font-weight:600;">Chưa có đề nào được xuất bản.</p>';
+        }
+
         function renderAllTestLinks() {
-            document.getElementById('cambridge-listening-container').innerHTML = generateTestLinks('cam', 10, 20, 'listening');
-            document.getElementById('real-listening-container').innerHTML = generateTestLinks('real', 8, 15, 'listening');
-            document.getElementById('cambridge-reading-container').innerHTML = generateTestLinks('cam', 10, 20, 'reading');
-            document.getElementById('real-reading-container').innerHTML = generateTestLinks('real', 8, 15, 'reading');
+            document.getElementById('cambridge-listening-container').innerHTML = generateTestLinksPlaceholder('cam', 10, 20, 'listening');
+            document.getElementById('real-listening-container').innerHTML = generateTestLinksPlaceholder('real', 8, 15, 'listening');
+            document.getElementById('cambridge-reading-container').innerHTML = generateTestLinksFromManifest('cam', 'Cambridge', '📘');
+            document.getElementById('real-reading-container').innerHTML = generateTestLinksFromManifest('real', 'VOL', '🎯');
         }
 
         document.addEventListener("DOMContentLoaded", function() {
@@ -436,38 +740,8 @@
         });
 
         // XỬ LÝ ĐĂNG NHẬP VÀ PHÂN QUYỀN HIỂN THỊ
-        const userName = localStorage.getItem('userName');
-        const userRole = localStorage.getItem('userRole'); // Lấy Role từ Firestore (login.html đã lưu)
-
-        document.addEventListener("DOMContentLoaded", function() {
-            if (userName) {
-                const userPhoto = localStorage.getItem('userPhoto');
-                const loginBtn = document.getElementById('mainLoginBtn');
-                
-                // Đổi nút thành Avatar
-                loginBtn.innerHTML = `
-                    <img src="${userPhoto}" alt="Avatar" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid #7A9051;">
-                    <span>Hi, ${userName.split(' ')[0]}</span>
-                `;
-                loginBtn.href = "#"; 
-                loginBtn.onclick = function(e) {
-                    e.preventDefault();
-                    if(confirm("Bạn có muốn đăng xuất tài khoản?")) {
-                        localStorage.clear();
-                        location.reload();
-                    }
-                };
-
-                // HIỂN THỊ NÚT DASHBOARD NẾU LÀ DEV HOẶC TEACHER
-                if (userRole === 'dev' || userRole === 'teacher') {
-                    document.getElementById('btnDashboard').style.display = 'block';
-                }
-
-                // HIỂN THỊ NÚT "CỦA TÔI" (TIẾN ĐỘ + MY WORDS) CHO MỌI NGƯỜI ĐÃ ĐĂNG NHẬP
-                document.getElementById('btnMyStuff').style.display = 'block';
-                updateMyWordsCount();
-            }
-        });
+        // (Đã chuyển sang dùng Firebase Auth + Firestore users/{uid}.role — xem onAuthStateChanged
+        // và renderUserNav() ở đầu file. Giữ localStorage chỉ để các trang test cũ đọc tạm.)
 
         // ============ "CỦA TÔI": TIẾN ĐỘ LÀM BÀI + MY WORDS ============
         // Đọc chung 2 khoá localStorage do các trang bài test (engine_template.html)
@@ -483,6 +757,17 @@
         function getProgressHistory() {
             try { return JSON.parse(localStorage.getItem('bseh_progress_history') || '[]'); }
             catch (e) { return []; }
+        }
+
+        // Chuẩn hoá "createdAt" về mốc mili-giây, chấp nhận cả 2 dạng: Firestore Timestamp
+        // (reading assignments, do index.html tạo bằng serverTimestamp()) VÀ số epoch thường
+        // (listening assignments, do listeningtypegenerator.html tạo bằng Date.now()).
+        function toMillisSafe(v) {
+            if (!v) return 0;
+            if (typeof v === 'number') return v;
+            if (typeof v.toMillis === 'function') return v.toMillis();
+            if (typeof v.seconds === 'number') return v.seconds * 1000;
+            return 0;
         }
 
         function getVocabBookIndex() {
@@ -556,7 +841,7 @@
         }
 
         function checkAuth(callback) {
-            if (userName) { callback(); } 
+            if (currentUser) { callback(); }
             else { alert("Vui lòng Đăng nhập để sử dụng tính năng này!"); window.location.href = "login.html"; }
         }
 
@@ -577,19 +862,28 @@
             });
         }
 
-        // Mở Bảng Điều Khiển
+        // Mở Bảng Điều Khiển — hiện panel theo đúng phân quyền hiện tại (đọc live từ Firestore,
+        // KHÔNG dùng cache cũ) vì role có thể vừa mới được Head Teacher gán/đổi.
         function openDashboard() {
-            // Ẩn tất cả Panel trước
-            document.getElementById('panel-dev').classList.remove('active');
-            document.getElementById('panel-teacher').classList.remove('active');
+            if (!currentUserDoc || !isStaffRole(currentUserDoc.role)) return;
+            const role = currentUserDoc.role;
 
-            // Render giao diện theo quyền
-            if (userRole === 'dev') {
+            ['panel-dev', 'panel-roles', 'panel-classes', 'panel-teacher'].forEach(id => {
+                document.getElementById(id).classList.remove('active');
+            });
+
+            if (role === 'dev') {
                 document.getElementById('panel-dev').classList.add('active');
-                // Dev thường kiêm luôn Teacher nên cho hiện cả bảng của giáo viên
-                document.getElementById('panel-teacher').classList.add('active'); 
-            } else if (userRole === 'teacher') {
+            }
+            if (isHeadOrDevRole(role)) {
+                document.getElementById('panel-roles').classList.add('active');
+                loadRolesList();
+            }
+            if (isStaffRole(role)) {
+                document.getElementById('panel-classes').classList.add('active');
                 document.getElementById('panel-teacher').classList.add('active');
+                loadClassesList();
+                loadTeacherProgress();
             }
 
             const modal = document.getElementById('dashboardModal');
@@ -619,6 +913,513 @@
                 });
             }, { threshold: 0.15 });
             document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        });
+
+        // ============ PHÂN QUYỀN TÀI KHOẢN (Head Teacher / Dev) ============
+        async function loadRolesList() {
+            const el = document.getElementById('roles-list');
+            el.innerHTML = '<p class="empty-hint">Đang tải danh sách tài khoản...</p>';
+            try {
+                const snap = await getDocs(collection(db, 'users'));
+                const users = [];
+                snap.forEach(d => users.push({ uid: d.id, ...d.data() }));
+                users.sort((a, b) => {
+                    if ((a.role === 'pending') !== (b.role === 'pending')) return a.role === 'pending' ? -1 : 1;
+                    return (a.name || '').localeCompare(b.name || '');
+                });
+                el.innerHTML = users.length ? users.map(u => buildUserRoleRow(u)).join('') : '<p class="empty-hint">Chưa có tài khoản nào đăng nhập.</p>';
+            } catch (e) {
+                el.innerHTML = '<p class="empty-hint">Không tải được danh sách (kiểm tra Firebase config / Firestore rules).</p>';
+                console.warn('loadRolesList', e);
+            }
+        }
+
+        function buildUserRoleRow(u) {
+            const roleOptions = ['pending', 'student', 'teacher', 'head_teacher'];
+            if (currentUserDoc && currentUserDoc.role === 'dev') roleOptions.push('dev');
+            const options = roleOptions.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${roleLabel(r)}</option>`).join('');
+            return `
+                <div class="user-row" id="user-row-${u.uid}">
+                    <img src="${u.photo || ''}" alt="">
+                    <div class="u-info">
+                        <div class="u-name">${escapeHtmlIndex(u.name || '(chưa có tên)')} <span class="role-badge r-${u.role}">${roleLabel(u.role)}</span></div>
+                        <div class="u-email">${escapeHtmlIndex(u.email || '')}</div>
+                    </div>
+                    <select id="role-select-${u.uid}">${options}</select>
+                    <button class="save-role-btn" onclick="saveUserRole('${u.uid}')">Lưu</button>
+                </div>
+            `;
+        }
+
+        async function saveUserRole(uid) {
+            const sel = document.getElementById('role-select-' + uid);
+            const newRole = sel.value;
+            const btn = sel.nextElementSibling;
+            try {
+                await updateDoc(doc(db, 'users', uid), { role: newRole });
+                btn.textContent = '✔ Đã lưu';
+                btn.classList.add('saved');
+                setTimeout(() => { btn.textContent = 'Lưu'; btn.classList.remove('saved'); }, 1500);
+                const badge = document.querySelector(`#user-row-${uid} .role-badge`);
+                if (badge) { badge.className = 'role-badge r-' + newRole; badge.textContent = roleLabel(newRole); }
+                if (currentUser && uid === currentUser.uid) { currentUserDoc.role = newRole; renderUserNav(currentUserDoc); }
+            } catch (e) {
+                alert('Lưu quyền thất bại: ' + e.message);
+            }
+        }
+
+        // ============ QUẢN LÝ LỚP (gộp học sinh thành lớp có tên) ============
+        let __allStudentsCache = null;
+        async function fetchAllStudents(force) {
+            if (__allStudentsCache && !force) return __allStudentsCache;
+            const snap = await getDocs(query(collection(db, 'users'), where('role', '==', 'student')));
+            const list = [];
+            snap.forEach(d => list.push({ uid: d.id, ...d.data() }));
+            list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            __allStudentsCache = list;
+            return list;
+        }
+
+        async function loadClassesList() {
+            const el = document.getElementById('classes-list');
+            el.innerHTML = '<p class="empty-hint">Đang tải danh sách lớp...</p>';
+            try {
+                const snap = await getDocs(query(collection(db, 'classes'), where('teacherId', '==', currentUser.uid)));
+                const classes = [];
+                snap.forEach(d => classes.push({ id: d.id, ...d.data() }));
+                classes.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                el.innerHTML = classes.length ? classes.map(c => buildClassCard(c)).join('') : '<p class="empty-hint">Bạn chưa tạo lớp nào.</p>';
+            } catch (e) {
+                el.innerHTML = '<p class="empty-hint">Không tải được danh sách lớp.</p>';
+                console.warn('loadClassesList', e);
+            }
+        }
+
+        function buildClassCard(c) {
+            const count = (c.studentIds || []).length;
+            return `
+                <div class="class-card">
+                    <div class="cc-head">
+                        <div class="cc-name">🏫 ${escapeHtmlIndex(c.name)}</div>
+                        <div class="cc-count">${count} học sinh</div>
+                    </div>
+                    <div class="cc-students">
+                        <button class="save-role-btn" style="background:var(--card-write);" onclick="deleteClass('${c.id}')">🗑️ Xoá lớp</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function deleteClass(classId) {
+            if (!confirm('Xoá lớp này? Bài tập đã giao trước đó cho lớp vẫn giữ nguyên, chỉ lớp bị xoá.')) return;
+            try { await deleteDoc(doc(db, 'classes', classId)); loadClassesList(); }
+            catch (e) { alert('Xoá thất bại: ' + e.message); }
+        }
+
+        let __createClassFormOpen = false;
+        async function toggleCreateClassForm() {
+            __createClassFormOpen = !__createClassFormOpen;
+            const slot = document.getElementById('create-class-form-slot');
+            if (!__createClassFormOpen) { slot.innerHTML = ''; return; }
+            slot.innerHTML = '<p class="empty-hint">Đang tải danh sách học sinh...</p>';
+            const students = await fetchAllStudents(true);
+            if (students.length === 0) {
+                slot.innerHTML = '<p class="empty-hint">Chưa có học sinh nào (Head Teacher cần phân quyền "Học sinh" trước ở mục Phân Quyền Tài Khoản).</p>';
+                return;
+            }
+            slot.innerHTML = `
+                <div class="class-card" style="border-color: var(--hero-bg);">
+                    <input id="new-class-name" placeholder="Tên lớp (VD: IELTS 7.0 - Tối 3-5-7)" style="width:100%; padding:10px; border-radius:8px; border:2px solid #ccc; font-weight:700; margin-bottom:10px;">
+                    <div class="student-checklist">
+                        ${students.map(s => `<label><input type="checkbox" value="${s.uid}" class="new-class-student-cb"> ${escapeHtmlIndex(s.name || s.email || s.uid)}</label>`).join('')}
+                    </div>
+                    <button class="action-btn primary" style="width:100%; margin-top:10px;" onclick="submitNewClass()">Lưu lớp</button>
+                </div>
+            `;
+        }
+
+        async function submitNewClass() {
+            const nameInput = document.getElementById('new-class-name');
+            const name = nameInput.value.trim();
+            if (!name) { alert('Nhập tên lớp trước đã'); return; }
+            const studentIds = Array.from(document.querySelectorAll('.new-class-student-cb:checked')).map(cb => cb.value);
+            try {
+                await addDoc(collection(db, 'classes'), {
+                    name, teacherId: currentUser.uid, teacherName: currentUserDoc.name || '', studentIds, createdAt: serverTimestamp()
+                });
+                __createClassFormOpen = false;
+                document.getElementById('create-class-form-slot').innerHTML = '';
+                loadClassesList();
+            } catch (e) {
+                alert('Tạo lớp thất bại: ' + e.message);
+            }
+        }
+
+        // ============ GIAO BÀI TẬP (composer: đề Reading có sẵn HOẶC Listening tuỳ chỉnh) ============
+        let acTargetType = 'class';
+        let acTargetOptionsCache = { classes: [], students: [] };
+
+        async function openAssignmentComposer() {
+            document.getElementById('ac-step-target').style.display = 'block';
+            document.getElementById('ac-step-reading').style.display = 'none';
+            document.getElementById('ac-reading-msg').innerHTML = '';
+            await acSetTargetType('class');
+            const modal = document.getElementById('assignmentComposerModal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
+
+        async function acSetTargetType(type) {
+            acTargetType = type;
+            document.getElementById('ac-target-class-btn').classList.toggle('active', type === 'class');
+            document.getElementById('ac-target-student-btn').classList.toggle('active', type === 'student');
+            const sel = document.getElementById('ac-target-select');
+            sel.innerHTML = '<option>Đang tải...</option>';
+            try {
+                if (type === 'class') {
+                    const snap = await getDocs(query(collection(db, 'classes'), where('teacherId', '==', currentUser.uid)));
+                    const classes = [];
+                    snap.forEach(d => classes.push({ id: d.id, ...d.data() }));
+                    acTargetOptionsCache.classes = classes;
+                    sel.innerHTML = classes.length
+                        ? classes.map(c => `<option value="${c.id}">🏫 ${escapeHtmlIndex(c.name)} (${(c.studentIds || []).length} hs)</option>`).join('')
+                        : '<option value="">-- Chưa có lớp nào, tạo lớp trước --</option>';
+                } else {
+                    const students = await fetchAllStudents();
+                    acTargetOptionsCache.students = students;
+                    sel.innerHTML = students.length
+                        ? students.map(s => `<option value="${s.uid}">🧑 ${escapeHtmlIndex(s.name || s.email || s.uid)}</option>`).join('')
+                        : '<option value="">-- Chưa có học sinh nào --</option>';
+                }
+            } catch (e) {
+                sel.innerHTML = '<option value="">Lỗi tải danh sách</option>';
+                console.warn('acSetTargetType', e);
+            }
+        }
+
+        function acResolveStudentIds() {
+            const sel = document.getElementById('ac-target-select');
+            const val = sel.value;
+            if (!val) return { studentIds: [], targetType: acTargetType, targetId: '', targetLabel: '' };
+            if (acTargetType === 'class') {
+                const cls = acTargetOptionsCache.classes.find(c => c.id === val);
+                return { studentIds: (cls && cls.studentIds) || [], targetType: 'class', targetId: val, targetLabel: cls ? cls.name : '' };
+            }
+            const stu = acTargetOptionsCache.students.find(s => s.uid === val);
+            return { studentIds: [val], targetType: 'student', targetId: val, targetLabel: stu ? (stu.name || stu.email) : '' };
+        }
+
+        function acBackToChoices() {
+            document.getElementById('ac-step-reading').style.display = 'none';
+            document.getElementById('ac-step-target').style.display = 'block';
+        }
+
+        function acOpenReadingPicker() {
+            const target = acResolveStudentIds();
+            if (target.studentIds.length === 0) { alert('Chọn lớp/học sinh có ít nhất 1 người trước đã'); return; }
+            document.getElementById('ac-step-target').style.display = 'none';
+            document.getElementById('ac-step-reading').style.display = 'block';
+            acRefreshReadingBooks();
+        }
+
+        function acRefreshReadingBooks() {
+            const source = document.getElementById('ac-reading-source').value;
+            const bookSel = document.getElementById('ac-reading-book');
+            const booksObj = (readingManifest && readingManifest.reading && readingManifest.reading[source]) || {};
+            const bookNums = Object.keys(booksObj).map(Number).filter(n => !isNaN(n)).sort((a, b) => a - b);
+            if (bookNums.length === 0) {
+                bookSel.innerHTML = '<option value="">-- Chưa có đề nào --</option>';
+                document.getElementById('ac-reading-test').innerHTML = '';
+                return;
+            }
+            bookSel.innerHTML = bookNums.map(n => `<option value="${n}">Quyển ${n}</option>`).join('');
+            acRefreshReadingTests();
+        }
+
+        function acRefreshReadingTests() {
+            const source = document.getElementById('ac-reading-source').value;
+            const book = document.getElementById('ac-reading-book').value;
+            const testSel = document.getElementById('ac-reading-test');
+            const testsObj = (readingManifest && readingManifest.reading && readingManifest.reading[source] && readingManifest.reading[source][book]) || {};
+            const testNums = Object.keys(testsObj).map(Number).filter(n => !isNaN(n)).sort((a, b) => a - b);
+            testSel.innerHTML = testNums.length
+                ? testNums.map(n => `<option value="${n}">Test ${n}</option>`).join('')
+                : '<option value="">-- Chưa có test --</option>';
+        }
+
+        async function acSubmitReadingAssignment() {
+            const target = acResolveStudentIds();
+            if (target.studentIds.length === 0) { alert('Chưa chọn lớp/học sinh'); return; }
+            const source = document.getElementById('ac-reading-source').value;
+            const book = document.getElementById('ac-reading-book').value;
+            const testNum = document.getElementById('ac-reading-test').value;
+            const scope = document.getElementById('ac-reading-scope').value;
+            const deadline = document.getElementById('ac-reading-deadline').value || null;
+            const msgEl = document.getElementById('ac-reading-msg');
+
+            const url = readingManifest && readingManifest.reading && readingManifest.reading[source] &&
+                readingManifest.reading[source][book] && readingManifest.reading[source][book][testNum];
+            if (!url) { msgEl.innerHTML = '<span style="color:#c62828; font-weight:700;">Chưa chọn được đề hợp lệ.</span>'; return; }
+
+            const title = `${source === 'cam' ? 'Cambridge' : 'VOL'} ${book} - Test ${testNum}` + (scope !== 'all' ? ` (Passage ${scope})` : '');
+            msgEl.innerHTML = 'Đang giao bài...';
+            try {
+                const assignRef = await addDoc(collection(db, 'assignments'), {
+                    type: 'reading',
+                    title,
+                    readingUrl: url,
+                    readingSource: source, readingBook: Number(book), readingTest: Number(testNum), scope,
+                    createdBy: currentUser.uid, createdByName: currentUserDoc.name || '',
+                    targetType: target.targetType, targetId: target.targetId, targetLabel: target.targetLabel,
+                    studentIds: target.studentIds,
+                    deadline,
+                    createdAt: serverTimestamp(),
+                });
+                await Promise.all(target.studentIds.map(uid => setDoc(doc(db, 'submissions', assignRef.id + '_' + uid), {
+                    assignmentId: assignRef.id, studentId: uid, teacherId: currentUser.uid,
+                    assignmentTitle: title, assignmentType: 'reading',
+                    status: 'pending', percent: 0, score: null,
+                    createdAt: serverTimestamp(),
+                })));
+                msgEl.innerHTML = '<span style="color:#2e7d32; font-weight:700;">✅ Đã giao bài cho ' + target.studentIds.length + ' học sinh!</span>';
+                setTimeout(() => closeModal('assignmentComposerModal'), 1200);
+            } catch (e) {
+                msgEl.innerHTML = '<span style="color:#c62828; font-weight:700;">Giao bài thất bại: ' + e.message + '</span>';
+            }
+        }
+
+        // Mở Listening Type Generator (công cụ soạn bài tuỳ chỉnh) kèm sẵn thông tin lớp/học
+        // sinh đang chọn qua query string, để bên đó tự lấy ra và "Gán cho" đúng người/lớp
+        // rồi lưu vào Firestore (assignments + submissions) — xem thêm ở file listeningtypegenerator.html.
+        function acOpenListeningGenerator() {
+            const target = acResolveStudentIds();
+            if (target.studentIds.length === 0) { alert('Chọn lớp/học sinh có ít nhất 1 người trước đã'); return; }
+            const params = new URLSearchParams({
+                embedded: '1',
+                targetType: target.targetType,
+                targetId: target.targetId,
+                targetLabel: target.targetLabel,
+                studentIds: target.studentIds.join(',')
+            });
+            window.open('admin/listeningtypegenerator.html?' + params.toString(), '_blank');
+            closeModal('assignmentComposerModal');
+        }
+
+        // ============ "BÀI TẬP" — HỘP THƯ CỦA HỌC SINH ============
+        let __myAssignmentsCache = [];
+
+        function openAssignmentsInbox() {
+            checkAuth(function () {
+                loadMyAssignments();
+                const modal = document.getElementById('studentAssignmentsModal');
+                modal.style.display = 'flex';
+                setTimeout(() => modal.classList.add('show'), 10);
+            });
+        }
+
+        async function loadMyAssignments() {
+            const el = document.getElementById('hw-list');
+            el.innerHTML = '<p class="empty-hint">Đang tải bài tập...</p>';
+            try {
+                const [assignSnap, subSnap] = await Promise.all([
+                    getDocs(query(collection(db, 'assignments'), where('studentIds', 'array-contains', currentUser.uid))),
+                    getDocs(query(collection(db, 'submissions'), where('studentId', '==', currentUser.uid)))
+                ]);
+                const assignments = []; assignSnap.forEach(d => assignments.push({ id: d.id, ...d.data() }));
+                const subsById = {}; subSnap.forEach(d => { const data = d.data(); subsById[data.assignmentId] = data; });
+
+                const merged = assignments.map(a => ({ assignment: a, submission: subsById[a.id] || { status: 'pending', percent: 0 } }));
+                merged.sort((a, b) => {
+                    const aDone = a.submission.status === 'done', bDone = b.submission.status === 'done';
+                    if (aDone !== bDone) return aDone ? 1 : -1; // chưa xong lên trước
+                    const aTime = toMillisSafe(a.assignment.createdAt);
+                    const bTime = toMillisSafe(b.assignment.createdAt);
+                    return bTime - aTime; // mới giao lên trước
+                });
+
+                __myAssignmentsCache = merged;
+                el.innerHTML = merged.length ? merged.map((m, idx) => buildHwItem(m.assignment, m.submission, idx)).join('') : '<p class="empty-hint">Chưa có bài tập nào được giao.</p>';
+            } catch (e) {
+                el.innerHTML = '<p class="empty-hint">Không tải được bài tập.</p>';
+                console.warn('loadMyAssignments', e);
+            }
+        }
+
+        function buildHwItem(a, sub, idx) {
+            const done = sub.status === 'done';
+            const typeIcon = a.type === 'listening' ? '🎧' : '📖';
+            const deadlineTxt = a.deadline ? ` · Hạn: ${a.deadline}` : '';
+            const scoreTxt = sub.percent ? ` · ${sub.percent}%` : '';
+            return `
+                <div class="hw-item ${done ? 'hw-done' : 'hw-pending'}" onclick="openAssignmentByIndex(${idx})">
+                    <div>
+                        <div class="hw-title">${typeIcon} ${escapeHtmlIndex(a.title || 'Bài tập')}</div>
+                        <div class="hw-meta">Giao bởi ${escapeHtmlIndex(a.createdByName || 'giáo viên')}${deadlineTxt}${scoreTxt}</div>
+                    </div>
+                    <div class="hw-status ${done ? 'done' : 'pending'}">${done ? '✔ Đã xong' : 'Chưa làm'}</div>
+                </div>
+            `;
+        }
+
+        function openAssignmentByIndex(idx) {
+            const item = __myAssignmentsCache[idx];
+            if (item) openAssignment(item.assignment, item.submission);
+        }
+
+        function openAssignment(a) {
+            if (a.type === 'reading') {
+                const params = new URLSearchParams({ assignmentId: a.id, uid: currentUser.uid, scope: a.scope || 'all' });
+                const sep = a.readingUrl.includes('?') ? '&' : '?';
+                window.open(a.readingUrl + sep + params.toString(), '_blank');
+            } else if (a.type === 'listening') {
+                openListeningAssignment(a);
+            }
+            closeModal('studentAssignmentsModal');
+        }
+
+        // Bảng màu giống hệt listeningtypegenerator.html (để dựng lại đúng giao diện bài nghe)
+        const PALETTES = {
+            red: { 50: '#fef2f2', 100: '#fee2e2', 200: '#fecaca', 300: '#fca5a5', 400: '#f87171', 500: '#ef4444', 600: '#dc2626', 700: '#b91c1c', 800: '#991b1b', 900: '#7f1d1d' },
+            orange: { 50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74', 400: '#fb923c', 500: '#f97316', 600: '#ea580c', 700: '#c2410c', 800: '#9a3412', 900: '#7c2d12' },
+            yellow: { 50: '#fffbeb', 100: '#fef3c7', 200: '#fde68a', 300: '#fcd34d', 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 700: '#b45309', 800: '#92400e', 900: '#78350f' },
+            green: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' },
+            blue: { 50: '#f0f9ff', 100: '#e0f2fe', 200: '#99f6e4', 300: '#7dd3fc', 400: '#38bdf8', 500: '#0ea5e9', 600: '#0d9488', 700: '#0369a1', 800: '#075985', 900: '#134e4a' },
+            indigo: { 50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc', 400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 800: '#3730a3', 900: '#312e81' },
+            violet: { 50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe', 400: '#c084fc', 500: '#a855f7', 600: '#9333ea', 700: '#7e22ce', 800: '#6b21a8', 900: '#581c87' }
+        };
+
+        // Mở bài Listening được giao: fetch template engine (đã tách riêng, tự chứa toàn bộ
+        // UI luyện gõ theo audio), điền vocabList + màu của assignment vào, gắn thêm 1 đoạn
+        // script nhỏ để báo % hoàn thành về đúng submissions/{assignmentId}_{uid}, rồi mở bằng Blob URL
+        // (không cần publish file lên GitHub cho từng bài tập cá nhân hoá).
+        async function openListeningAssignment(a) {
+            try {
+                const res = await fetch('listening_engine_template.html');
+                if (!res.ok) throw new Error('Không tải được engine (HTTP ' + res.status + ')');
+                let html = await res.text();
+                const palette = PALETTES[a.colorKey] || PALETTES.blue;
+                const items = a.vocabList || [];
+                const dataJson = JSON.stringify({ title: a.title, items }).replace(/<\//g, '<\\/');
+                const sparkJson = JSON.stringify([palette[500], palette[400], palette[200], palette[600], palette[300]]);
+                html = html.replace('%%PRIMARY_PALETTE_JSON%%', JSON.stringify(palette));
+                html = html.replace('%%CHAR_UNTYPED_BORDER%%', palette[200]);
+                html = html.replace('%%CHAR_TYPED_COLOR%%', palette[900]);
+                html = html.replace('%%CHAR_TYPED_BORDER%%', palette[600]);
+                html = html.replace('%%SPARK_COLORS_JSON%%', sparkJson);
+                html = html.replace('%%LESSON_DATA_JSON%%', dataJson);
+                html = html.replace('</body>', buildListeningReportScript(a.id, currentUser.uid, items.length) + '\n</body>');
+                const blob = new Blob([html], { type: 'text/html' });
+                window.open(URL.createObjectURL(blob), '_blank');
+            } catch (e) {
+                alert('Không mở được bài tập nghe: ' + e.message);
+                console.warn('openListeningAssignment', e);
+            }
+        }
+
+        // Đoạn script được nhúng thêm vào cuối trang bài nghe (chạy TRONG tab bài nghe, độc lập
+        // với index.html) — bắt sự kiện "gõ đúng 1 từ" (fireworks) của engine để tính % rồi ghi
+        // thẳng vào Firestore submissions/{assignmentId}_{uid}. Escape "</" thành "<\/" ở JSON đã
+        // xử lý ở trên; ở đây tự escape luôn thẻ đóng script (kèm backslash) bên trong template string,
+        // nếu không trình duyệt sẽ hiểu nhầm là kết thúc SỚM khối <script type="module"> đang chứa hàm này.
+        function buildListeningReportScript(assignmentId, uid, itemCount) {
+            const cfgJson = JSON.stringify(firebaseConfig);
+            return `<script type="module">
+(function(){
+  var ITEM_COUNT = ${itemCount};
+  var ASSIGNMENT_ID = ${JSON.stringify(assignmentId)};
+  var STUDENT_UID = ${JSON.stringify(uid)};
+  var FB_CONFIG = ${cfgJson};
+  var reported = new Set();
+  var lastPercent = -1;
+  Promise.all([
+    import('https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js'),
+    import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js')
+  ]).then(function(mods){
+    var appMod = mods[0], fsMod = mods[1];
+    var app = appMod.initializeApp(FB_CONFIG, 'bseh-hw-report-' + Date.now());
+    var db = fsMod.getFirestore(app);
+    var subRef = fsMod.doc(db, 'submissions', ASSIGNMENT_ID + '_' + STUDENT_UID);
+    function report(){
+      var percent = ITEM_COUNT > 0 ? Math.round(reported.size / ITEM_COUNT * 100) : 0;
+      if (percent === lastPercent) return;
+      lastPercent = percent;
+      var payload = { percent: percent, updatedAt: fsMod.serverTimestamp() };
+      if (percent >= 100) { payload.status = 'done'; payload.completedAt = fsMod.serverTimestamp(); }
+      fsMod.setDoc(subRef, payload, { merge: true }).catch(function(e){ console.warn('BSEH report failed', e); });
+    }
+    var origFireworks = window.fireworks;
+    window.fireworks = function(){
+      if (typeof origFireworks === 'function') origFireworks();
+      try {
+        var idx = window.state ? window.state.practiceIndex : null;
+        if (idx !== null && idx !== undefined && !reported.has(idx)) { reported.add(idx); report(); }
+      } catch(err){}
+    };
+  }).catch(function(e){ console.warn('BSEH firebase init failed in lesson popup', e); });
+})();
+<\/script>`;
+        }
+
+        async function refreshAssignmentsBadge() {
+            try {
+                const snap = await getDocs(query(collection(db, 'submissions'), where('studentId', '==', currentUser.uid), where('status', '==', 'pending')));
+                const dot = document.getElementById('hwPendingDot');
+                if (snap.size > 0) { dot.style.display = 'inline-block'; dot.textContent = snap.size; }
+                else { dot.style.display = 'none'; }
+            } catch (e) { console.warn('refreshAssignmentsBadge', e); }
+        }
+
+        // ============ TIẾN ĐỘ HỌC SINH THẬT (chỉ hiện học sinh giáo viên này đã giao bài) ============
+        async function loadTeacherProgress() {
+            const el = document.getElementById('teacher-progress-list');
+            el.innerHTML = '<p class="empty-hint">Đang tải tiến độ...</p>';
+            try {
+                const snap = await getDocs(query(collection(db, 'submissions'), where('teacherId', '==', currentUser.uid)));
+                const subs = []; snap.forEach(d => subs.push({ id: d.id, ...d.data() }));
+                if (subs.length === 0) { el.innerHTML = '<p class="empty-hint">Bạn chưa giao bài tập nào.</p>'; return; }
+
+                const studentIds = [...new Set(subs.map(s => s.studentId))];
+                const namesMap = {};
+                await Promise.all(studentIds.map(async uid => {
+                    try { const snap2 = await getDoc(doc(db, 'users', uid)); if (snap2.exists()) namesMap[uid] = snap2.data().name; } catch (e) {}
+                }));
+
+                subs.sort((a, b) => {
+                    const aTime = toMillisSafe(a.createdAt);
+                    const bTime = toMillisSafe(b.createdAt);
+                    return bTime - aTime;
+                });
+
+                el.innerHTML = `
+                    <table class="progress-table">
+                        <thead><tr><th>Học sinh</th><th>Bài tập</th><th>Tiến độ</th></tr></thead>
+                        <tbody>
+                            ${subs.map(s => `
+                                <tr>
+                                    <td>${escapeHtmlIndex(namesMap[s.studentId] || s.studentId)}</td>
+                                    <td>${escapeHtmlIndex(s.assignmentTitle || '')}</td>
+                                    <td>${s.status === 'done'
+                                        ? `<span class="status-done">✔ Xong (${s.percent ?? 100}%)</span>`
+                                        : `<span class="status-pending">${s.percent ? s.percent + '%' : 'Chưa làm'}</span>`}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            } catch (e) {
+                el.innerHTML = '<p class="empty-hint">Không tải được tiến độ.</p>';
+                console.warn('loadTeacherProgress', e);
+            }
+        }
+
+        // Expose các hàm được gọi từ onclick/onchange trong HTML — bắt buộc phải làm thế này vì
+        // <script type="module"> có scope riêng, KHÔNG tự gắn function lên window như script thường.
+        Object.assign(window, {
+            checkAuthAndOpen, checkAuthAndScroll, closeModal, deleteMyWord, openMyStuff, switchMyStuffTab,
+            openDashboard, openAssignmentsInbox, openAssignmentComposer,
+            acSetTargetType, acOpenReadingPicker, acOpenListeningGenerator, acBackToChoices,
+            acRefreshReadingBooks, acRefreshReadingTests, acSubmitReadingAssignment,
+            toggleCreateClassForm, submitNewClass, deleteClass, saveUserRole, openAssignmentByIndex
         });
     </script>
 </body>
