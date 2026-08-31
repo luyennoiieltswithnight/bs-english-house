@@ -248,17 +248,16 @@
         }
         .user-row .save-role-btn:hover { background: var(--dark-green); }
         .user-row .save-role-btn.saved { background: #2e7d32; }
-        .user-row.user-row-locked {
-            background: linear-gradient(135deg, #f4f0e6 0%, #eee3c8 100%);
-            border: 2px solid #2B4214; border-left: 8px solid #2B4214;
-            box-shadow: 0 2px 8px rgba(43,66,20,0.18);
+        .user-row select:disabled, .user-row .save-role-btn:disabled {
+            opacity: 0.55; cursor: not-allowed;
         }
-        .user-row .role-locked-note {
-            font-size: 12px; font-weight: 900; color: #fff; background: #2B4214;
-            border: 2px solid #17280c; border-radius: 8px; padding: 7px 12px; white-space: nowrap;
-            letter-spacing: 0.3px;
+        /* Head Teacher là vai trò cần nổi bật trong danh sách — không phải Dev (Dev cố tình hiển thị
+           y hệt Giáo viên, xem buildUserRoleRow()). */
+        .user-row.user-row-head {
+            background: linear-gradient(135deg, #fff8e6 0%, #fdecc0 100%);
+            border: 2px solid #F4B036; border-left: 8px solid #F4B036;
+            box-shadow: 0 2px 8px rgba(244,176,54,0.22);
         }
-        .role-badge.r-dev { letter-spacing: 0.5px; box-shadow: 0 0 0 2px #cdbf6b inset; }
 
         /* --- Quản lý lớp --- */
         .class-card { border: 2px solid #eee; border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; background: #fafafa; }
@@ -970,22 +969,27 @@
             // (kể cả dev khác) được phép cấp quyền dev cho người khác từ đây. Dev chỉ có thể được
             // tạo/gỡ trực tiếp trong Firestore console.
             const roleOptions = ['pending', 'student', 'teacher', 'head_teacher'];
-            // Tài khoản ĐANG là dev: khóa cứng hàng này lại, không cho đổi/xoá quyền dev qua UI.
+            // Tài khoản ĐANG là dev: khoá cứng không cho đổi/xoá quyền qua UI (dropdown + nút Lưu bị
+            // disable), NHƯNG hiển thị y hệt một hàng Giáo viên bình thường — không có badge "Dev",
+            // không có ghi chú riêng gì cả — để trong bảng phân quyền không ai phân biệt được đây là
+            // Dev hay Giáo viên chỉ bằng mắt thường.
             if (u.role === 'dev') {
                 return `
-                    <div class="user-row user-row-locked" id="user-row-${u.uid}">
+                    <div class="user-row" id="user-row-${u.uid}">
                         <img src="${u.photo || ''}" alt="">
                         <div class="u-info">
-                            <div class="u-name">👑 ${escapeHtmlIndex(u.name || '(chưa có tên)')} <span class="role-badge r-${u.role}">👑 DEV</span></div>
+                            <div class="u-name">${escapeHtmlIndex(u.name || '(chưa có tên)')} <span class="role-badge r-teacher">Giáo viên</span></div>
                             <div class="u-email">${escapeHtmlIndex(u.email || '')}</div>
                         </div>
-                        <div class="role-locked-note" title="Vai trò Dev được khóa — không ai có thể đổi hoặc xoá qua giao diện này">🔒 KHOÁ VĨNH VIỄN</div>
+                        <select disabled><option selected>Giáo viên</option></select>
+                        <button class="save-role-btn" disabled>Lưu</button>
                     </div>
                 `;
             }
             const options = roleOptions.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${roleLabel(r)}</option>`).join('');
+            const headClass = u.role === 'head_teacher' ? ' user-row-head' : '';
             return `
-                <div class="user-row" id="user-row-${u.uid}">
+                <div class="user-row${headClass}" id="user-row-${u.uid}">
                     <img src="${u.photo || ''}" alt="">
                     <div class="u-info">
                         <div class="u-name">${escapeHtmlIndex(u.name || '(chưa có tên)')} <span class="role-badge r-${u.role}">${roleLabel(u.role)}</span></div>
