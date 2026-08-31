@@ -531,7 +531,7 @@ document.addEventListener('DOMContentLoaded', function(){
     btn.disabled = true; btn.innerText = 'Đang giao...';
     var now = Date.now();
     var deadlineAt = deadlineStr ? new Date(deadlineStr + 'T23:59:59').getTime() : null;
-    var expiresAt = now + 20*24*60*60*1000;
+    var expiresAt = now + 10*24*60*60*1000;
     var creator = window.__currentUser || { uid: '', name: '' };
     window.__addDoc(window.__collection(window.__db, 'assignments'), {
       type: 'listening',
@@ -558,12 +558,13 @@ document.addEventListener('DOMContentLoaded', function(){
           assignmentId: assignRef.id, studentId: uid, teacherId: creator.uid,
           assignmentTitle: currentTitle, assignmentType: 'listening',
           status: 'pending', percent: 0, score: null,
+          expiresAt: expiresAt,
           createdAt: now
         });
       });
       return Promise.all(writes);
     }).then(function(){
-      msgEl.innerHTML = '<span class="text-emerald-600 font-bold">Đã giao bài cho ' + studentIds.length + ' học sinh! (Tự xoá sau 20 ngày)</span>';
+      msgEl.innerHTML = '<span class="text-emerald-600 font-bold">Đã giao bài cho ' + studentIds.length + ' học sinh! (Yêu cầu giao bài này tự xoá sau 10 ngày)</span>';
       btn.disabled = false; btn.innerText = '🚀 Giao bài';
       setTimeout(closeAssignModal, 1200);
     }).catch(function(e){
