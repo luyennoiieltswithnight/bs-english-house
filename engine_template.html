@@ -235,6 +235,9 @@
             align-items: flex-start;
             position: relative;
         }
+        /* Điền từ / notes completion: các dòng gần nhau hơn để cả nhóm nhìn liền mạch như 1 khối
+           ghi chú duy nhất, thay vì từng câu tách xa nhau như thẻ riêng biệt. */
+        .question-item.compact-item { margin-bottom: 14px; }
 
         .q-num {
             background-color: white;
@@ -280,6 +283,21 @@
             transition: background 0.2s;
         }
         .text-input:focus { background-color: rgba(255,255,255,0.8); }
+
+        /* Complete the summary/table — cả nhóm câu 'inline' chảy thành 1 đoạn văn liên tục, số
+           câu hỏi nằm ngay trong placeholder của ô nhập (không có vòng tròn số riêng). */
+        .inline-summary {
+            line-height: 2.6;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+        .inline-blank-wrap { display: inline-block; }
+        .inline-blank {
+            width: 130px;
+            text-align: center;
+            font-weight: 700;
+        }
+        .inline-blank::placeholder { font-weight: 800; color: var(--border-color); opacity: 0.8; }
 
         /* Review Mode Features */
         .feedback-box {
@@ -393,8 +411,17 @@
         table.match-grid input.grid-radio { width: 18px; height: 18px; cursor: pointer; }
 
         /* --- "Choose N of M" multi-select checkboxes --- */
-        .multi-group .multi-hint { margin: 0 0 10px 0; font-weight: 700; color: #555; }
+        .multi-group .multi-hint {
+            margin: 0 0 10px 0; font-style: italic; font-weight: 600; color: #666;
+            padding: 6px 10px; background: #f5f5f5; border-left: 3px solid var(--border-color); border-radius: 0 4px 4px 0;
+        }
         .multi-check-label input.multi-check { width: 16px; height: 16px; cursor: pointer; }
+        /* Nhãn "21-22" (gộp nhiều câu vào 1 nhóm) không vừa hình tròn q-num bình thường — đổi
+           sang hình bầu dục/chữ nhật bo góc, rộng vừa đủ chữ, tránh chữ số bị đè/tràn ra ngoài. */
+        .q-num.q-num-range {
+            width: auto; min-width: 40px; height: 24px; border-radius: 12px;
+            padding: 0 10px; font-size: 12px; white-space: nowrap;
+        }
 
         /* --- Per-part grading bar (Practice mode only) --- */
         .part-grade-bar { display: none; margin-bottom: 20px; text-align: right; }
@@ -708,7 +735,7 @@
     <!-- Main Interface -->
     <div class="header">
         <div class="header-left">
-            <button class="nav-btn" onclick="location.reload()">← Thoát</button>
+            <button class="nav-btn" onclick="exitTest()">← Thoát</button>
             <div class="passage-tabs" id="passage-tabs">
                 <button class="tab-btn active" onclick="switchPassage(1)">P1</button>
                 <button class="tab-btn" onclick="switchPassage(2)">P2</button>
@@ -873,10 +900,15 @@
                     }
                     if (g.type === 'matching') {
                         html += genMatching(groupCounter, g.options || [], g.questions);
-                    } else if (g.type === 'heading' || g.type === 'list_match') {
-                        // Matching Headings / Matching Names-Claims-Sentence Endings: cùng 1 logic
-                        // dùng chung — 1 bảng chú thích (legend) các lựa chọn có chữ cái A/i/ii...
-                        // + mỗi câu hỏi có 1 dropdown chọn đáp án đúng (không cần kéo thả).
+                    } else if (g.type === 'heading') {
+                        // Matching Headings: kéo-thả heading (i, ii, iii...) từ ngân hàng ở panel câu
+                        // hỏi thẳng vào "khe" đã đặt sẵn ở ĐẦU mỗi đoạn văn tương ứng bên panel bài đọc
+                        // (xem initHeadingGapsInPassage() + span.heading-gap do test-builder chèn sẵn).
+                        html += genHeadingDrag('hg' + g.questions[0].qNum, g.options || [], g.questions);
+                    } else if (g.type === 'list_match') {
+                        // Matching Names-Claims-Sentence Endings: 1 bảng chú thích (legend) các lựa
+                        // chọn A/B/C... + mỗi câu hỏi có 1 dropdown chọn đáp án đúng (không kéo thả,
+                        // vì các mục ở đây không nằm trong bài đọc để mà "thả vào" như headings).
                         html += genLettered(groupCounter, g.options || [], g.questions);
                     } else if (g.type === 'grid') {
                         // Matching Information / Matching Names / Matching Features dạng bảng: mỗi
@@ -885,14 +917,22 @@
                     } else if (g.type === 'multi') {
                         // "Choose TWO/THREE correct answers": checkbox dùng chung cho cả nhóm câu.
                         html += genMulti(groupCounter, g.options || [], g.questions, g.pickCount || g.questions.length);
+                    } else if (g.type === 'inline') {
+                        // Complete the summary/table: gộp CẢ NHÓM câu hỏi thành 1 đoạn văn chảy liên
+                        // tục (giống summary thật), không tách mỗi câu ra 1 dòng riêng có số tròn to.
+                        html += genInlineGroup(g.questions);
+                    } else if (g.type === 'text') {
+                        // Complete the notes/table (điền từ): CÙNG 1 cách render như 'inline' ở trên
+                        // — gộp cả nhóm thành 1 khối chảy liên tục, số câu nằm trong ô nhập liệu.
+                        // Khác 1 chỗ: 'text' không có sẵn pre/post tách riêng — tự tách bằng cách tìm
+                        // dấu gạch chân/chấm lửng (___, ...) trong q.text (xem splitBlankMarker()).
+                        html += genNotesGroup(g.questions);
                     } else {
                         g.questions.forEach(q => {
                             if (g.type === 'tfng') {
                                 html += genRadio(q.qNum, q.text, g.labels || ['TRUE', 'FALSE', 'NOT GIVEN']);
                             } else if (g.type === 'mcq') {
                                 html += genRadio(q.qNum, q.text, q.options || []);
-                            } else if (g.type === 'inline') {
-                                html += genTextInline(q.qNum, q.pre || '', q.post || '');
                             } else {
                                 html += genText(q.qNum, q.text || '');
                             }
@@ -932,26 +972,52 @@
                         </div>
                     </div>`;
         }
+        // Fallback đơn lẻ (chỉ dùng khi type không xác định được) — 1 câu/1 dòng, KHÔNG dùng cho
+        // 'text' hay 'inline' nữa (2 loại đó giờ render theo nhóm, xem genNotesGroup/genInlineGroup
+        // + renderFlowingBlanks() bên dưới, để cả nhóm chảy liền mạch thành 1 khối ghi chú/đoạn văn
+        // thay vì mỗi câu là 1 thẻ tách rời có vòng tròn số to).
         function genText(qNum, text) {
-            return `<div class="question-item" id="q-container-${qNum}">
-                        <div class="q-num">${qNum}</div>
-                        <div style="flex:1;">
-                            <p style="margin:0 0 10px 0;">${text}</p>
-                            <input type="text" class="text-input" name="q${qNum}" placeholder="Your answer...">
-                            <div class="feedback-box" id="fb-${qNum}"></div>
-                        </div>
-                    </div>`;
-        }
-        function genTextInline(qNum, preText, postText) {
-             return `<div class="question-item" id="q-container-${qNum}" style="margin-bottom:15px; align-items:center;">
+            return `<div class="question-item compact-item" id="q-container-${qNum}" style="align-items:center;">
                         <div class="q-num" style="width:24px;height:24px;font-size:12px;">${qNum}</div>
                         <div style="flex:1; display:flex; align-items:center; flex-wrap:wrap; gap:10px;">
-                            <span>${preText}</span>
-                            <input type="text" class="text-input" name="q${qNum}" style="width:120px;">
-                            <span>${postText}</span>
+                            <span>${text}</span>
+                            <input type="text" class="text-input" name="q${qNum}" placeholder="Your answer..." style="width:160px;">
                             <div class="feedback-box" id="fb-${qNum}" style="width:100%; margin-top:5px;"></div>
                         </div>
                     </div>`;
+        }
+
+        // Tìm dấu chỗ trống trong 1 câu văn (___, ....., …) để tách ra phần TRƯỚC/SAU chỗ trống đó
+        // — dùng cho "Complete the notes" (type 'text') khi giáo viên gõ nguyên câu kèm gạch chân
+        // (vd "Trees may be falling down because of _____ from nearby fields") thay vì tách sẵn
+        // pre/post như 'inline'. Không tìm thấy dấu nào thì coi cả câu là phần TRƯỚC, chỗ trống tự
+        // nối ngay sau (ô nhập nằm ở cuối câu).
+        function splitBlankMarker(text) {
+            const t = text || '';
+            const m = t.match(/_{2,}|\.{4,}|…+/);
+            if (!m) return { pre: t.trim(), post: '' };
+            return { pre: t.slice(0, m.index).trim(), post: t.slice(m.index + m[0].length).trim() };
+        }
+
+        // Render CHUNG cho cả 'inline' (Complete the summary/table) lẫn 'text' (Complete the
+        // notes) — nhận vào 1 mảng {qNum, pre, post}, gộp CẢ NHÓM thành 1 khối văn bản chảy liên
+        // tục (pre câu 1 -> ô trống 1 -> post câu 1 -> pre câu 2 -> ...) thay vì tách mỗi câu ra 1
+        // dòng riêng với vòng tròn số to — số câu hỏi nằm NGAY TRONG ô nhập liệu (placeholder), gõ
+        // chữ vào là số tự biến mất, đúng như 1 chỗ trống thật trong bài.
+        function renderFlowingBlanks(items) {
+            const spansHtml = items.map(it => `<span>${it.pre || ''}</span><span class="inline-blank-wrap" id="q-container-${it.qNum}"><input type="text" class="text-input inline-blank" name="q${it.qNum}" placeholder="${it.qNum}"></span><span>${it.post || ''}</span>`).join(' ');
+            const feedbackHtml = items.map(it =>
+                `<div class="feedback-box" id="fb-${it.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `<div class="inline-summary">${spansHtml}</div>${feedbackHtml}`;
+        }
+        function genInlineGroup(questions) {
+            return renderFlowingBlanks(questions.map(q => ({ qNum: q.qNum, pre: q.pre || '', post: q.post || '' })));
+        }
+        function genNotesGroup(questions) {
+            return renderFlowingBlanks(questions.map(q => {
+                const { pre, post } = splitBlankMarker(q.text || '');
+                return { qNum: q.qNum, pre, post };
+            }));
         }
 
         // Matching / drag-drop question type: a bank of draggable option chips
@@ -977,12 +1043,32 @@
             return `<div class="match-bank" id="bank-${groupId}">${bankHtml}</div>${rowsHtml}`;
         }
 
-        // Matching Headings (chọn heading cho từng đoạn) / Matching Names-Claims-Sentence Endings
-        // (nối người/mệnh đề với đáp án đúng, A-G...): CÙNG 1 logic dùng chung — một bảng chú
-        // thích tĩnh (legend) liệt kê hết các lựa chọn, và mỗi câu hỏi có 1 dropdown <select> để
-        // chọn đáp án đúng. Dùng <select> (bấm chọn) thay vì kéo-thả để chấm điểm tái dùng nguyên
-        // logic có sẵn của gradeQuestionRange() (so sánh .value như câu điền từ) và hoạt động ổn
-        // định trên mọi thiết bị (không phụ thuộc con trỏ/chạm như kéo-thả).
+        // Matching Headings: kéo-thả trực tiếp vào bài đọc. Panel câu hỏi (bên phải) chỉ hiện
+        // NGÂN HÀNG heading (i, ii, iii...) để kéo, cộng với 1 hộp feedback nhỏ/câu (hiện sau khi
+        // nộp bài) — vị trí thả (slot) thật sự nằm ngay ĐẦU mỗi đoạn văn tương ứng bên panel bài
+        // đọc (trái), do test-builder.html chèn sẵn 1 <span class="heading-gap"> tĩnh vào đúng
+        // đoạn văn khớp thứ tự câu hỏi, rồi initHeadingGapsInPassage() (gọi trong startTest()) sẽ
+        // "nâng cấp" span đó thành 1 match-slot thật để dùng chung bộ máy kéo-thả Pointer Events
+        // đã có sẵn của genMatching() (chip + slot cùng data-group) — không cần viết lại logic kéo
+        // thả riêng, không cần các dropdown cồng kềnh.
+        function genHeadingDrag(groupId, options, questions) {
+            const bankHtml = options.map(opt => {
+                const letter = (opt.split('.')[0] || '').trim();
+                return `<div class="match-chip" data-letter="${letter}" data-group="${groupId}" id="chip-${groupId}-${letter}">${opt}</div>`;
+            }).join('');
+
+            const feedbackHtml = questions.map(q =>
+                `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+
+            return `<div class="match-bank" id="bank-${groupId}">${bankHtml}</div>
+                    <p class="hint" style="margin:0 0 10px 0;">👆 Kéo heading phía trên vào đúng vị trí đầu mỗi đoạn văn bên bài đọc (panel trái).</p>
+                    ${feedbackHtml}`;
+        }
+
+        // Matching Names-Claims-Sentence Endings (nối người/mệnh đề với đáp án đúng, A-G...): một
+        // bảng chú thích tĩnh (legend) liệt kê hết các lựa chọn, và mỗi câu hỏi có 1 dropdown
+        // <select> để chọn đáp án đúng — không kéo-thả vì các mục ở đây (tên người, mệnh đề...)
+        // không nằm sẵn trong bài đọc để "thả vào" như Matching Headings.
         function genLettered(groupId, options, questions) {
             const legendHtml = `<div class="match-bank match-legend" id="bank-${groupId}">${options.map(opt =>
                 `<div class="match-chip match-chip-static">${opt}</div>`).join('')}</div>`;
@@ -1053,21 +1139,22 @@
 
             const qNums = questions.map(q => q.qNum);
             const firstQ = qNums[0], lastQ = qNums[qNums.length - 1];
-            const qLabel = firstQ === lastQ ? String(firstQ) : `${firstQ}-${lastQ}`;
+            const isRange = firstQ !== lastQ;
+            const qLabel = isRange ? `${firstQ}-${lastQ}` : String(firstQ);
 
+            // KHÔNG hiện lại số câu (21, 22...) riêng lẻ ở đây nữa — con số đó đã hiện ở "viên
+            // thuốc" q-num phía trên rồi, lặp lại bên dưới gây rối mắt. Vẫn giữ input ẩn + hộp
+            // feedback riêng cho từng câu (bắt buộc để gradeQuestionRange() chấm đúng từng câu).
             const perQFeedback = qNums.map(n => `
-                <div class="question-item" id="q-container-${n}" style="margin:8px 0 0 0;">
-                    <div class="q-num" style="width:24px;height:24px;font-size:12px;">${n}</div>
-                    <div style="flex:1;">
-                        <input type="hidden" name="q${n}" id="input-q${n}" value="">
-                        <div class="feedback-box" id="fb-${n}" style="width:100%; margin-top:0;"></div>
-                    </div>
+                <div id="q-container-${n}" style="margin-top:6px;">
+                    <input type="hidden" name="q${n}" id="input-q${n}" value="">
+                    <div class="feedback-box" id="fb-${n}" style="width:100%; margin-top:0;"></div>
                 </div>`).join('');
 
             return `<div class="question-item multi-group" data-multi-group="${groupId}" data-pick-count="${pickCount}">
-                        <div class="q-num">${qLabel}</div>
+                        <div class="q-num${isRange ? ' q-num-range' : ''}">${qLabel}</div>
                         <div style="flex:1;">
-                            <p class="multi-hint">☑️ Chọn đúng <strong>${pickCount}</strong> đáp án.</p>
+                            <p class="multi-hint">Chọn đúng <strong>${pickCount}</strong> đáp án.</p>
                             <div class="mcq-options">${optsHtml}</div>
                             ${perQFeedback}
                         </div>
@@ -1238,6 +1325,24 @@
         let currentPassage = 1;
         let timerInterval;
 
+        // Nút "← Thoát": đóng hẳn tab/cửa sổ này luôn (giống bấm nút ✕ của trình duyệt) thay vì
+        // reload lại trang như trước. window.close() chỉ được trình duyệt cho phép khi tab này do
+        // 1 script khác mở ra (vd window.open() từ trang chủ khi bấm "Bài tập", hoặc mở từ Test
+        // Builder) — đúng với cách hầu hết học sinh mở trang này. Nếu trình duyệt CHẶN việc đóng
+        // (tab được gõ thẳng URL / mở từ dấu 3 chấm... không phải do script mở), fallback về lại
+        // trang trước đó (hoặc trang chủ nếu không có trang trước) để vẫn "thoát" ra được thay vì
+        // đứng yên không phản hồi gì.
+        function exitTest() {
+            if (timerInterval) clearInterval(timerInterval);
+            window.close();
+            setTimeout(function () {
+                if (!window.closed) {
+                    if (window.history.length > 1) window.history.back();
+                    else window.location.href = 'index.html';
+                }
+            }, 250);
+        }
+
         function initNavCircles() {
             for (let p = 1; p <= 3; p++) {
                 const [startQ, endQ] = passageRanges[p - 1];
@@ -1256,9 +1361,35 @@
             document.getElementById('passage-selector').style.display = mode === 'practice' ? 'block' : 'none';
         }
 
+        // "Nâng cấp" các <span class="heading-gap"> tĩnh (do test-builder.html chèn sẵn ở đầu mỗi
+        // đoạn văn liên quan tới câu hỏi Matching Headings) thành match-slot thật — có thể kéo-thả
+        // được — rồi thêm input ẩn để gradeQuestionRange() chấm điểm y như mọi loại câu khác.
+        function initHeadingGapsInPassage() {
+            document.querySelectorAll('.heading-gap').forEach(gapEl => {
+                const qNum = gapEl.dataset.qnum;
+                const groupId = gapEl.dataset.group;
+                if (!qNum || !groupId) return;
+                gapEl.classList.add('match-slot');
+                gapEl.dataset.qnum = qNum;
+                gapEl.dataset.group = groupId;
+                gapEl.dataset.letter = '';
+                gapEl.id = 'slot-' + qNum;
+                gapEl.textContent = 'Kéo heading vào đây';
+                if (!document.getElementById('input-q' + qNum)) {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'q' + qNum;
+                    hidden.id = 'input-q' + qNum;
+                    hidden.value = '';
+                    gapEl.insertAdjacentElement('afterend', hidden);
+                }
+            });
+        }
+
         function startTest() {
             document.getElementById('setup-screen').style.display = 'none';
             generateQuestionsHTML();
+            initHeadingGapsInPassage();
             initNavCircles();
             setupInputListeners();
 
