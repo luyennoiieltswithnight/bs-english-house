@@ -248,11 +248,17 @@
         }
         .user-row .save-role-btn:hover { background: var(--dark-green); }
         .user-row .save-role-btn.saved { background: #2e7d32; }
-        .user-row.user-row-locked { background: #f4f0e6; border-color: #e0d6b8; }
-        .user-row .role-locked-note {
-            font-size: 12px; font-weight: 800; color: #7a6a2e; background: #fff3cd;
-            border: 2px solid #e0c05c; border-radius: 8px; padding: 6px 10px; white-space: nowrap;
+        .user-row.user-row-locked {
+            background: linear-gradient(135deg, #f4f0e6 0%, #eee3c8 100%);
+            border: 2px solid #2B4214; border-left: 8px solid #2B4214;
+            box-shadow: 0 2px 8px rgba(43,66,20,0.18);
         }
+        .user-row .role-locked-note {
+            font-size: 12px; font-weight: 900; color: #fff; background: #2B4214;
+            border: 2px solid #17280c; border-radius: 8px; padding: 7px 12px; white-space: nowrap;
+            letter-spacing: 0.3px;
+        }
+        .role-badge.r-dev { letter-spacing: 0.5px; box-shadow: 0 0 0 2px #cdbf6b inset; }
 
         /* --- Quản lý lớp --- */
         .class-card { border: 2px solid #eee; border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; background: #fafafa; }
@@ -970,10 +976,10 @@
                     <div class="user-row user-row-locked" id="user-row-${u.uid}">
                         <img src="${u.photo || ''}" alt="">
                         <div class="u-info">
-                            <div class="u-name">${escapeHtmlIndex(u.name || '(chưa có tên)')} <span class="role-badge r-${u.role}">${roleLabel(u.role)}</span></div>
+                            <div class="u-name">👑 ${escapeHtmlIndex(u.name || '(chưa có tên)')} <span class="role-badge r-${u.role}">👑 DEV</span></div>
                             <div class="u-email">${escapeHtmlIndex(u.email || '')}</div>
                         </div>
-                        <div class="role-locked-note" title="Vai trò Dev được khóa — không ai có thể đổi hoặc xoá qua giao diện này">🔒 Vai trò Dev (đã khóa)</div>
+                        <div class="role-locked-note" title="Vai trò Dev được khóa — không ai có thể đổi hoặc xoá qua giao diện này">🔒 KHOÁ VĨNH VIỄN</div>
                     </div>
                 `;
             }
@@ -1023,6 +1029,8 @@
 
         // ============ QUẢN LÝ LỚP (gộp học sinh thành lớp có tên) ============
         let __allStudentsCache = null;
+        let __classesCache = {};
+        let __editClassOpenId = null;
         async function fetchAllStudents(force) {
             if (__allStudentsCache && !force) return __allStudentsCache;
             const snap = await getDocs(query(collection(db, 'users'), where('role', '==', 'student')));
@@ -1041,6 +1049,9 @@
                 const classes = [];
                 snap.forEach(d => classes.push({ id: d.id, ...d.data() }));
                 classes.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                __classesCache = {};
+                classes.forEach(c => { __classesCache[c.id] = c; });
+                __editClassOpenId = null;
                 el.innerHTML = classes.length ? classes.map(c => buildClassCard(c)).join('') : '<p class="empty-hint">Bạn chưa tạo lớp nào.</p>';
             } catch (e) {
                 el.innerHTML = '<p class="empty-hint">Không tải được danh sách lớp.</p>';
@@ -1056,9 +1067,11 @@
                         <div class="cc-name">🏫 ${escapeHtmlIndex(c.name)}</div>
                         <div class="cc-count">${count} học sinh</div>
                     </div>
-                    <div class="cc-students">
+                    <div class="cc-students" style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button class="save-role-btn" style="background:var(--card-list);" onclick="toggleEditClass('${c.id}')">✏️ Sửa học sinh</button>
                         <button class="save-role-btn" style="background:var(--card-write);" onclick="deleteClass('${c.id}')">🗑️ Xoá lớp</button>
                     </div>
+                    <div id="edit-class-slot-${c.id}"></div>
                 </div>
             `;
         }
@@ -1067,6 +1080,53 @@
             if (!confirm('Xoá lớp này? Bài tập đã giao trước đó cho lớp vẫn giữ nguyên, chỉ lớp bị xoá.')) return;
             try { await deleteDoc(doc(db, 'classes', classId)); loadClassesList(); }
             catch (e) { alert('Xoá thất bại: ' + e.message); }
+        }
+
+        // Sửa danh sách học sinh của một lớp ĐÃ có sẵn (thêm/bớt học sinh) — không cần xoá cả lớp
+        // rồi tạo lại. Bấm "✏️ Sửa học sinh" mở ra 1 danh sách checkbox y hệt lúc tạo lớp, tick sẵn
+        // những học sinh đang có trong lớp; bấm "Lưu thay đổi" để cập nhật studentIds của lớp đó.
+        async function toggleEditClass(classId) {
+            const slot = document.getElementById('edit-class-slot-' + classId);
+            if (!slot) return;
+            if (__editClassOpenId === classId) { slot.innerHTML = ''; __editClassOpenId = null; return; }
+            // Đóng ô sửa của lớp khác (nếu đang mở) để tránh rối giao diện.
+            document.querySelectorAll('[id^="edit-class-slot-"]').forEach(s => { s.innerHTML = ''; });
+            __editClassOpenId = classId;
+            slot.innerHTML = '<p class="empty-hint">Đang tải danh sách học sinh...</p>';
+            try {
+                const cls = __classesCache[classId];
+                const currentIds = new Set((cls && cls.studentIds) || []);
+                const students = await fetchAllStudents(true);
+                if (students.length === 0) {
+                    slot.innerHTML = '<p class="empty-hint">Chưa có học sinh nào trong hệ thống.</p>';
+                    return;
+                }
+                slot.innerHTML = `
+                    <div class="class-card" style="border-color: var(--hero-bg); margin-top:10px;">
+                        <div class="student-checklist">
+                            ${students.map(s => `<label><input type="checkbox" value="${s.uid}" class="edit-class-student-cb" ${currentIds.has(s.uid) ? 'checked' : ''}> ${escapeHtmlIndex(s.name || s.email || s.uid)}</label>`).join('')}
+                        </div>
+                        <button class="action-btn primary" style="width:100%; margin-top:10px;" onclick="saveClassStudents('${classId}')">💾 Lưu thay đổi học sinh</button>
+                    </div>
+                `;
+            } catch (e) {
+                slot.innerHTML = '<p class="empty-hint">Không tải được danh sách học sinh.</p>';
+                console.warn('toggleEditClass', e);
+            }
+        }
+
+        async function saveClassStudents(classId) {
+            const slot = document.getElementById('edit-class-slot-' + classId);
+            const studentIds = slot
+                ? Array.from(slot.querySelectorAll('.edit-class-student-cb:checked')).map(cb => cb.value)
+                : [];
+            try {
+                await updateDoc(doc(db, 'classes', classId), { studentIds });
+                __editClassOpenId = null;
+                loadClassesList();
+            } catch (e) {
+                alert('Cập nhật danh sách học sinh thất bại: ' + e.message);
+            }
         }
 
         let __createClassFormOpen = false;
@@ -1217,6 +1277,11 @@
             const title = `${source === 'cam' ? 'Cambridge' : 'VOL'} ${book} - Test ${testNum}` + (scope !== 'all' ? ` (Passage ${scope})` : '');
             msgEl.innerHTML = 'Đang giao bài...';
             try {
+                // "Yêu cầu giao bài" (bản ghi assignments/submissions) tự hết hạn sau 10 ngày — xem
+                // cleanupExpiredAssignment() bên dưới. Với bài Reading có sẵn (tham chiếu qua readingUrl),
+                // chỉ bản ghi giao bài này bị xoá; đề đọc gốc (file HTML riêng) KHÔNG hề bị đụng tới.
+                const now = Date.now();
+                const expiresAt = now + 10 * 24 * 60 * 60 * 1000;
                 const assignRef = await addDoc(collection(db, 'assignments'), {
                     type: 'reading',
                     title,
@@ -1226,12 +1291,14 @@
                     targetType: target.targetType, targetId: target.targetId, targetLabel: target.targetLabel,
                     studentIds: target.studentIds,
                     deadline,
+                    expiresAt,
                     createdAt: serverTimestamp(),
                 });
                 await Promise.all(target.studentIds.map(uid => setDoc(doc(db, 'submissions', assignRef.id + '_' + uid), {
                     assignmentId: assignRef.id, studentId: uid, teacherId: currentUser.uid,
                     assignmentTitle: title, assignmentType: 'reading',
                     status: 'pending', percent: 0, score: null,
+                    expiresAt,
                     createdAt: serverTimestamp(),
                 })));
                 msgEl.innerHTML = '<span style="color:#2e7d32; font-weight:700;">✅ Đã giao bài cho ' + target.studentIds.length + ' học sinh!</span>';
@@ -1258,6 +1325,24 @@
             closeModal('assignmentComposerModal');
         }
 
+        // ============ TỰ ĐỘNG XOÁ "YÊU CẦU GIAO BÀI" SAU 10 NGÀY ============
+        // Không có Cloud Functions/cron ở backend nên dọn theo kiểu "lazy" — mỗi lần học sinh mở hộp
+        // thư bài tập hoặc giáo viên mở bảng tiến độ, những bản ghi đã hết hạn sẽ bị xoá luôn lúc đó.
+        // Với bài Reading/Listening có sẵn (tham chiếu qua readingUrl/tệp riêng): chỉ bản ghi giao bài
+        // (assignments/submissions) bị xoá, nội dung gốc vẫn còn nguyên ở nơi khác.
+        // Với bài Listening tuỳ chỉnh: nội dung (vocabList) được lưu ngay trong doc assignments, nên
+        // xoá doc = mất luôn nội dung tuỳ chỉnh đó — đúng như yêu cầu.
+        // Assignment cũ (tạo trước khi có field expiresAt) sẽ không tự xoá — tránh mất dữ liệu ngoài ý muốn.
+        function isAssignmentExpired(a) {
+            return typeof a.expiresAt === 'number' && a.expiresAt > 0 && Date.now() > a.expiresAt;
+        }
+        async function cleanupExpiredAssignment(assignmentId, uid) {
+            try {
+                await deleteDoc(doc(db, 'assignments', assignmentId));
+                if (uid) await deleteDoc(doc(db, 'submissions', assignmentId + '_' + uid));
+            } catch (e) { console.warn('cleanupExpiredAssignment', e); }
+        }
+
         // ============ "BÀI TẬP" — HỘP THƯ CỦA HỌC SINH ============
         let __myAssignmentsCache = [];
 
@@ -1281,7 +1366,17 @@
                 const assignments = []; assignSnap.forEach(d => assignments.push({ id: d.id, ...d.data() }));
                 const subsById = {}; subSnap.forEach(d => { const data = d.data(); subsById[data.assignmentId] = data; });
 
-                const merged = assignments.map(a => ({ assignment: a, submission: subsById[a.id] || { status: 'pending', percent: 0 } }));
+                const activeAssignments = [];
+                const expiredIds = [];
+                assignments.forEach(a => {
+                    if (isAssignmentExpired(a)) expiredIds.push(a.id);
+                    else activeAssignments.push(a);
+                });
+                if (expiredIds.length) {
+                    Promise.all(expiredIds.map(id => cleanupExpiredAssignment(id, currentUser.uid))).catch(() => {});
+                }
+
+                const merged = activeAssignments.map(a => ({ assignment: a, submission: subsById[a.id] || { status: 'pending', percent: 0 } }));
                 merged.sort((a, b) => {
                     const aDone = a.submission.status === 'done', bDone = b.submission.status === 'done';
                     if (aDone !== bDone) return aDone ? 1 : -1; // chưa xong lên trước
@@ -1428,7 +1523,20 @@
             el.innerHTML = '<p class="empty-hint">Đang tải tiến độ...</p>';
             try {
                 const snap = await getDocs(query(collection(db, 'submissions'), where('teacherId', '==', currentUser.uid)));
-                const subs = []; snap.forEach(d => subs.push({ id: d.id, ...d.data() }));
+                const allSubs = []; snap.forEach(d => allSubs.push({ id: d.id, ...d.data() }));
+
+                const subs = [];
+                const expiredSubs = [];
+                allSubs.forEach(s => {
+                    if (typeof s.expiresAt === 'number' && s.expiresAt > 0 && Date.now() > s.expiresAt) expiredSubs.push(s);
+                    else subs.push(s);
+                });
+                if (expiredSubs.length) {
+                    Promise.all(expiredSubs.map(s => Promise.all([
+                        deleteDoc(doc(db, 'submissions', s.id)),
+                        deleteDoc(doc(db, 'assignments', s.assignmentId))
+                    ]))).catch(() => {});
+                }
                 if (subs.length === 0) { el.innerHTML = '<p class="empty-hint">Bạn chưa giao bài tập nào.</p>'; return; }
 
                 const studentIds = [...new Set(subs.map(s => s.studentId))];
@@ -1472,7 +1580,8 @@
             openDashboard, openAssignmentsInbox, openAssignmentComposer,
             acSetTargetType, acOpenReadingPicker, acOpenListeningGenerator, acBackToChoices,
             acRefreshReadingBooks, acRefreshReadingTests, acSubmitReadingAssignment,
-            toggleCreateClassForm, submitNewClass, deleteClass, saveUserRole, openAssignmentByIndex
+            toggleCreateClassForm, submitNewClass, deleteClass, toggleEditClass, saveClassStudents,
+            saveUserRole, openAssignmentByIndex
         });
     </script>
 </body>
