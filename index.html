@@ -748,7 +748,11 @@
         document.addEventListener("DOMContentLoaded", function() {
             renderAllTestLinks(); // hiện ngay (Reading sẽ hiện "chưa có" cho tới khi manifest tải xong)
 
-            fetch('reading/manifest.json')
+            // Cache-bust CẢ ở tầng trình duyệt lẫn CDN của GitHub Pages ({cache:'no-store'} + query
+            // string đổi mỗi lần tải) — nếu không, sau khi giáo viên xuất bản đề mới, nhiều trình
+            // duyệt vẫn hiện danh sách Test CŨ trong menu Reading vì tự cache file JSON tĩnh này lại
+            // (không liên quan gì tới việc file trên GitHub đã cập nhật đúng hay chưa).
+            fetch('reading/manifest.json?v=' + Date.now(), { cache: 'no-store' })
                 .then(res => res.ok ? res.json() : null)
                 .then(data => { readingManifest = data; renderAllTestLinks(); })
                 .catch(() => { /* chưa có manifest (chưa xuất bản đề nào) — giữ trạng thái "chưa có" */ });
