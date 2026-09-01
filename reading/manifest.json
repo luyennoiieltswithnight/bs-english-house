@@ -1,6 +1,9 @@
 {
   "reading": {
     "cam": {
+      "9": {
+        "4": "reading/cam9/test4.html"
+      },
       "10": {
         "1": "reading/cam10/test1.html",
         "2": "reading/cam10/test2.html"
