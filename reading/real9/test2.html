@@ -1,0 +1,2148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading - VOL VOL 9 - Test 2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #729a65;
+            --panel-bg: #f9f5e8;
+            --border-color: #2c3e2d;
+            --text-color: #333;
+            --highlight-color: #ffeb3b;
+            --correct-color: #4caf50;
+            --incorrect-color: #f44336;
+            --primary-button: #e8b93b;
+            --hover-bg: #e0d9c5;
+        }
+
+        /* --- Exam mode ("Thi Thật"): minimal white theme, purple accent only ---
+             Applied by adding class="exam-mode" to <body> in startTest(). Practice
+             mode keeps the original green/parchment look untouched. */
+        body.exam-mode {
+            --bg-color: #ffffff;
+            --panel-bg: #ffffff;
+            --border-color: #6d3fa0;
+            --primary-button: #7c4dab;
+            --hover-bg: #f2ebfa;
+            background-image: none;
+        }
+        body.exam-mode .q-circle.answered { background-color: #e3d2f7; }
+        body.exam-mode .question-group { border-color: #e6dcf2; }
+        body.exam-mode .instruction { background: #faf7fd; }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+            background-size: 20px 20px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* Header Styles */
+        .header {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            background: none;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .part-indicator {
+            background-color: var(--border-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .question-nav {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .q-circle {
+            width: 24px;
+            height: 24px;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            background: white;
+            transition: background-color 0.2s;
+        }
+
+        .q-circle.answered {
+            background-color: #d1cbb8;
+        }
+
+        .timer {
+            border: 2px solid var(--border-color);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 16px;
+            font-weight: bold;
+            background: white;
+        }
+
+        .submit-btn {
+            background-color: var(--primary-button);
+            border: 2px solid var(--border-color);
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, filter 0.2s;
+        }
+
+        .submit-btn:hover { filter: brightness(1.1); }
+        .submit-btn:active { transform: scale(0.98); }
+
+        /* Main Content Area */
+        .main-container {
+            display: flex;
+            gap: 0;
+            flex: 1;
+            min-height: 0;
+            position: relative; /* For translation popup */
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            flex: 1;
+            min-width: 220px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Draggable resizer between the two panels */
+        .panel-resizer {
+            width: 18px;
+            flex-shrink: 0;
+            cursor: col-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+        }
+        .panel-resizer::after {
+            content: '';
+            width: 6px;
+            height: 56px;
+            border-radius: 6px;
+            background: rgba(44, 62, 45, 0.25);
+            transition: background 0.15s, height 0.15s;
+        }
+        .panel-resizer:hover::after,
+        .panel-resizer.dragging::after {
+            background: rgba(44, 62, 45, 0.55);
+            height: 80px;
+        }
+
+        .panel-content {
+            padding: 30px;
+            overflow-y: auto;
+            flex: 1;
+            scroll-behavior: smooth;
+        }
+
+        /* Reading Passage Styles */
+        .passage-text {
+            font-family: 'Source Serif Pro', serif;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .passage-text h2 {
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 30px;
+        }
+
+        .passage-text p {
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        .explanation-highlight {
+            background-color: var(--highlight-color);
+            padding: 2px 4px;
+            border-radius: 3px;
+            transition: background-color 0.5s;
+            border-bottom: 2px solid #e65100;
+        }
+
+        /* Questions Styles */
+        .question-group {
+            margin-bottom: 40px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .instruction {
+            font-style: italic;
+            margin-bottom: 20px;
+            color: #555;
+            background: #f5f5f5;
+            padding: 10px;
+            border-left: 4px solid var(--border-color);
+        }
+
+        .question-item {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            align-items: flex-start;
+            position: relative;
+        }
+        /* Điền từ / notes completion: các dòng gần nhau hơn để cả nhóm nhìn liền mạch như 1 khối
+           ghi chú duy nhất, thay vì từng câu tách xa nhau như thẻ riêng biệt. */
+        .question-item.compact-item { margin-bottom: 14px; }
+
+        .q-num {
+            background-color: white;
+            border: 2px solid var(--border-color);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .options-tf, .mcq-options {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .mcq-options { flex-direction: column; gap: 10px; }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .radio-label:hover { background: #f0f0f0; }
+
+        .text-input {
+            border: 1px solid #ccc;
+            border-bottom: 2px solid var(--border-color);
+            background: transparent;
+            padding: 5px;
+            font-family: inherit;
+            font-size: 16px;
+            width: 200px;
+            outline: none;
+            transition: background 0.2s;
+        }
+        .text-input:focus { background-color: rgba(255,255,255,0.8); }
+
+        /* Complete the summary/table — cả nhóm câu 'inline' chảy thành 1 đoạn văn liên tục, số
+           câu hỏi nằm ngay trong placeholder của ô nhập (không có vòng tròn số riêng). */
+        .inline-summary {
+            line-height: 2.6;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+        .inline-blank-wrap { display: inline-block; }
+        /* "Complete the notes" dạng khối ghi chú/outline (có tiêu đề, gạch đầu dòng, thụt lề...) —
+           giữ nguyên xuống dòng + khoảng trắng gốc y hệt giáo viên đã gõ (xem genNotesFromTemplate()),
+           KHÔNG gộp thành 1 đoạn văn chảy liên tục như .inline-summary thường (dùng cho câu văn thật). */
+        .inline-summary.notes-template {
+            white-space: pre-wrap;
+            line-height: 2.1;
+            font-family: inherit;
+        }
+        .inline-blank {
+            width: 130px;
+            text-align: center;
+            font-weight: 700;
+        }
+        .inline-blank::placeholder { font-weight: 800; color: var(--border-color); opacity: 0.8; }
+
+        /* Review Mode Features */
+        .feedback-box {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #6c757d;
+            border-radius: 0 4px 4px 0;
+            font-size: 14px;
+            animation: fadeIn 0.3s;
+        }
+
+        .feedback-box.correct { border-left-color: var(--correct-color); background: #f1f8e9; }
+        .feedback-box.incorrect { border-left-color: var(--incorrect-color); background: #ffebee; }
+
+        .explanation-text {
+            margin-top: 10px;
+            color: #333;
+            font-style: italic;
+            border-top: 1px dashed #ccc;
+            padding-top: 10px;
+        }
+
+        /* Optional diagram/labeling image, attachable to any question group */
+        .group-image-wrap { margin-bottom: 15px; text-align: center; }
+        .group-image { max-width: 100%; border-radius: 8px; border: 1px solid #ddd; }
+
+        /* --- Matching / Drag-and-drop question type --- */
+        .match-bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            border: 1px dashed #bbb;
+        }
+        .match-chip {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: grab;
+            touch-action: none;
+            user-select: none;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.08);
+            transition: opacity 0.15s;
+        }
+        .match-chip:active { cursor: grabbing; }
+        .match-chip-ghost {
+            opacity: 0.9;
+            box-shadow: 4px 6px 12px rgba(0,0,0,0.25);
+        }
+        .match-row { flex-wrap: wrap; }
+        .match-prompt-text { flex: 1; min-width: 160px; }
+        .match-slot {
+            min-width: 140px;
+            min-height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 14px;
+            border: 2px dashed #aaa;
+            border-radius: 8px;
+            background: #fafafa;
+            color: #999;
+            font-size: 13px;
+            font-weight: 600;
+            touch-action: none;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .match-slot.filled { border-style: solid; border-color: var(--border-color); background: white; color: var(--text-color); }
+        .match-slot.drag-over { background: var(--hover-bg); border-color: var(--primary-button); }
+
+        /* --- Matching Headings / Matching Names-Claims-Sentence Endings (dropdown-based) --- */
+        .match-legend .match-chip-static { cursor: default; }
+        .lettered-select {
+            border: 1px solid #ccc;
+            border-bottom: 2px solid var(--border-color);
+            background: white;
+            padding: 6px 8px;
+            font-family: inherit;
+            font-size: 14px;
+            border-radius: 4px;
+            min-width: 220px;
+            max-width: 100%;
+        }
+
+        /* --- Matching Information / Names / Features (grid/matrix) --- */
+        .grid-scroll-wrap { overflow-x: auto; margin: 10px 0; }
+        table.match-grid {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 13px;
+        }
+        table.match-grid th, table.match-grid td {
+            border: 1px solid #ddd;
+            padding: 8px 10px;
+            text-align: center;
+        }
+        table.match-grid thead th { background: #f5f5f5; font-weight: 800; }
+        table.match-grid td.grid-row-label { text-align: left; font-weight: 600; min-width: 220px; }
+        .grid-q-num {
+            display: inline-flex; width: 22px; height: 22px; font-size: 11px;
+            margin-right: 6px; vertical-align: middle;
+        }
+        table.match-grid input.grid-radio { width: 18px; height: 18px; cursor: pointer; }
+
+        /* --- "Choose N of M" multi-select checkboxes --- */
+        .multi-group .multi-hint {
+            margin: 0 0 10px 0; font-style: italic; font-weight: 600; color: #666;
+            padding: 6px 10px; background: #f5f5f5; border-left: 3px solid var(--border-color); border-radius: 0 4px 4px 0;
+        }
+        .multi-check-label input.multi-check { width: 16px; height: 16px; cursor: pointer; }
+        /* Nhãn "21-22" (gộp nhiều câu vào 1 nhóm) không vừa hình tròn q-num bình thường — đổi
+           sang hình bầu dục/chữ nhật bo góc, rộng vừa đủ chữ, tránh chữ số bị đè/tràn ra ngoài. */
+        .q-num.q-num-range {
+            width: auto; min-width: 40px; height: 24px; border-radius: 12px;
+            padding: 0 10px; font-size: 12px; white-space: nowrap;
+        }
+
+        /* --- Per-part grading bar (Practice mode only) --- */
+        .part-grade-bar { display: none; margin-bottom: 20px; text-align: right; }
+        .part-grade-bar.visible { display: block; }
+        .part-grade-btn {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 7px 16px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .part-grade-btn:hover { background: var(--hover-bg); }
+
+        .show-loc-btn {
+            background: var(--border-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .show-loc-btn:hover { opacity: 0.9; }
+
+        /* Annotation & Translation Toolbar */
+        #annot-toolbar {
+            position: absolute;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            border-radius: 30px;
+            padding: 8px 12px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            z-index: 1000;
+            font-family: 'Inter', sans-serif;
+            border: 1px solid #e5e5e5;
+        }
+
+        .annot-color {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            border: 1px solid rgba(0,0,0,0.15);
+            cursor: pointer;
+            padding: 0;
+            transition: transform 0.15s;
+        }
+        .annot-color:hover { transform: scale(1.12); }
+
+        .annot-divider {
+            width: 1px;
+            height: 22px;
+            background: #ddd;
+            flex-shrink: 0;
+        }
+
+        .annot-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 5px 8px;
+            border-radius: 6px;
+            color: #333;
+            white-space: nowrap;
+        }
+        .annot-btn:hover { background: #f0f0f0; }
+
+        .annot-translate {
+            font-weight: 700;
+            color: #1a73e8;
+        }
+
+        .user-annotation.user-highlight {
+            border-radius: 2px;
+            padding: 1px 0;
+        }
+
+        /* Translation Popup */
+        #trans-box {
+            position: absolute;
+            display: none;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            z-index: 1001;
+            width: 260px;
+            font-family: 'Inter', sans-serif;
+            border: 1px solid #e5e5e5;
+        }
+
+        .trans-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            background: #b4d17e;
+            color: #23331a;
+            padding: 14px 16px;
+        }
+
+        .trans-original-text {
+            font-weight: 700;
+            font-size: 15px;
+            line-height: 1.35;
+            word-break: break-word;
+        }
+
+        .close-trans {
+            cursor: pointer;
+            color: #23331a;
+            font-weight: 700;
+            flex-shrink: 0;
+            opacity: 0.7;
+        }
+        .close-trans:hover { opacity: 1; }
+
+        .trans-body { padding: 14px 16px; }
+
+        .trans-label {
+            font-size: 11px;
+            letter-spacing: 1px;
+            color: #999;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .trans-result { font-size: 16px; font-weight: 600; color: #222; line-height: 1.4; }
+
+        .trans-actions { display: flex; border-top: 1px solid #eee; }
+
+        .trans-action-btn {
+            flex: 1;
+            padding: 12px 8px;
+            border: none;
+            background: white;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+            color: #333;
+        }
+        .trans-action-btn:first-child { border-right: 1px solid #eee; }
+        .trans-action-btn:hover { background: #f5f5f5; }
+        .trans-save-btn { color: #1a73e8; }
+
+        /* Vocabulary Notebook */
+        #vocab-list .vocab-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+        #vocab-list .vocab-en { font-weight: 700; }
+        #vocab-list .vocab-vi { color: #555; font-size: 14px; }
+        #vocab-list .vocab-date { color: #aaa; font-size: 11px; }
+        .vocab-del-btn { background: none; border: none; color: #f44336; cursor: pointer; font-size: 15px; }
+
+        /* Setup & Modal Screens */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal-box {
+            background: var(--panel-bg);
+            padding: 40px;
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .mode-select { display: flex; gap: 20px; margin: 30px 0; justify-content: center; }
+        .mode-btn {
+            padding: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            width: 200px;
+            transition: all 0.2s;
+        }
+        .mode-btn:hover { background: #f0f0f0; transform: translateY(-2px); }
+        .mode-btn.selected { background: var(--primary-button); border-width: 3px; }
+
+        .passage-tabs { display: flex; gap: 5px; margin-right: 15px; }
+        .tab-btn {
+            padding: 5px 15px;
+            border: 2px solid var(--border-color);
+            background: #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .tab-btn.active { background: var(--primary-button); }
+
+        .content-wrapper { display: none; }
+        .content-wrapper.active { display: block; animation: fadeIn 0.4s; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .score-display { font-size: 48px; font-weight: bold; color: var(--border-color); margin: 20px 0; }
+        .band-display { font-size: 24px; color: #d32f2f; font-weight: bold; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <!-- Floating Annotation Toolbar -->
+    <div id="annot-toolbar">
+        <button class="annot-color annot-color-practice" data-color="#aecbfa" style="background:#aecbfa" title="Highlight xanh dương"></button>
+        <button class="annot-color annot-color-practice" data-color="#f8bbd0" style="background:#f8bbd0" title="Highlight hồng"></button>
+        <button class="annot-color annot-color-practice" data-color="#b9f6ca" style="background:#b9f6ca" title="Highlight xanh lá"></button>
+        <button class="annot-color annot-color-practice" data-color="#fff59d" style="background:#fff59d" title="Highlight vàng"></button>
+        <button class="annot-color annot-color-exam" data-color="#7a1a35" data-text-color="#ffffff" style="background:#7a1a35; display:none;" title="Highlight rượu vang"></button>
+        <span class="annot-divider"></span>
+        <button class="annot-btn" id="annot-underline" title="Gạch chân"><u>U</u></button>
+        <button class="annot-btn" id="annot-strike" title="Gạch ngang"><s>abc</s></button>
+        <button class="annot-btn" id="annot-erase" title="Xóa định dạng">🧹</button>
+        <span class="annot-divider"></span>
+        <button class="annot-btn annot-translate" id="annot-translate-btn" title="Dịch">🌐 Dịch</button>
+    </div>
+
+    <!-- Translation Popup -->
+    <div id="trans-box">
+        <div class="trans-header">
+            <span id="trans-original" class="trans-original-text"></span>
+            <span class="close-trans" onclick="closeTranslation()">✖</span>
+        </div>
+        <div class="trans-body">
+            <div class="trans-label">TIẾNG VIỆT</div>
+            <div id="trans-result" class="trans-result">Đang dịch...</div>
+        </div>
+        <div class="trans-actions">
+            <button class="trans-action-btn" id="tts-play">🔊 Nghe</button>
+            <button class="trans-action-btn trans-save-btn" id="save-vocab-btn">➕ Lưu vào Sổ</button>
+        </div>
+    </div>
+
+    <!-- Vocabulary Notebook Modal -->
+    <div id="vocab-modal" class="overlay" style="display:none;">
+        <div class="modal-box" style="max-width:480px; text-align:left;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 style="margin:0;">📖 Sổ từ vựng của bạn</h2>
+                <span class="close-trans" onclick="closeVocabBook()" style="font-size:18px;">✖</span>
+            </div>
+            <div id="vocab-list" style="max-height:420px; overflow-y:auto; margin-top:15px;"></div>
+        </div>
+    </div>
+
+    <!-- Setup Screen -->
+    <div id="setup-screen" class="overlay">
+        <div class="modal-box">
+            <h1>IELTS Reading - VOL VOL 9 - Test 2</h1>
+            <p>Chọn chế độ làm bài:</p>
+            <div class="mode-select">
+                <button class="mode-btn selected" id="btn-practice" onclick="selectMode('practice')">
+                    <h3>Chế độ Luyện Tập</h3>
+                    <p>Làm từng Passage. Xem điểm & Giải thích chi tiết ngay.</p>
+                </button>
+                <button class="mode-btn" id="btn-exam" onclick="selectMode('exam')">
+                    <h3>Chế độ Thi Thật</h3>
+                    <p>60 phút đếm ngược. Làm full 3 Passages. Trả điểm Band IELTS.</p>
+                </button>
+            </div>
+
+            <div id="passage-selector" style="margin: 20px 0;">
+                <label>Chọn Passage (Luyện tập): </label>
+                <select id="passage-dropdown" style="padding: 8px; border-radius: 4px;"></select>
+            </div>
+
+            <button class="submit-btn" style="font-size: 18px; padding: 12px 30px;" onclick="startTest()">Bắt đầu làm bài</button>
+        </div>
+    </div>
+
+    <!-- Results Modal -->
+    <div id="results-modal" class="overlay" style="display: none;">
+        <div class="modal-box">
+            <h2 id="results-modal-title">Kết quả làm bài</h2>
+            <div id="homework-success-banner" style="display:none; margin-bottom:14px; padding:10px 14px; border-radius:10px; background:#e6f4d9; border:2px solid #4b7a2a; color:#2B4214; font-weight:800;">
+                ✅ Đã nộp homework thành công! Giáo viên sẽ thấy kết quả này.
+            </div>
+            <div class="score-display">
+                <span id="score-correct">0</span> / <span id="score-total">40</span>
+            </div>
+            <div class="band-display" id="band-container" style="display:none;">
+                Estimated Band: <span id="band-score">0.0</span>
+            </div>
+            <p style="margin-bottom: 20px; color: #555;">Bạn có thể xem lại chi tiết đáp án, lời giải thích và vị trí thông tin trong bài đọc.</p>
+            <button class="submit-btn" onclick="closeResultsAndReview()">Xem giải thích chi tiết</button>
+        </div>
+    </div>
+
+    <!-- Main Interface -->
+    <div class="header">
+        <div class="header-left">
+            <button class="nav-btn" onclick="exitTest()">← Thoát</button>
+            <div class="passage-tabs" id="passage-tabs">
+                <button class="tab-btn active" onclick="switchPassage(1)">P1</button>
+                <button class="tab-btn" onclick="switchPassage(2)">P2</button>
+                <button class="tab-btn" onclick="switchPassage(3)">P3</button>
+            </div>
+            <span class="part-indicator" id="current-passage-indicator">PASSAGE 1</span>
+
+            <!-- Navigation Circles -->
+            <div class="question-nav" id="q-nav-p1"></div>
+            <div class="question-nav" id="q-nav-p2" style="display:none;"></div>
+            <div class="question-nav" id="q-nav-p3" style="display:none;"></div>
+        </div>
+        <div class="header-right">
+            <button class="nav-btn" onclick="openVocabBook()">📖 Sổ từ vựng (<span id="vocab-count">0</span>)</button>
+            <div class="timer" id="timer-display" style="display:none;">60:00</div>
+            <button class="submit-btn" id="main-submit-btn" onclick="submitTest()">Nộp bài</button>
+        </div>
+    </div>
+
+    <div class="main-container" id="main-workspace">
+
+        <!-- LEFT PANEL: Reading Passage -->
+        <div class="panel" id="panel-passage">
+            <div class="panel-content passage-text">
+
+                <!-- PASSAGE 1 -->
+                <div id="passage-1-text" class="content-wrapper active" data-title="Andrew Carnegie: industrialist and philanthropist">
+                    <p style="color: #666; font-size: 14px;">READING PASSAGE 1</p>
+                    <h2>Andrew Carnegie: industrialist and philanthropist</h2>
+                    <p>The Scottish-born American industrialist and philanthropist Andrew Carnegie, who was the leader of the American steel industry from 1873 to 1901, donated large sums of his fortune to educational, cultural, and scientific institutions. He was born in 1835 in Scotland, the son of William Carnegie, a weaver, and Margaret Morrison Carnegie.</p>
+<p>With the invention of weaving machines, William Carnegie’s job disappeared, and eventually the family was forced into poverty. In 1848 the family left Scotland and settled in Pittsburgh, Pennsylvania, in the USA. William found a job in a cotton factory, but he soon quit to return to his home handloom, making linens and trying to sell them door-to-door. <span id="loc-1">Andrew Carnegie also worked in the cotton factory</span>, but after his father died in 1855, his strong desire to help take care of the family pushed him to educate himself. <span id="loc-2">He became an avid reader, a theatergoer, and a lover of music</span>.</p>
+<p>Andrew Carnegie became a messenger boy in a telegraph office and later became a telegraph operator. Thomas A. Scott, superintendent of the western division of the Pennsylvania Railroad, <span id="loc-3">made the eighteen-year-old his secretary</span>. Carnegie was soon earning enough to buy a house for his mother. During the Civil War in the United States (1861-65), he helped organize the military telegraph system, but soon returned to Pittsburgh to take Scott’s old job with the railroad.</p>
+<p>Between 1865 and 1870 Carnegie made money through investments in several small iron mills and factories. He also traveled throughout England, selling the bonds of small United States railroads and bridge companies. Carnegie began to see that <span id="loc-4">steel was eventually going to replace iron</span> for the manufacture of rails, structural shapes, pipe, and wire. In 1873 he organized a steel rail company and <span id="loc-5">continued building by cutting prices</span>, driving out competitors, shaking off weak partners, and putting earnings back into the company. He never went public (sold shares of his company in order to raise money). Instead he obtained capital from profit, and <span id="loc-6">when necessary from banks</span>, and he kept on growing, making heavy steel alone.</p>
+<p>In the 1880s Carnegie’s purchases included a majority stake in the H C Frick Company in Pennsylvania that had vast coal interests, and also the Homestead mills business. Frick became his partner and eventually chairman of the Carnegie Company. Carnegie had moved to New York City in 1867 to be close to the marketing centers for steel products, while Frick stayed in Pennsylvania as the general manager. They made a good team, Behind the scenes, <span id="loc-7">Carnegie planned new projects and the improvement of existing plants</span>; Frick was the working director who watched over the mass-production programs that helped keep price down.</p>
+<p>Carnegie spent his leisure time traveling. He also wrote several books, including Triumphant Democracy (1886), which pointed out what he thought were <span id="loc-8">the advantages of life in the United States over the unequal societies of Britain and other European countries</span>. To Carnegie, access to education was the key to America’s political stability and industrial accomplishments. In 1889 he published an article, ‘Wealth’, stating his belief that the rich had a duty to use their money to improve the welfare of the community. Carnegie remained a bachelor until his mother died in 1886. A year Inter he married Louise Whitfield and they had one child together. The couple began to spend six months each year in Scotland, though Carnegie kept an eye on business developments and problems.</p>
+<p>Carnegie’s absence from the United States was a factor in the Homestead mills strike of 1892. After acquiring Homestead, Carnegie had invested in new plants and equipment, increased production, and automated many of the mill’s operations, <span id="loc-9">cutting down the number of workers that were needed</span>. <span id="loc-10">Carnegie believed that workers had a right to join unions</span> and to bargain with management through their unions. He also recognized the right to strike, as long as the action was conducted peacefully. He viewed strikes as trials of strength, with peaceful discussion resolving the conflict. In contract talks during 1892, Frick wanted to lower the minimum wage because of the need for fewer workers. The union representing his workers would not accept this and organized a strike.</p>
+<p>Following a violent confrontation that resulted in the death of eight workers, soldiers were sent in to restore order and <span id="loc-11">Carnegie was criticized for his lack of action</span>. In the 1890s Carnegie also began to meet with tougher competition from newer, bigger companies who were interested in controlled prices and sharing the market. Companies that he had sold to for years threatened to cut down their purchases unless be agreed to cooperate. These threats made him decide to fight back. <span id="loc-12">He refused to enter into any agreements with other companies</span>. Moreover, he decided to invade their territories by making similar products and by expanding his sales activities into the west of the country. Eventually, though, he decided to sell his company to the newly formed U.S. Steel Corporation in 1901 for almost $500 million. Carnegie’s personal share was $225 million.</p>
+<p>In retirement, Carnegie began to set up trust funds ‘for the improvement of mankind’. <span id="loc-13">He built some three thousand public libraries all over the English-speaking world</span> and funded galleries, museums and concert halls in the US. He also built a group of technical schools, a research institute, and a foundation providing pensions for university professors. When Carnegie died in 1919, the continuation of his broad interests was put under the general charge of the Carnegie Corporation, with a donation of $125 million.</p>
+                </div>
+
+                <!-- PASSAGE 2 -->
+                <div id="passage-2-text" class="content-wrapper" data-title="Translating: a key to international understanding?">
+                    <p style="color: #666; font-size: 14px;">READING PASSAGE 2</p>
+                    <h2>Translating: a key to international understanding?</h2>
+                    <p>A    The term ‘translation’ is used for all cases where the meaning of expressions in one language (the ‘source’ language) is turned into the meaning in another (the target language), whether the medium is spoken, written, or signed. In specific professional contexts, however, a distinction is drawn between work with the spoken or signed language (interpreting), and work with the written language (translating), although certain tasks blur this distinction.</p>
+<p>B    It is sometimes said that there is no task more complex than translation a claim that can be readily believed when all the variables involved are taken into account. Translators not only need to know their source language well; they must also have a thorough understanding in the field of knowledge covered by the source text, and of any social, cultural, or emotional connotations that need to be specified in the target language if the intended effect is to be conveyed. <span id="loc-24">The same special awareness needs to be present for the target language</span>, so that points of special phrasing, contemporary fashions in expression, local expectations, and so on, can all be taken into account. On the whole, translators work into their mother tongue (or language of habitual use), to ensure a result that sounds as natural as possible though some translators have argued that, for certain types of text (e.g., scientific material) where translation accuracy is more crucial than naturalness, it makes more sense for the translators to be more fluent in the source language.</p>
+<p>C    <span id="loc-16">The aim of translation is to provide semantic equivalence between source and target language</span>. This is what makes translation different from other linguistic activities, such as adapting, precise writing, and abstracting. However, there are many problems hidden within this apparently simple statement, all to do with what standards of ‘equivalence’ should be expected and accepted.</p>
+<p>D    Exact equivalence is of course impossible: no translator could provide a translation that was a perfect parallel to the source text, in such respects as rhythm, puns and cultural allusions. Such a parallel is not even possible when paraphrasing within a single language: there is always some loss of information.</p>
+<p>E    On the other hand, there are many kinds of inexact equivalence, any of which can be successful at a certain level of practical functioning. <span id="loc-25">It therefore follows that there is no such thing as a best translation</span>. <span id="loc-14"><span id="loc-17">The success of translation depends on the purpose for which it was made</span>, which in turn reflects the needs of the people for whom it was made</span>. A rough and-ready translation of a letter can suffice to inform a firm of the nature of an enquiry. A translation of a scientific article requires careful attention to meaning but <span id="loc-18">little attention to stylistic features</span>. The provision of a dubbed film script will warrant scrupulous care over the synchronisation of lip movements, <span id="loc-19">often at the expense of content</span>. Literary work requires a sensitive consideration of form as well as content, and may prompt several translations, each of which emphasises a different aspect of the original. It is easy to see what might be ‘best’ for one set of circumstances may be entirely unsuitable for another.</p>
+<p>F    Several different kinds of translation have been proposed to allow for this range of possibilities. <span id="loc-20">A pragmatic translation emphasises accuracy and knowledge of the subject</span>, required for instruction manuals and much scientific research. In an aesthetic translation, important for literary material, the focus is on preserving the emotional as well as the cognitive content of the work, and on maintaining some level of stylistic equivalence. <span id="loc-21">Ethnographic or sociolinguistic translations aim to pay full attention to the cultural backgrounds of the authors and the recipients</span>, and take into account differences between source and target language, and the ways of life in which they are embedded. And there are various kinds of linguistic translation, where the aim is to convey the structural flavour of the original text, often in quite a literal manner, emphasising such features as archaisms, dialecticisms, and levels of formality. Most translations, of course, are mixtures of these theoretical types, reflecting the complex reality of language in use.</p>
+<p>G    At another level, in a word-for-word translation each word in the source language is translated by a word in the target language. The result often makes no sense, especially when idiomatic constructions are used. <span id="loc-22">In a literal translation the linguistic structure of the source text is followed, but is normalised according to the rules of the target language</span>. <span id="loc-23">In a free translation the linguistic structure of the source language is ignored, and an equivalent is found based on the meaning it conveys</span>.</p>
+<p>H    Translators aim to produce a text that is as faithful to the original as circumstances require or permit, and <span id="loc-26">yet that reads as if it were written originally in the target language</span>. They aim to be “invisible people” - transferring content without drawing attention to the considerable artistic and technical skills involved in the process. The complexity of the task is apparent, but its importance is often underestimated, and its practitioners’ social status and legal rights undervalued. <span id="loc-15">Some countries view translation as a menial, clerical task, and pay their translators accordingly, while others regard it as a major intellectual discipline in its own right</span>. The question of status is currently much debated, particularly in Europe, where demand for translators is rocketing, especially in relation to the European Union.</p>
+                </div>
+
+                <!-- PASSAGE 3 -->
+                <div id="passage-3-text" class="content-wrapper" data-title="The mystery of Easter Island">
+                    <p style="color: #666; font-size: 14px;">READING PASSAGE 3</p>
+                    <h2>The mystery of Easter Island</h2>
+                    <p>The giant stone statues of Easter Island in the Pacific Ocean have perplexed archaeologists ever since European explorers first witnessed them three centuries ago. Jacob Roggeveen, the Dutch seaman who gave the island its name in 1722, was amazed by the statues, each of which clearly weighed several tonnes. But as <span id="loc-27">there were no forests on the island</span>, he could not comprehend how people devoid of heavy timber could build and erect something that size. It was also remarkable considering the absence of metal objects for carving and cutting, and the reliance on mere human strength as no draught animals could be seen either. Roggeveen was equally amazed as to how the islanders could have come to colonise such a remote place. <span id="loc-28">Their canoes were leaky and frail</span>, not the sort of ocean-going craft that could survive a three-week sea journey. At the time of his visit, it seemed evident <span id="loc-29">the islanders were living in extremely poor conditions</span> and that <span id="loc-30">there was no cultivation of crops</span>.</p>
+<p>What was the mystery behind the statues? In the 1970s, the author Erich von Däniken suggested the statues were the work of extraterrestrial beings. It was hard to believe the stones were the work of humans who were more than 2,000 miles from the nearest mainland, so <span id="loc-31">for a short period of time his theory appealed to those fascinated with space travel</span>. <span id="loc-40">But for serious academics, the puzzle of the statues has caused a deep divide</span>. <span id="loc-32">Some archaeologists see Easter Island as an example</span> of what can happen when the lust for material splendour - ever bigger stone carvings in this case is satisfied at the expense of the environment. Others, meanwhile, take a different view. The island, these scholars argue, <span id="loc-33">suffered at the hands of introduced diseases, notably smallpox</span>, and a slave trade that stole a huge proportion of its indigenous population. At the heart of the debate is the issue of the island’s deforestation. <span id="loc-34">There is no doubt that the island was once covered in palm trees</span>. There is also no doubt that something happened that caused the island to become completely denuded over a short period of time. But was it the islanders who triggered this environmental degradation or another event beyond their control, such as the introduction of rats? It is an indisputable fact that rats found their way to the island, although <span id="loc-35">exactly how is a matter of debate</span>.</p>
+<p>In 2005, the anthropologist Jared Diamond claimed the islanders started building ceremonial statues in an atmosphere of rivalry between the many clans. To move the statues from the island’s quarry in the south-east, <span id="loc-36">they needed to cut large logs for the construction of long ‘canoe ladders’ to carry them to the coast</span>. For its transport alone, each statue would have required several trees to be cut down. As a result of the deforestation, Diamond believes food production fell dramatically. Consequently the population collapsed from perhaps as many as 15,000 to the few thousand that were eking out a living by the time Roggeveen arrived. Smallpox and slavery killed off those who remained, but the islanders were on the way to total collapse even without any European contact, says Diamond.</p>
+<p>But not everyone is convinced. Professor Terry Hunt, an anthropologist at the University of Hawaii, says: ‘There is no evidence that a population collapse occurred before European contact.’ He is supported by Professor Carl Lipo of California State University. They argue that Easter Island was colonised by the first Polynesian seafarers nowhere near as early as supposed. <span id="loc-37">They say the first people to arrive came around AD1200, about 400 years later than other scientists have suggested</span> from radio-carbon dating. This makes it implausible for the population to have reached the 15,000 figure that would have caused such a fast ecocide. They also believe the deforestation occurred over a longer period as a result of climate change, and rats probably also played a part. The islanders did not go through a population collapse until after the arrival of Europeans, they say.</p>
+<p>Hunt has examined new data from the Hawaiian and other Pacific islands that shows that by early historic times the deforestation of Easter Island was already complete, or nearly so. A dense forest of palm trees and shrubs had mostly disappeared and as a result, as many as six land bird species had also become extinct. Crucially, much of the forest damage appears to have been done before evidence of fires on the island. However, <span id="loc-38">almost all of the palm seed shells discovered on the island were found to have been gnawed by rats</span> which would have made them unable to germinate. Evidence from other Pacific islands also confirms how destructive rats can be. However, John Flenley of New Zealand’s Massey University, who carried out much of the radio-carbon work on Easter Island, says there is ample evidence for a much earlier arrival of Polynesian settlers. <span id="loc-39">He refutes the arguments of the sceptics</span>: whilst admitting that the Europeans did bring certain disasters, he maintains that Hunt and Lipo are ignoring archaeological, botanical and sedimentological evidence proving the island was transformed from a subtropical rainforest to a treeless landscape. The radio-carbon dating points to an initial colonisation before AD900, Flenley argues. This was ample time for the rapid deforestation, environmental collapse and a population crash, he insists.</p>
+<p>Why all this is important today is not, of course, lost in the age of globalisation, climate change and a rapidly growing world population in the billions. As Diamond says: ‘The parallels between Easter Island and the whole of the modern world are chillingly obvious.’</p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- DRAGGABLE RESIZER -->
+        <div class="panel-resizer" id="panel-resizer"></div>
+
+        <!-- RIGHT PANEL: Questions -->
+        <div class="panel" id="panel-questions">
+            <div class="panel-content" id="questions-container">
+                <!-- JavaScript will inject questions here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Data Structure (generated by the Test Builder tool) ---
+        // questionsData[passageIndex] = array of question groups for that passage
+        const questionsData = [[{"instruction":"Complete the notes below. Write ONE WORD ONLY from the passage for each answer.","type":"text","reference":"Questions 1–7 — Carnegie’s Life","imageUrl":"","notesTemplate":"Carnegie’s Life\n\n1835–1855\n• found employment in the same workplace as his _____\n• educated himself through books, theatrical performances and _____\n\n1855–1865\n• worked in a telegraph office\n• became _____ to Thomas A Scott at Pennsylvania Railroad\n\n1865–1870\n• made investments in the US and England\n• realised that changing engineering needs would require a greater demand for _____\n\n1873\n• managed a rail manufacturing business by:\n\n* reducing _____\n* restructuring\n* reinvesting profit and sometimes borrowing money from _____\n\n1880s\n• Frick and Carnegie became partners\n• Carnegie’s responsibilities:\n\n* arranging future _____ and innovations for factories\n* Frick’s responsibilities: Production","questions":[{"text":"found employment in the same workplace as his _____","answer":"father","exp":"Andrew Carnegie cũng làm việc trong cotton factory, nơi cha ông đã từng làm việc. Vì vậy đáp án là “father”.","loc":"loc-1"},{"text":"educated himself through books, theatrical performances and _____","answer":"music","exp":"“Avid reader” tương ứng với books, “theatergoer” tương ứng với theatrical performances, và “lover of music” cho đáp án “music”.","loc":"loc-2"},{"text":"became _____ to Thomas A Scott at Pennsylvania Railroad","answer":"secretary","exp":"Thomas A. Scott đã bổ nhiệm Carnegie làm thư ký của mình tại Pennsylvania Railroad. Vì vậy đáp án là “secretary”.","loc":"loc-3"},{"text":"realised that changing engineering needs would require a greater demand for _____","answer":"steel","exp":"Carnegie nhận ra rằng steel cuối cùng sẽ thay thế iron trong sản xuất rails, structural shapes, pipe và wire, nên nhu cầu về steel sẽ tăng lên.","loc":"loc-4"},{"text":"managed a rail manufacturing business by reducing _____","answer":"prices","exp":"“Cutting prices” có nghĩa là giảm giá, nên từ cần điền là “prices”.","loc":"loc-5"},{"text":"reinvesting profit and sometimes borrowing money from _____","answer":"banks","exp":"Carnegie lấy vốn từ lợi nhuận và khi cần thiết thì vay vốn từ “banks”. Vì vậy đáp án là “banks”.","loc":"loc-6"},{"text":"arranging future _____ and innovations for factories","answer":"projects","exp":"Carnegie chịu trách nhiệm lên kế hoạch cho các “new projects” và cải tiến các nhà máy hiện có. Vì vậy đáp án là “projects”.","loc":"loc-7"}]},{"instruction":"TRUE / FALSE / NOT GIVEN","type":"tfng","reference":"Questions 8–13","imageUrl":"","labels":["TRUE","FALSE","NOT GIVEN"],"questions":[{"text":"Carnegie believed that the USA offered more opportunities than European countries did.","answer":"TRUE","exp":"Carnegie cho rằng cuộc sống ở Hoa Kỳ có những lợi thế so với Anh và các nước châu Âu khác. Vì vậy nhận định phù hợp với quan điểm của ông và là TRUE.","loc":"loc-8"},{"text":"A smaller workforce was required at the Homestead factory after Carnegie took control.","answer":"TRUE","exp":"Sau khi tiếp quản Homestead, Carnegie tự động hóa nhiều hoạt động của nhà máy, từ đó làm giảm số lượng công nhân cần thiết. Vì vậy đáp án là TRUE.","loc":"loc-9"},{"text":"Carnegie prevented his workers from joining unions.","answer":"FALSE","exp":"Nhận định nói Carnegie ngăn công nhân gia nhập công đoàn, nhưng bài đọc nói ngược lại: ông tin công nhân có quyền gia nhập unions. Vì vậy đáp án là FALSE.","loc":"loc-10"},{"text":"Carnegie blamed Frick for the violent workers strike in 1892.","answer":"NOT GIVEN","exp":"Bài chỉ nói Carnegie bị chỉ trích vì thiếu hành động sau cuộc đối đầu bạo lực. Không có thông tin cho biết ông đổ lỗi cho Frick, nên đáp án là NOT GIVEN.","loc":"loc-11"},{"text":"In the 1890s Carnegie negotiated with his competitors.","answer":"FALSE","exp":"Carnegie phải đối mặt với cạnh tranh gay gắt nhưng ông từ chối tham gia bất kỳ thỏa thuận nào với các công ty khác. Vì vậy nhận định là FALSE.","loc":"loc-12"},{"text":"Carnegie’s provision of funds for libraries was limited to those in the United States.","answer":"FALSE","exp":"Carnegie xây khoảng 3.000 thư viện trên khắp English-speaking world, không chỉ ở Hoa Kỳ. Vì vậy đáp án là FALSE.","loc":"loc-13"}]}],[{"instruction":"Which paragraph contains the following information?","type":"grid","reference":"Questions 14–15","imageUrl":"","options":["A","B","C","D","E","F","G","H"],"questions":[{"text":"the effect that a client’s requirements have on the nature of a translation","answer":"E","exp":"Đoạn E cho biết sự thành công của bản dịch phụ thuộc vào mục đích và nhu cầu của những người sử dụng bản dịch. Vì vậy đoạn E chứa thông tin này.","loc":"loc-14"},{"text":"contrasting attitudes towards translators","answer":"H","exp":"Đoạn H đưa ra hai quan điểm đối lập về dịch thuật: một số nơi xem đây là công việc hành chính tầm thường, trong khi nơi khác coi đây là một ngành trí tuệ quan trọng. Vì vậy đáp án là H.","loc":"loc-15"}]},{"instruction":"Complete the summary below. Write NO MORE THAN TWO WORDS from paragraphs C, D and E for each answer.","type":"text","reference":"Questions 16–19 — The goal of translation","imageUrl":"","questions":[{"text":"Translation is an attempt to create a text in the target language which displays _____ with a source text.","answer":"semantic equivalence","exp":"Đoạn C nói trực tiếp rằng mục tiêu của translation là tạo ra “semantic equivalence” giữa source và target language.","loc":"loc-16"},{"text":"It is inevitable that not all information can be conveyed, however, so translations are best judged according to their _____.","answer":"purpose","exp":"Vì không thể đạt được sự tương đương hoàn hảo, bản dịch được đánh giá dựa trên “purpose”, tức mục đích của bản dịch.","loc":"loc-17"},{"text":"The translator of a business letter or scientific text does not need to consider its _____ aspects.","answer":"stylistic","exp":"Với scientific article, người dịch cần chú ý đến meaning nhưng chỉ cần ít chú ý đến stylistic features. Vì vậy đáp án là “stylistic”.","loc":"loc-18"},{"text":"Someone dubbing a film may give a relatively low value to _____.","answer":"content","exp":"Khi lồng tiếng phim, sự đồng bộ chuyển động môi được ưu tiên, đôi khi phải đánh đổi content. Vì vậy đáp án là “content”.","loc":"loc-19"}]},{"instruction":"Look at the following features of translating and the types of translation below. Match each feature with the correct type of translation, A-F.","type":"list_match","reference":"Questions 20–23","imageUrl":"","options":["A. aesthetic","B. ethnographic","C. free","D. literal","E. pragmatic","F. word-for-word"],"questions":[{"text":"focuses on reproducing the content accurately","answer":"E","exp":"Pragmatic translation nhấn mạnh tính chính xác và kiến thức chuyên môn, nên phù hợp với việc tái hiện nội dung chính xác. Đáp án là E.","loc":"loc-20"},{"text":"looks at important cultural aspects of language use","answer":"B","exp":"Ethnographic translation chú trọng đến bối cảnh văn hóa của tác giả và người tiếp nhận. Vì vậy đáp án là B.","loc":"loc-21"},{"text":"follows the original grammatical structures as required by the target language","answer":"D","exp":"Literal translation giữ cấu trúc của source text nhưng chuẩn hóa theo quy tắc của target language. Vì vậy đáp án là D.","loc":"loc-22"},{"text":"focuses on meaning without necessarily using the original grammatical structures","answer":"C","exp":"Free translation bỏ qua cấu trúc của source language và tập trung tìm cách diễn đạt tương đương dựa trên meaning. Vì vậy đáp án là C.","loc":"loc-23"}]},{"instruction":"Choose THREE correct answers.","type":"multi","reference":"Questions 24–26","imageUrl":"","options":["A. The objectives of translating are always clearly different from those of interpreting.","B. A translator may need to consider the culture of the target language.","C. Translation is an activity which requires professional training.","D. It is difficult to specify what constitutes a very good translation.","E. The skill required for translation is increasingly gaining recognition.","F. A translation should give the impression of being an original work."],"pickCount":3,"questions":[{"text":"","answer":"B","exp":"Đoạn B cho biết người dịch cần xem xét các yếu tố xã hội, văn hóa và cảm xúc, đồng thời cần có sự nhận thức đặc biệt đối với target language. Vì vậy B đúng.","loc":"loc-24"},{"text":"","answer":"D","exp":"Đoạn E khẳng định không có một “best translation” tuyệt đối vì bản dịch phù hợp với hoàn cảnh này có thể không phù hợp với hoàn cảnh khác. Vì vậy D đúng.","loc":"loc-25"},{"text":"","answer":"F","exp":"Đoạn H nói bản dịch phải trung thành với bản gốc nhưng vẫn đọc như thể nó được viết nguyên bản bằng target language. Vì vậy F đúng.","loc":"loc-26"}]}],[{"instruction":"Complete the summary using the list of words and phrases, A-D, below.","type":"text","reference":"Questions 27–30 — Early European reaction to the discovery of Easter Island","imageUrl":"","questions":[{"text":"Firstly, it was clear that they were immensely heavy, and there was no _____ around, which would have helped with their construction.","answer":"wood","exp":"Roggeveen không thể hiểu cách người dân xây dựng các bức tượng khổng lồ vì trên đảo không có rừng hay heavy timber. Vì vậy đáp án là “wood”.","loc":"loc-27"},{"text":"Another mystery was the poor quality of the local inhabitants’ _____","answer":"boats","exp":"Những chiếc canoes của người dân bị rò rỉ và yếu, không thích hợp cho hành trình dài trên biển. “Boats” là từ phù hợp với thông tin trong bài.","loc":"loc-28"},{"text":"At the time of Roggeveen’s visit, he observed that the people were living in _____","answer":"poverty","exp":"“Extremely poor conditions” tương ứng với tình trạng “poverty”, nên đáp án là “poverty”.","loc":"loc-29"},{"text":"There was no evidence of successful _____ on the island.","answer":"agriculture","exp":"“No cultivation of crops” cho thấy không có hoạt động nông nghiệp thành công trên đảo. Vì vậy đáp án là “agriculture”.","loc":"loc-30"}]},{"instruction":"YES / NO / NOT GIVEN","type":"tfng","reference":"Questions 31–35","imageUrl":"","labels":["YES","NO","NOT GIVEN"],"questions":[{"text":"Erich von Däniken’s claims were briefly accepted by some sections of society.","answer":"YES","exp":"Trong một thời gian ngắn, lý thuyết của von Däniken thu hút những người say mê du hành vũ trụ. Điều này cho thấy lý thuyết của ông được một bộ phận xã hội hưởng ứng.","loc":"loc-31"},{"text":"Archaeologists removed valuable artefacts from the island.","answer":"NOT GIVEN","exp":"Bài đọc không đề cập việc các nhà khảo cổ lấy các hiện vật có giá trị khỏi đảo. Vì vậy đáp án là NOT GIVEN.","loc":"loc-32"},{"text":"Smallpox continued to affect Easter Island’s inhabitants for centuries.","answer":"NOT GIVEN","exp":"Bài chỉ nói smallpox là một bệnh du nhập gây ảnh hưởng đến cư dân đảo, nhưng không cho biết bệnh này kéo dài trong nhiều thế kỷ. Vì vậy đáp án là NOT GIVEN.","loc":"loc-33"},{"text":"It remains open to question whether Easter Island was once covered in forest.","answer":"NO","exp":"Nhận định cho rằng vấn đề này vẫn còn bỏ ngỏ, nhưng bài đọc khẳng định “There is no doubt” rằng đảo từng được bao phủ bởi palm trees. Vì vậy đáp án là NO.","loc":"loc-34"},{"text":"The way that rats arrived on Easter Island is still to be established.","answer":"YES","exp":"Bài khẳng định rats đã đến đảo nhưng cách chính xác chúng đến như thế nào vẫn còn gây tranh luận. Vì vậy đáp án là YES.","loc":"loc-35"}]},{"instruction":"Choose the correct answer, A, B, C or D.","type":"mcq","reference":"Questions 36–40","imageUrl":"","questions":[{"text":"What does Jared Diamond blame for the lack of vegetation on Easter Island?","options":["A. The construction of stone statues","B. Climate change over a long period","C. A method of transportation","D. The arrival of Europeans"],"answer":"C","exp":"Diamond cho rằng việc vận chuyển các bức tượng cần những khúc gỗ lớn để làm “canoe ladders”, dẫn đến việc đốn nhiều cây và góp phần gây phá rừng. Vì vậy đáp án là C.","loc":"loc-36"},{"text":"What do Hunt and Lipo suggest about the population of Easter Island?","options":["A. It collapsed before European contact","B. The first settlers arrived much later than is widely accepted","C. It never exceeded a few thousand inhabitants","D. It declined mainly because of disease"],"answer":"B","exp":"Hunt và Lipo cho rằng những người đầu tiên đến đảo vào khoảng AD1200, muộn hơn khoảng 400 năm so với thời điểm được các nhà khoa học khác đề xuất. Vì vậy B đúng.","loc":"loc-37"},{"text":"What is suggested about rats on Easter Island in the fifth paragraph?","options":["A. They were a likely cause of deforestation","B. They arrived after the forests had disappeared","C. They had no effect on plant regeneration","D. They were introduced by Europeans"],"answer":"A","exp":"Hầu hết vỏ hạt cọ được tìm thấy đều bị rats gặm, khiến hạt không thể nảy mầm. Bài cũng nhấn mạnh mức độ phá hoại của rats, cho thấy chúng có thể đã góp phần gây deforestation.","loc":"loc-38"},{"text":"Flenley responds to Hunt and Lipo’s theory by","options":["A. dismissing it","B. partially supporting it","C. expanding on their arguments","D. avoiding direct criticism"],"answer":"A","exp":"Flenley trực tiếp bác bỏ lập luận của Hunt và Lipo và cho rằng họ bỏ qua nhiều bằng chứng khảo cổ học, thực vật học và trầm tích học. Vì vậy đáp án là A.","loc":"loc-39"},{"text":"The writer’s purpose in this article is to","options":["A. argue in favour of Diamond’s interpretation","B. provide an overview of a series of arguments","C. prove that rats were the main cause of deforestation","D. criticise modern archaeological methods"],"answer":"B","exp":"Bài viết trình bày nhiều giả thuyết và quan điểm khác nhau về sự sụp đổ của Easter Island, bao gồm Diamond, Hunt, Lipo và Flenley. Tác giả chủ yếu tổng hợp các lập luận thay vì hoàn toàn ủng hộ một bên, nên đáp án là B.","loc":"loc-40"}]}]];
+
+        // --- Chế độ "làm bài tập được giao" ---
+        // Khi trang này được mở từ nút "Bài tập" bên trang chủ (index.html), URL sẽ có kèm
+        // assignmentId+uid (và scope = 'all'/'1'/'2'/'3'). Lúc đó đây KHÔNG phải luyện tập tự do
+        // mà là một bài homework cụ thể — giao diện + nút "Nộp bài" cần rõ ràng theo đúng phạm vi
+        // (1 Passage hay cả bài) mà giáo viên đã giao, thay vì luôn mở full 3 Passage mập mờ.
+        const __assignParams = new URLSearchParams(location.search);
+        const ASSIGN_ID = __assignParams.get('assignmentId') || '';
+        const ASSIGN_UID = __assignParams.get('uid') || '';
+        const ASSIGN_SCOPE = __assignParams.get('scope') || 'all'; // 'all' | '1' | '2' | '3'
+        const IS_ASSIGNMENT_MODE = !!(ASSIGN_ID && ASSIGN_UID);
+        function assignmentScopeLabel() {
+            return (ASSIGN_SCOPE === '1' || ASSIGN_SCOPE === '2' || ASSIGN_SCOPE === '3')
+                ? `Passage ${ASSIGN_SCOPE}` : 'Cả bài (3 Passage)';
+        }
+
+        const testData = {};
+        const passageRanges = [];
+        let qCounter = 0;
+        questionsData.forEach(groups => {
+            const start = qCounter + 1;
+            groups.forEach(g => {
+                g.questions.forEach(q => {
+                    qCounter++;
+                    q.qNum = qCounter;
+                    testData[qCounter] = {
+                        type: (g.type === 'mcq' || g.type === 'tfng') ? 'radio' : 'text',
+                        answer: q.answer,
+                        loc: q.loc || "",
+                        exp: q.exp || ""
+                    };
+                });
+            });
+            passageRanges.push([start, qCounter]);
+        });
+        const TOTAL_QUESTIONS = qCounter;
+        // passageRanges/TOTAL_QUESTIONS được khai báo bằng const nên KHÔNG tự gắn lên window
+        // (khác với "var"/function ở top-level của script thường) — gắn tay ở đây để đoạn
+        // <script type="module"> báo kết quả về Firestore ở cuối trang đọc được khoảng câu hỏi
+        // của từng Passage khi cần chấm riêng 1 Passage.
+        window.passageRanges = passageRanges;
+
+        // Populate the practice-mode passage dropdown from passage titles
+        (function initDropdown() {
+            const dd = document.getElementById('passage-dropdown');
+            const opts = [1, 2, 3].map(i => {
+                const el = document.getElementById(`passage-${i}-text`);
+                const title = el ? el.dataset.title : `Passage ${i}`;
+                return `<option value="${i}">Passage ${i}: ${title}</option>`;
+            });
+            dd.innerHTML = opts.join('');
+        })();
+
+        // Khi đang làm 1 bài tập được giao (IS_ASSIGNMENT_MODE): ẩn phần chọn chế độ Luyện
+        // tập/Thi thật (không liên quan tới homework), thay bằng 1 dòng thông báo rõ ràng giáo
+        // viên đã giao đúng phạm vi nào, tự chọn sẵn đúng Passage đó trong dropdown (ẩn), và đổi
+        // chữ trên nút nộp bài chính (header) thành "Nộp homework (...)" để không còn mập mờ.
+        (function initAssignmentMode() {
+            if (!IS_ASSIGNMENT_MODE) return;
+
+            const modeSelectEl = document.querySelector('#setup-screen .mode-select');
+            const passageSelectorEl = document.getElementById('passage-selector');
+            const setupIntro = document.querySelector('#setup-screen .modal-box > p');
+            if (modeSelectEl) modeSelectEl.style.display = 'none';
+            if (passageSelectorEl) passageSelectorEl.style.display = 'none';
+            if (setupIntro) {
+                setupIntro.innerHTML = `📩 Bạn đang làm <strong>BÀI TẬP được giao</strong>: <strong>${assignmentScopeLabel()}</strong>. Làm xong nhớ bấm nút <strong>"Nộp homework"</strong> ở góc trên bên phải để nộp bài nhé!`;
+            }
+
+            const dd = document.getElementById('passage-dropdown');
+            if (dd && (ASSIGN_SCOPE === '1' || ASSIGN_SCOPE === '2' || ASSIGN_SCOPE === '3')) {
+                dd.value = ASSIGN_SCOPE;
+            }
+
+            const mainSubmitBtn = document.getElementById('main-submit-btn');
+            if (mainSubmitBtn) mainSubmitBtn.textContent = `📩 Nộp homework (${assignmentScopeLabel()})`;
+        })();
+
+        // --- HTML Question Templates Generation ---
+        function generateQuestionsHTML() {
+            let html = '';
+            let groupCounter = 0;
+            questionsData.forEach((groups, pIdx) => {
+                html += `<div id="questions-p${pIdx + 1}" class="content-wrapper${pIdx === 0 ? ' active' : ''}">`;
+                html += `<div class="part-grade-bar" id="part-grade-bar-${pIdx + 1}">
+                            <button class="part-grade-btn" type="button" onclick="gradePart(${pIdx + 1})">✅ Chấm riêng Part ${pIdx + 1}</button>
+                          </div>`;
+                groups.forEach(g => {
+                    groupCounter++;
+                    const nums = g.questions.map(q => q.qNum);
+                    const rangeLabel = nums.length > 1 ? `Questions ${nums[0]}-${nums[nums.length - 1]}` : `Question ${nums[0]}`;
+                    html += `<div class="question-group"><h3>${rangeLabel}</h3><p class="instruction">${g.instruction || ''}</p>`;
+                    if (g.imageUrl) {
+                        html += renderGroupImage(g.imageUrl);
+                    }
+                    if (g.reference) {
+                        html += `<div style="border:1px solid #ccc; padding:15px; margin-bottom:15px; background:#fff;">${g.reference}</div>`;
+                    }
+                    if (g.type === 'matching') {
+                        html += genMatching(groupCounter, g.options || [], g.questions);
+                    } else if (g.type === 'heading') {
+                        // Matching Headings: kéo-thả heading (i, ii, iii...) từ ngân hàng ở panel câu
+                        // hỏi thẳng vào "khe" đã đặt sẵn ở ĐẦU mỗi đoạn văn tương ứng bên panel bài đọc
+                        // (xem initHeadingGapsInPassage() + span.heading-gap do test-builder chèn sẵn).
+                        html += genHeadingDrag('hg' + g.questions[0].qNum, g.options || [], g.questions);
+                    } else if (g.type === 'list_match') {
+                        // Matching Names-Claims-Sentence Endings: 1 bảng chú thích (legend) các lựa
+                        // chọn A/B/C... + mỗi câu hỏi có 1 dropdown chọn đáp án đúng (không kéo thả,
+                        // vì các mục ở đây không nằm trong bài đọc để mà "thả vào" như headings).
+                        html += genLettered(groupCounter, g.options || [], g.questions);
+                    } else if (g.type === 'grid') {
+                        // Matching Information / Matching Names / Matching Features dạng bảng: mỗi
+                        // dòng là 1 câu, mỗi cột là 1 chữ cái — click radio ở đúng ô giao nhau.
+                        html += genGrid(groupCounter, g.options || [], g.questions);
+                    } else if (g.type === 'multi') {
+                        // "Choose TWO/THREE correct answers": checkbox dùng chung cho cả nhóm câu.
+                        html += genMulti(groupCounter, g.options || [], g.questions, g.pickCount || g.questions.length);
+                    } else if (g.type === 'inline') {
+                        // Complete the summary/table: gộp CẢ NHÓM câu hỏi thành 1 đoạn văn chảy liên
+                        // tục (giống summary thật), không tách mỗi câu ra 1 dòng riêng có số tròn to.
+                        html += genInlineGroup(g.questions);
+                    } else if (g.type === 'text') {
+                        // Complete the notes: 2 kiểu nội dung khác nhau, KHÔNG dùng chung 1 cách render —
+                        // xem genNotesFromTemplate()/genNotesGroup() bên dưới để biết vì sao phải phân biệt.
+                        // - Có g.notesTemplate (giáo viên dán nguyên khối ghi chú/outline, có tiêu đề, gạch
+                        //   đầu dòng...): giữ NGUYÊN 100% chữ gốc, chỉ thay mỗi dấu "_____" bằng 1 ô nhập.
+                        // - Không có (nhóm chỉ là 1 đoạn văn liền mạch, câu nào cũng có blank riêng): dùng
+                        //   cách cũ — tự ghép pre/post của từng câu lại thành 1 khối chảy liên tục.
+                        html += (g.notesTemplate && g.notesTemplate.trim())
+                            ? genNotesFromTemplate(g.notesTemplate, g.questions)
+                            : genNotesGroup(g.questions);
+                    } else {
+                        g.questions.forEach(q => {
+                            if (g.type === 'tfng') {
+                                html += genRadio(q.qNum, q.text, g.labels || ['TRUE', 'FALSE', 'NOT GIVEN']);
+                            } else if (g.type === 'mcq') {
+                                html += genRadio(q.qNum, q.text, q.options || []);
+                            } else {
+                                html += genText(q.qNum, q.text || '');
+                            }
+                        });
+                    }
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            });
+            document.getElementById('questions-container').innerHTML = html;
+        }
+
+        // Converts a typical Google Drive "share" link into a directly-viewable
+        // image URL; passes any other URL (Imgur, direct image host, etc.) through untouched.
+        function toDirectImageUrl(url) {
+            if (!url) return '';
+            url = url.trim();
+            const m = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || (url.includes('drive.google.com') && url.match(/[?&]id=([a-zA-Z0-9_-]+)/));
+            if (m && m[1]) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+            return url;
+        }
+
+        function renderGroupImage(url) {
+            const src = toDirectImageUrl(url);
+            return `<div class="group-image-wrap"><img src="${src}" alt="Sơ đồ minh hoạ" class="group-image" loading="lazy"
+                        onerror="this.parentElement.innerHTML='&lt;p style=&quot;color:#c62828;font-size:13px;&quot;&gt;⚠️ Không tải được ảnh — kiểm tra lại link (cần bật chia sẻ &quot;Anyone with the link&quot;).&lt;/p&gt;'"></div>`;
+        }
+
+        function genRadio(qNum, text, options) {
+            let optsHtml = options.map(opt => `<label class="radio-label"><input type="radio" name="q${qNum}" value="${opt.split('.')[0].trim()}"> ${opt}</label>`).join('');
+            return `<div class="question-item" id="q-container-${qNum}">
+                        <div class="q-num">${qNum}</div>
+                        <div style="flex:1;">
+                            <p style="margin:0 0 10px 0;">${text}</p>
+                            <div class="${options.length > 3 ? 'mcq-options' : 'options-tf'}">${optsHtml}</div>
+                            <div class="feedback-box" id="fb-${qNum}"></div>
+                        </div>
+                    </div>`;
+        }
+        // Fallback đơn lẻ (chỉ dùng khi type không xác định được) — 1 câu/1 dòng, KHÔNG dùng cho
+        // 'text' hay 'inline' nữa (2 loại đó giờ render theo nhóm, xem genNotesGroup/genInlineGroup
+        // + renderFlowingBlanks() bên dưới, để cả nhóm chảy liền mạch thành 1 khối ghi chú/đoạn văn
+        // thay vì mỗi câu là 1 thẻ tách rời có vòng tròn số to).
+        function genText(qNum, text) {
+            return `<div class="question-item compact-item" id="q-container-${qNum}" style="align-items:center;">
+                        <div class="q-num" style="width:24px;height:24px;font-size:12px;">${qNum}</div>
+                        <div style="flex:1; display:flex; align-items:center; flex-wrap:wrap; gap:10px;">
+                            <span>${text}</span>
+                            <input type="text" class="text-input" name="q${qNum}" placeholder="Your answer..." style="width:160px;">
+                            <div class="feedback-box" id="fb-${qNum}" style="width:100%; margin-top:5px;"></div>
+                        </div>
+                    </div>`;
+        }
+
+        // Tìm dấu chỗ trống trong 1 câu văn (___, ....., …) để tách ra phần TRƯỚC/SAU chỗ trống đó
+        // — dùng cho "Complete the notes" (type 'text') khi giáo viên gõ nguyên câu kèm gạch chân
+        // (vd "Trees may be falling down because of _____ from nearby fields") thay vì tách sẵn
+        // pre/post như 'inline'. Không tìm thấy dấu nào thì coi cả câu là phần TRƯỚC, chỗ trống tự
+        // nối ngay sau (ô nhập nằm ở cuối câu).
+        function splitBlankMarker(text) {
+            const t = text || '';
+            const m = t.match(/_{2,}|\.{4,}|…+/);
+            if (!m) return { pre: t.trim(), post: '' };
+            return { pre: t.slice(0, m.index).trim(), post: t.slice(m.index + m[0].length).trim() };
+        }
+
+        // Render CHUNG cho cả 'inline' (Complete the summary/table) lẫn 'text' (Complete the
+        // notes) — nhận vào 1 mảng {qNum, pre, post}, gộp CẢ NHÓM thành 1 khối văn bản chảy liên
+        // tục (pre câu 1 -> ô trống 1 -> post câu 1 -> pre câu 2 -> ...) thay vì tách mỗi câu ra 1
+        // dòng riêng với vòng tròn số to — số câu hỏi nằm NGAY TRONG ô nhập liệu (placeholder), gõ
+        // chữ vào là số tự biến mất, đúng như 1 chỗ trống thật trong bài.
+        function renderFlowingBlanks(items) {
+            const spansHtml = items.map(it => `<span>${it.pre || ''}</span><span class="inline-blank-wrap" id="q-container-${it.qNum}"><input type="text" class="text-input inline-blank" name="q${it.qNum}" placeholder="${it.qNum}"></span><span>${it.post || ''}</span>`).join(' ');
+            const feedbackHtml = items.map(it =>
+                `<div class="feedback-box" id="fb-${it.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `<div class="inline-summary">${spansHtml}</div>${feedbackHtml}`;
+        }
+        function genInlineGroup(questions) {
+            return renderFlowingBlanks(questions.map(q => ({ qNum: q.qNum, pre: q.pre || '', post: q.post || '' })));
+        }
+        function genNotesGroup(questions) {
+            return renderFlowingBlanks(questions.map(q => {
+                const { pre, post } = splitBlankMarker(q.text || '');
+                return { qNum: q.qNum, pre, post };
+            }));
+        }
+
+        // "Complete the notes" khi đề KHÔNG phải 1 đoạn văn liền mạch mà là 1 khối ghi chú/outline có
+        // tiêu đề, gạch đầu dòng, các dòng con thụt lề... (vd lịch sử cuộc đời theo từng mốc thời gian).
+        // Ghép từng câu riêng lẻ như genNotesGroup() sẽ làm MẤT toàn bộ cấu trúc đó (tiêu đề, những dòng
+        // không có chỗ trống...). Ở đây ngược lại: giáo viên dán NGUYÊN VĂN cả khối ghi chú vào 1 ô duy
+        // nhất (template, giữ nguyên xuống dòng), đánh dấu mỗi chỗ trống bằng ___/..../… theo ĐÚNG thứ tự
+        // câu hỏi trong nhóm — hàm này CHỈ thay từng dấu đó bằng 1 ô nhập, còn lại giữ y nguyên 100% (kể
+        // cả tiêu đề, gạch đầu dòng, những dòng không có chỗ trống nào) nhờ escapeHtml() + white-space:
+        // pre-wrap (xem CSS .notes-template) để xuống dòng/khoảng trắng gốc hiển thị đúng như đã gõ.
+        function genNotesFromTemplate(template, questions) {
+            const re = /_{2,}|\.{4,}|…+/g;
+            const segments = [];
+            let lastIndex = 0, qi = 0, m;
+            while (qi < questions.length && (m = re.exec(template)) !== null) {
+                segments.push({ text: template.slice(lastIndex, m.index) });
+                segments.push({ q: questions[qi] });
+                lastIndex = m.index + m[0].length;
+                qi++;
+            }
+            segments.push({ text: template.slice(lastIndex) });
+            // Nếu template có ÍT dấu chỗ trống hơn số câu trong nhóm (giáo viên gõ thiếu ___), vẫn
+            // thêm ô nhập cho các câu còn lại vào cuối cùng để không mất câu hỏi nào.
+            for (; qi < questions.length; qi++) segments.push({ q: questions[qi] });
+
+            const bodyHtml = segments.map(seg => {
+                if (seg.q) {
+                    return `<span class="inline-blank-wrap" id="q-container-${seg.q.qNum}"><input type="text" class="text-input inline-blank" name="q${seg.q.qNum}" placeholder="${seg.q.qNum}"></span>`;
+                }
+                return escapeHtml(seg.text);
+            }).join('');
+            const feedbackHtml = questions.map(q => `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `<div class="inline-summary notes-template">${bodyHtml}</div>${feedbackHtml}`;
+        }
+
+        // Matching / drag-drop question type: a bank of draggable option chips
+        // (A, B, C...) that get dragged into a slot next to each prompt. Answers
+        // are mirrored into a hidden <input name="qN"> so all the existing grading /
+        // "answered" nav-circle logic works unchanged, with no special-casing needed.
+        function genMatching(groupId, options, questions) {
+            const bankHtml = options.map(opt => {
+                const letter = (opt.split('.')[0] || '').trim();
+                return `<div class="match-chip" data-letter="${letter}" data-group="${groupId}" id="chip-${groupId}-${letter}">${opt}</div>`;
+            }).join('');
+
+            const rowsHtml = questions.map(q => `
+                <div class="question-item match-row" id="q-container-${q.qNum}">
+                    <div class="q-num">${q.qNum}</div>
+                    <span class="match-prompt-text">${q.text}</span>
+                    <div class="match-slot" id="slot-${q.qNum}" data-group="${groupId}" data-qnum="${q.qNum}" data-letter="">Kéo đáp án vào đây</div>
+                    <input type="hidden" name="q${q.qNum}" id="input-q${q.qNum}" value="">
+                    <div class="feedback-box" id="fb-${q.qNum}" style="width:100%; margin-top:5px;"></div>
+                </div>
+            `).join('');
+
+            return `<div class="match-bank" id="bank-${groupId}">${bankHtml}</div>${rowsHtml}`;
+        }
+
+        // Matching Headings: kéo-thả trực tiếp vào bài đọc. Panel câu hỏi (bên phải) chỉ hiện
+        // NGÂN HÀNG heading (i, ii, iii...) để kéo, cộng với 1 hộp feedback nhỏ/câu (hiện sau khi
+        // nộp bài) — vị trí thả (slot) thật sự nằm ngay ĐẦU mỗi đoạn văn tương ứng bên panel bài
+        // đọc (trái), do test-builder.html chèn sẵn 1 <span class="heading-gap"> tĩnh vào đúng
+        // đoạn văn khớp thứ tự câu hỏi, rồi initHeadingGapsInPassage() (gọi trong startTest()) sẽ
+        // "nâng cấp" span đó thành 1 match-slot thật để dùng chung bộ máy kéo-thả Pointer Events
+        // đã có sẵn của genMatching() (chip + slot cùng data-group) — không cần viết lại logic kéo
+        // thả riêng, không cần các dropdown cồng kềnh.
+        function genHeadingDrag(groupId, options, questions) {
+            const bankHtml = options.map(opt => {
+                const letter = (opt.split('.')[0] || '').trim();
+                return `<div class="match-chip" data-letter="${letter}" data-group="${groupId}" id="chip-${groupId}-${letter}">${opt}</div>`;
+            }).join('');
+
+            const feedbackHtml = questions.map(q =>
+                `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+
+            return `<div class="match-bank" id="bank-${groupId}">${bankHtml}</div>
+                    <p class="hint" style="margin:0 0 10px 0;">👆 Kéo heading phía trên vào đúng vị trí đầu mỗi đoạn văn bên bài đọc (panel trái).</p>
+                    ${feedbackHtml}`;
+        }
+
+        // Matching Names-Claims-Sentence Endings (nối người/mệnh đề với đáp án đúng, A-G...): một
+        // bảng chú thích tĩnh (legend) liệt kê hết các lựa chọn, và mỗi câu hỏi có 1 dropdown
+        // <select> để chọn đáp án đúng — không kéo-thả vì các mục ở đây (tên người, mệnh đề...)
+        // không nằm sẵn trong bài đọc để "thả vào" như Matching Headings.
+        function genLettered(groupId, options, questions) {
+            const legendHtml = `<div class="match-bank match-legend" id="bank-${groupId}">${options.map(opt =>
+                `<div class="match-chip match-chip-static">${opt}</div>`).join('')}</div>`;
+
+            const rowsHtml = questions.map(q => {
+                const optHtml = options.map(opt => {
+                    const letter = (opt.split('.')[0] || '').trim();
+                    return `<option value="${letter}">${opt}</option>`;
+                }).join('');
+                return `<div class="question-item match-row" id="q-container-${q.qNum}">
+                            <div class="q-num">${q.qNum}</div>
+                            <span class="match-prompt-text">${q.text}</span>
+                            <select name="q${q.qNum}" class="lettered-select">
+                                <option value="">-- Chọn đáp án --</option>${optHtml}
+                            </select>
+                            <div class="feedback-box" id="fb-${q.qNum}" style="width:100%; margin-top:5px;"></div>
+                        </div>`;
+            }).join('');
+
+            return `${legendHtml}${rowsHtml}`;
+        }
+
+        // Matching Information / Matching Names / Matching Features dạng LƯỚI (grid/matrix): mỗi
+        // dòng là 1 câu (đoạn văn/thông tin cần tìm), mỗi cột là 1 chữ cái (A-I, A-F...) — bấm
+        // radio ở đúng ô giao giữa dòng và cột. Cho phép dùng lại cùng 1 chữ cái cho nhiều dòng
+        // (mỗi dòng có input name="qN" RIÊNG nên các radio ở các dòng khác nhau không loại trừ
+        // lẫn nhau — chỉ những ô CÙNG dòng mới loại trừ nhau, đúng chuẩn "may use any letter more
+        // than once").
+        function genGrid(groupId, options, questions) {
+            const letters = options.map(opt => (opt.split('.')[0] || opt).trim());
+            const hasLegend = options.some(opt => opt.includes('.'));
+            const legendHtml = hasLegend
+                ? `<div class="match-bank match-legend" id="bank-${groupId}">${options.map(opt =>
+                    `<div class="match-chip match-chip-static">${opt}</div>`).join('')}</div>`
+                : '';
+
+            const headerCells = letters.map(l => `<th>${l}</th>`).join('');
+            const rowsHtml = questions.map(q => {
+                const cells = letters.map(l =>
+                    `<td><input type="radio" name="q${q.qNum}" value="${l}" class="grid-radio"></td>`).join('');
+                return `<tr id="q-container-${q.qNum}"><td class="grid-row-label"><span class="q-num grid-q-num">${q.qNum}</span> ${q.text}</td>${cells}</tr>`;
+            }).join('');
+            const feedbackHtml = questions.map(q =>
+                `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+
+            return `${legendHtml}
+                <div class="grid-scroll-wrap">
+                    <table class="match-grid"><thead><tr><th></th>${headerCells}</tr></thead><tbody>${rowsHtml}</tbody></table>
+                </div>
+                ${feedbackHtml}`;
+        }
+
+        // "Choose TWO/THREE correct answers" (chọn N trong M đáp án bằng checkbox, dùng chung 1
+        // danh sách lựa chọn cho cả nhóm câu). Mỗi checkbox KHÔNG gắn trực tiếp vào 1 câu — thay
+        // vào đó, mỗi lần tick/bỏ tick sẽ đồng bộ danh sách chữ cái đang được chọn xuống các
+        // <input type="hidden" name="qN"> riêng của từng câu trong nhóm (xem initMultiSelect() bên
+        // dưới): nếu chữ cái đúng của câu N nằm trong tập đang chọn thì input đó = đáp án đúng
+        // (chấm ĐÚNG), ngược lại = danh sách học sinh đã chọn (chấm SAI, vẫn hiển thị rõ học sinh
+        // đã chọn gì) — nhờ vậy gradeQuestionRange() ở dưới chấm điểm y hệt các dạng câu khác mà
+        // không cần thêm logic riêng.
+        function genMulti(groupId, options, questions, pickCount) {
+            const optsHtml = options.map(opt => {
+                const letter = (opt.split('.')[0] || '').trim();
+                return `<label class="radio-label multi-check-label">
+                            <input type="checkbox" class="multi-check" value="${letter}"> ${opt}
+                        </label>`;
+            }).join('');
+
+            const qNums = questions.map(q => q.qNum);
+            const firstQ = qNums[0], lastQ = qNums[qNums.length - 1];
+            const isRange = firstQ !== lastQ;
+            const qLabel = isRange ? `${firstQ}-${lastQ}` : String(firstQ);
+
+            // KHÔNG hiện lại số câu (21, 22...) riêng lẻ ở đây nữa — con số đó đã hiện ở "viên
+            // thuốc" q-num phía trên rồi, lặp lại bên dưới gây rối mắt. Vẫn giữ input ẩn + hộp
+            // feedback riêng cho từng câu (bắt buộc để gradeQuestionRange() chấm đúng từng câu).
+            const perQFeedback = qNums.map(n => `
+                <div id="q-container-${n}" style="margin-top:6px;">
+                    <input type="hidden" name="q${n}" id="input-q${n}" value="">
+                    <div class="feedback-box" id="fb-${n}" style="width:100%; margin-top:0;"></div>
+                </div>`).join('');
+
+            return `<div class="question-item multi-group" data-multi-group="${groupId}" data-pick-count="${pickCount}">
+                        <div class="q-num${isRange ? ' q-num-range' : ''}">${qLabel}</div>
+                        <div style="flex:1;">
+                            <p class="multi-hint">Chọn đúng <strong>${pickCount}</strong> đáp án.</p>
+                            <div class="mcq-options">${optsHtml}</div>
+                            ${perQFeedback}
+                        </div>
+                    </div>`;
+        }
+
+        // Đồng bộ checkbox "Choose N of M" -> các input hidden qN riêng của từng câu trong nhóm
+        // (xem giải thích ở genMulti() phía trên). Giới hạn tối đa đúng pickCount checkbox được
+        // tick cùng lúc để học sinh không "ăn gian" bằng cách tick hết.
+        (function initMultiSelect() {
+            document.addEventListener('change', e => {
+                if (!e.target.classList || !e.target.classList.contains('multi-check')) return;
+                const container = e.target.closest('.multi-group');
+                if (!container) return;
+                const pickCount = parseInt(container.dataset.pickCount, 10) || 1;
+                const allChecks = container.querySelectorAll('.multi-check');
+                const checked = Array.from(allChecks).filter(c => c.checked);
+
+                if (checked.length > pickCount) {
+                    e.target.checked = false;
+                    return;
+                }
+
+                const checkedLetters = checked.map(c => c.value.toUpperCase());
+                container.querySelectorAll('input[type="hidden"]').forEach(hidden => {
+                    const qNum = hidden.name.substring(1);
+                    const info = testData[qNum];
+                    if (!info) return;
+                    const correctLetter = (info.answer || '').toUpperCase();
+                    const isRight = checkedLetters.includes(correctLetter);
+                    hidden.value = isRight ? info.answer : checkedLetters.join(', ');
+                    hidden.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+            });
+        })();
+
+        // --- Matching drag-and-drop engine (Pointer Events, so it works the same
+        //     with mouse, touch and pen — unlike the native HTML5 DnD API, which
+        //     iOS Safari does not support at all). Delegated at document level so
+        //     it works for every matching group generated above. ---
+        (function initMatchingDnD() {
+            const DEFAULT_SLOT_TEXT = 'Kéo đáp án vào đây';
+            let dragSource = null; // { letter, label, group, sourceSlot }
+            let dragGhost = null;
+
+            function showBankChip(group, letter) {
+                const chip = document.getElementById(`chip-${group}-${letter}`);
+                if (chip) chip.style.display = '';
+            }
+            function hideBankChip(group, letter) {
+                const chip = document.getElementById(`chip-${group}-${letter}`);
+                if (chip) chip.style.display = 'none';
+            }
+            function setSlotInput(slotEl) {
+                const input = document.getElementById('input-q' + slotEl.dataset.qnum);
+                if (!input) return;
+                input.value = slotEl.dataset.letter || '';
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            function clearSlot(slotEl) {
+                if (!slotEl.dataset.letter) return;
+                showBankChip(slotEl.dataset.group, slotEl.dataset.letter);
+                slotEl.dataset.letter = '';
+                slotEl.textContent = DEFAULT_SLOT_TEXT;
+                slotEl.classList.remove('filled');
+                setSlotInput(slotEl);
+            }
+            function fillSlot(slotEl, letter, label) {
+                if (slotEl.dataset.letter && slotEl.dataset.letter !== letter) {
+                    showBankChip(slotEl.dataset.group, slotEl.dataset.letter);
+                }
+                slotEl.dataset.letter = letter;
+                slotEl.textContent = label;
+                slotEl.classList.add('filled');
+                hideBankChip(slotEl.dataset.group, letter);
+                setSlotInput(slotEl);
+            }
+            function makeGhost(sourceEl, text) {
+                const ghost = document.createElement('div');
+                ghost.className = 'match-chip match-chip-ghost';
+                ghost.textContent = text;
+                ghost.style.position = 'fixed';
+                ghost.style.pointerEvents = 'none';
+                ghost.style.zIndex = 3000;
+                ghost.style.width = sourceEl.offsetWidth + 'px';
+                document.body.appendChild(ghost);
+                return ghost;
+            }
+            function moveGhost(x, y) {
+                if (!dragGhost) return;
+                dragGhost.style.left = (x - dragGhost.offsetWidth / 2) + 'px';
+                dragGhost.style.top = (y - dragGhost.offsetHeight / 2) + 'px';
+            }
+            function clearDragOverStyles() {
+                document.querySelectorAll('.match-slot.drag-over').forEach(s => s.classList.remove('drag-over'));
+            }
+            function cleanup() {
+                if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+                clearDragOverStyles();
+                dragSource = null;
+            }
+
+            document.addEventListener('pointerdown', e => {
+                const chip = e.target.closest('.match-chip');
+                const slot = e.target.closest('.match-slot');
+                if (chip && chip.style.display !== 'none') {
+                    dragSource = { letter: chip.dataset.letter, label: chip.textContent, group: chip.dataset.group, sourceSlot: null };
+                    dragGhost = makeGhost(chip, chip.textContent);
+                    moveGhost(e.clientX, e.clientY);
+                    e.preventDefault();
+                } else if (slot && slot.classList.contains('filled')) {
+                    dragSource = { letter: slot.dataset.letter, label: slot.textContent, group: slot.dataset.group, sourceSlot: slot };
+                    dragGhost = makeGhost(slot, slot.textContent);
+                    moveGhost(e.clientX, e.clientY);
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            document.addEventListener('pointermove', e => {
+                if (!dragSource) return;
+                moveGhost(e.clientX, e.clientY);
+                clearDragOverStyles();
+                if (dragGhost) dragGhost.style.display = 'none';
+                const target = document.elementFromPoint(e.clientX, e.clientY);
+                if (dragGhost) dragGhost.style.display = '';
+                const slotUnder = target && target.closest && target.closest('.match-slot');
+                if (slotUnder && slotUnder.dataset.group === dragSource.group) slotUnder.classList.add('drag-over');
+            }, { passive: true });
+
+            document.addEventListener('pointerup', e => {
+                if (!dragSource) return;
+                if (dragGhost) dragGhost.style.display = 'none';
+                const target = document.elementFromPoint(e.clientX, e.clientY);
+                if (dragGhost) dragGhost.style.display = '';
+                const slotUnder = target && target.closest && target.closest('.match-slot');
+
+                if (slotUnder && slotUnder.dataset.group === dragSource.group && slotUnder !== dragSource.sourceSlot) {
+                    if (dragSource.sourceSlot) clearSlot(dragSource.sourceSlot);
+                    fillSlot(slotUnder, dragSource.letter, dragSource.label);
+                } else if (!slotUnder && dragSource.sourceSlot) {
+                    // dropped outside any slot -> send the chip back to the bank
+                    clearSlot(dragSource.sourceSlot);
+                }
+                // dropped back on its own slot, or a bank chip dropped nowhere valid: no-op
+
+                cleanup();
+            });
+
+            document.addEventListener('pointercancel', cleanup);
+        })();
+
+        function gradePart(pNum) {
+            const [startQ, endQ] = passageRanges[pNum - 1];
+            const score = gradeQuestionRange(startQ, endQ);
+            const total = endQ - startQ + 1;
+            const btn = document.querySelector(`#part-grade-bar-${pNum} .part-grade-btn`);
+            if (btn) {
+                const original = btn.dataset.original || btn.innerText;
+                btn.dataset.original = original;
+                btn.innerText = `✅ Part ${pNum}: đúng ${score}/${total} câu`;
+                clearTimeout(btn._resetTimer);
+                btn._resetTimer = setTimeout(() => { btn.innerText = original; }, 5000);
+            }
+        }
+
+        // --- Application Logic ---
+        let appMode = 'practice'; // 'practice' or 'exam'
+        let currentPassage = 1;
+        let timerInterval;
+
+        // Nút "← Thoát": đóng hẳn tab/cửa sổ này luôn (giống bấm nút ✕ của trình duyệt) thay vì
+        // reload lại trang như trước. window.close() chỉ được trình duyệt cho phép khi tab này do
+        // 1 script khác mở ra (vd window.open() từ trang chủ khi bấm "Bài tập", hoặc mở từ Test
+        // Builder) — đúng với cách hầu hết học sinh mở trang này. Nếu trình duyệt CHẶN việc đóng
+        // (tab được gõ thẳng URL / mở từ dấu 3 chấm... không phải do script mở), fallback về lại
+        // trang trước đó (hoặc trang chủ nếu không có trang trước) để vẫn "thoát" ra được thay vì
+        // đứng yên không phản hồi gì.
+        function exitTest() {
+            if (timerInterval) clearInterval(timerInterval);
+            window.close();
+            setTimeout(function () {
+                if (!window.closed) {
+                    if (window.history.length > 1) window.history.back();
+                    else window.location.href = 'index.html';
+                }
+            }, 250);
+        }
+
+        function initNavCircles() {
+            for (let p = 1; p <= 3; p++) {
+                const [startQ, endQ] = passageRanges[p - 1];
+                let html = '';
+                for (let i = startQ; i <= endQ; i++) {
+                    html += `<div class="q-circle" id="nav-q${i}" onclick="scrollToQ(${i})">${i}</div>`;
+                }
+                document.getElementById(`q-nav-p${p}`).innerHTML = html;
+            }
+        }
+
+        function selectMode(mode) {
+            appMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById(`btn-${mode}`).classList.add('selected');
+            document.getElementById('passage-selector').style.display = mode === 'practice' ? 'block' : 'none';
+        }
+
+        // "Nâng cấp" các <span class="heading-gap"> tĩnh (do test-builder.html chèn sẵn ở đầu mỗi
+        // đoạn văn liên quan tới câu hỏi Matching Headings) thành match-slot thật — có thể kéo-thả
+        // được — rồi thêm input ẩn để gradeQuestionRange() chấm điểm y như mọi loại câu khác.
+        function initHeadingGapsInPassage() {
+            document.querySelectorAll('.heading-gap').forEach(gapEl => {
+                const qNum = gapEl.dataset.qnum;
+                const groupId = gapEl.dataset.group;
+                if (!qNum || !groupId) return;
+                gapEl.classList.add('match-slot');
+                gapEl.dataset.qnum = qNum;
+                gapEl.dataset.group = groupId;
+                gapEl.dataset.letter = '';
+                gapEl.id = 'slot-' + qNum;
+                gapEl.textContent = 'Kéo heading vào đây';
+                if (!document.getElementById('input-q' + qNum)) {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'q' + qNum;
+                    hidden.id = 'input-q' + qNum;
+                    hidden.value = '';
+                    gapEl.insertAdjacentElement('afterend', hidden);
+                }
+            });
+        }
+
+        function startTest() {
+            document.getElementById('setup-screen').style.display = 'none';
+            generateQuestionsHTML();
+            initHeadingGapsInPassage();
+            initNavCircles();
+            setupInputListeners();
+
+            // Exam mode: minimal white theme + single purple highlight colour, no
+            // per-part "chấm riêng" buttons (real exam only submits once at the end).
+            // Practice mode: original theme, full 4-colour highlight palette, and a
+            // per-part grade button on top of the shared "Nộp bài" button.
+            const isExam = appMode === 'exam';
+            document.body.classList.toggle('exam-mode', isExam);
+            document.querySelectorAll('.annot-color-practice').forEach(btn => btn.style.display = isExam ? 'none' : '');
+            document.querySelectorAll('.annot-color-exam').forEach(btn => btn.style.display = isExam ? '' : 'none');
+            document.querySelectorAll('.part-grade-bar').forEach(bar => bar.classList.toggle('visible', !isExam));
+
+            if (appMode === 'practice') {
+                let p = parseInt(document.getElementById('passage-dropdown').value);
+                document.getElementById('passage-tabs').style.display = 'flex';
+                switchPassage(p);
+            } else {
+                document.getElementById('passage-tabs').style.display = 'flex'; // allow manual nav in exam
+                switchPassage(1);
+                document.getElementById('timer-display').style.display = 'block';
+                startTimer(60 * 60); // Reading section is 60 minutes in the real IELTS exam
+            }
+        }
+
+        function switchPassage(pNum) {
+            currentPassage = pNum;
+            document.querySelectorAll('.tab-btn').forEach((btn, idx) => btn.classList.toggle('active', idx + 1 === pNum));
+            document.getElementById('current-passage-indicator').innerText = `PASSAGE ${pNum}`;
+
+            for(let i=1; i<=3; i++) {
+                document.getElementById(`q-nav-p${i}`).style.display = (i === pNum) ? 'flex' : 'none';
+                document.getElementById(`passage-${i}-text`).classList.toggle('active', i === pNum);
+                document.getElementById(`questions-p${i}`).classList.toggle('active', i === pNum);
+            }
+            document.querySelectorAll('.panel-content').forEach(p => p.scrollTop = 0);
+        }
+
+        function scrollToQ(qNum) {
+            const qEl = document.getElementById(`q-container-${qNum}`);
+            if(qEl) qEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // --- Draggable resizer between the passage panel and questions panel ---
+        (function initPanelResizer() {
+            const resizer = document.getElementById('panel-resizer');
+            const leftPanel = document.getElementById('panel-passage');
+            const container = document.getElementById('main-workspace');
+            if (!resizer || !leftPanel || !container) return;
+
+            let dragging = false;
+
+            function startDrag() {
+                dragging = true;
+                resizer.classList.add('dragging');
+                document.body.style.userSelect = 'none';
+            }
+            function doDrag(clientX) {
+                if (!dragging) return;
+                const rect = container.getBoundingClientRect();
+                let leftWidth = clientX - rect.left;
+                const min = 220;
+                const max = rect.width - 220 - resizer.offsetWidth;
+                leftWidth = Math.max(min, Math.min(max, leftWidth));
+                leftPanel.style.flex = 'none';
+                leftPanel.style.width = leftWidth + 'px';
+            }
+            function endDrag() {
+                dragging = false;
+                resizer.classList.remove('dragging');
+                document.body.style.userSelect = '';
+            }
+
+            resizer.addEventListener('mousedown', e => { startDrag(); e.preventDefault(); });
+            document.addEventListener('mousemove', e => doDrag(e.clientX));
+            document.addEventListener('mouseup', endDrag);
+
+            resizer.addEventListener('touchstart', () => { startDrag(); }, { passive: true });
+            document.addEventListener('touchmove', e => {
+                if (dragging) { doDrag(e.touches[0].clientX); e.preventDefault(); }
+            }, { passive: false });
+            document.addEventListener('touchend', endDrag);
+        })();
+
+        function setupInputListeners() {
+            document.addEventListener('input', e => {
+                if (e.target.name && e.target.name.startsWith('q')) {
+                    const qNum = e.target.name.substring(1);
+                    const circle = document.getElementById(`nav-q${qNum}`);
+                    if (!circle) return;
+
+                    let isAnswered = false;
+                    if (e.target.type === 'text') isAnswered = e.target.value.trim() !== '';
+                    if (e.target.type === 'radio') isAnswered = e.target.checked;
+                    // 'hidden' = ô đồng bộ của nhóm "Choose N of M" (genMulti); 'select-one' = dropdown
+                    // của Matching Headings / Matching Names-Claims (genLettered).
+                    if (e.target.type === 'hidden' || e.target.type === 'select-one') isAnswered = e.target.value.trim() !== '';
+
+                    circle.classList.toggle('answered', isAnswered);
+                }
+            });
+            // <select> chỉ tự bắn ra sự kiện 'change', không phải 'input' trên mọi trình duyệt —
+            // lắng thêm 'change' và tái dùng lại đúng logic ở trên cho chắc chắn nút tròn số câu
+            // hỏi luôn sáng lên khi học sinh đã chọn xong dropdown.
+            document.addEventListener('change', e => {
+                if (e.target.tagName === 'SELECT' && e.target.name && e.target.name.startsWith('q')) {
+                    const qNum = e.target.name.substring(1);
+                    const circle = document.getElementById(`nav-q${qNum}`);
+                    if (circle) circle.classList.toggle('answered', e.target.value.trim() !== '');
+                }
+            });
+        }
+
+        function startTimer(duration) {
+            let timer = duration;
+            const display = document.getElementById('timer-display');
+            timerInterval = setInterval(() => {
+                let m = parseInt(timer / 60, 10);
+                let s = parseInt(timer % 60, 10);
+                display.textContent = (m < 10 ? "0"+m : m) + ":" + (s < 10 ? "0"+s : s);
+                if (--timer < 0) { clearInterval(timerInterval); submitTest(); }
+            }, 1000);
+        }
+
+        // Grades questions [startQ, endQ] inclusive, writing feedback into each
+        // question's #fb-N box, and returns the number correct. Shared by the
+        // full "Nộp bài" submit and the per-part "Chấm riêng Part N" buttons.
+        function gradeQuestionRange(startQ, endQ) {
+            let score = 0;
+            for (let i = startQ; i <= endQ; i++) {
+                let uAns = "";
+                const inputs = document.getElementsByName(`q${i}`);
+                if (inputs.length > 0) {
+                    if (inputs[0].type === 'radio') {
+                        inputs.forEach(r => { if(r.checked) uAns = r.value; });
+                    } else {
+                        uAns = inputs[0].value.trim().toUpperCase();
+                    }
+                }
+
+                const cAns = (testData[i].answer || '').toUpperCase();
+                const fbBox = document.getElementById(`fb-${i}`);
+
+                if (fbBox) {
+                    fbBox.style.display = 'block';
+                    fbBox.className = 'feedback-box'; // reset
+
+                    let isCorrect = (uAns === cAns);
+
+                    if (isCorrect) {
+                        score++;
+                        fbBox.classList.add('correct');
+                        fbBox.innerHTML = `<strong>Đúng!</strong> Đáp án: ${testData[i].answer}`;
+                    } else {
+                        fbBox.classList.add('incorrect');
+                        fbBox.innerHTML = `<strong>Sai.</strong> Bạn chọn: <s style="color:#aaa">${uAns||'Trống'}</s> | Đáp án đúng: <strong style="color:var(--text-color)">${testData[i].answer}</strong>`;
+                    }
+
+                    // Add explanation and locate button
+                    fbBox.innerHTML += `<div class="explanation-text">${testData[i].exp}</div>`;
+                    if (testData[i].loc !== "") {
+                        fbBox.innerHTML += `<button class="show-loc-btn" onclick="highlightPassage('${testData[i].loc}')">🔍 Xem vị trí trong bài</button>`;
+                    }
+                }
+            }
+            return score;
+        }
+
+        function submitTest() {
+            if(timerInterval) clearInterval(timerInterval);
+
+            // Mặc định: chấm cả 3 passage/part cùng lúc (luyện tập tự do / thi thử), không chỉ
+            // passage tab đang mở. NHƯNG nếu đây là 1 bài tập được giao (IS_ASSIGNMENT_MODE) chỉ
+            // cho ĐÚNG 1 Passage, thì CHỈ chấm đúng Passage đó — để điểm hiển thị khớp với chính
+            // xác phần bài giáo viên đã giao, tránh gây hiểu nhầm "làm 1 đoạn nhưng điểm tính cả bài".
+            let startQ = 1, endQ = TOTAL_QUESTIONS;
+            if (IS_ASSIGNMENT_MODE && (ASSIGN_SCOPE === '1' || ASSIGN_SCOPE === '2' || ASSIGN_SCOPE === '3')) {
+                const range = passageRanges[parseInt(ASSIGN_SCOPE, 10) - 1];
+                if (range) { startQ = range[0]; endQ = range[1]; }
+            }
+            const total = endQ - startQ + 1;
+            const score = gradeQuestionRange(startQ, endQ);
+
+            // Show results
+            document.getElementById('score-correct').innerText = score;
+            document.getElementById('score-total').innerText = total;
+
+            // Show the estimated band score in both modes now that grading always
+            // covers all 3 passages.
+            document.getElementById('band-container').style.display = 'block';
+            const band = calculateBand(score);
+            document.getElementById('band-score').innerText = band;
+
+            saveProgressRecord(score, total, band);
+
+            // Khi đang nộp 1 bài tập được giao: hiện rõ banner "Đã nộp homework thành công" +
+            // đổi tiêu đề modal, để học sinh biết chắc chắn bài đã được ghi nhận (không chỉ là
+            // "xem điểm luyện tập" như bình thường).
+            const successBanner = document.getElementById('homework-success-banner');
+            const resultsTitle = document.getElementById('results-modal-title');
+            if (IS_ASSIGNMENT_MODE) {
+                if (successBanner) successBanner.style.display = 'block';
+                if (resultsTitle) resultsTitle.innerText = `Đã nộp homework thành công! (${assignmentScopeLabel()})`;
+            } else {
+                if (successBanner) successBanner.style.display = 'none';
+                if (resultsTitle) resultsTitle.innerText = 'Kết quả làm bài';
+            }
+
+            document.getElementById('results-modal').style.display = 'flex';
+        }
+
+        function calculateBand(s) {
+            const scaled = TOTAL_QUESTIONS > 0 ? Math.round(s * 40 / TOTAL_QUESTIONS) : s;
+            if (scaled>=39) return "9.0"; if (scaled>=37) return "8.5"; if (scaled>=35) return "8.0";
+            if (scaled>=33) return "7.5"; if (scaled>=30) return "7.0"; if (scaled>=27) return "6.5";
+            if (scaled>=23) return "6.0"; if (scaled>=19) return "5.5"; if (scaled>=15) return "5.0";
+            if (scaled>=13) return "4.5"; if (scaled>=10) return "4.0"; return "< 4.0";
+        }
+
+        // --- Shared progress/history log (read by the site's index page) ---
+        // Kept deliberately tiny per attempt and capped in count so it never
+        // eats meaningful localStorage space.
+        const PROGRESS_HISTORY_KEY = 'bseh_progress_history';
+        const PROGRESS_HISTORY_LIMIT = 40;
+
+        function saveProgressRecord(score, total, band) {
+            try {
+                let history = JSON.parse(localStorage.getItem(PROGRESS_HISTORY_KEY) || '[]');
+                history.unshift({
+                    t: document.title,                // test title
+                    u: location.pathname.split('/').pop(), // filename, so index.html can link back
+                    s: score,
+                    n: total,
+                    b: band,
+                    m: appMode,
+                    d: new Date().toLocaleDateString('vi-VN')
+                });
+                if (history.length > PROGRESS_HISTORY_LIMIT) history = history.slice(0, PROGRESS_HISTORY_LIMIT);
+                localStorage.setItem(PROGRESS_HISTORY_KEY, JSON.stringify(history));
+            } catch (e) { /* localStorage unavailable or full - fail silently, non-critical */ }
+        }
+
+        function closeResultsAndReview() {
+            document.getElementById('results-modal').style.display = 'none';
+            document.getElementById('main-submit-btn').style.display = 'none';
+        }
+
+        let currentHighlight = null;
+        function highlightPassage(locId) {
+            if(currentHighlight) currentHighlight.classList.remove('explanation-highlight');
+
+            const span = document.getElementById(locId);
+            if (span) {
+                span.classList.add('explanation-highlight');
+                currentHighlight = span;
+
+                // Determine which passage this belongs to based on DOM hierarchy
+                let pWrapper = span.closest('.content-wrapper');
+                if (pWrapper) {
+                    let pId = pWrapper.id;
+                    if(pId.includes('1') && currentPassage !== 1) switchPassage(1);
+                    if(pId.includes('2') && currentPassage !== 2) switchPassage(2);
+                    if(pId.includes('3') && currentPassage !== 3) switchPassage(3);
+                }
+
+                span.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // --- Annotation Toolbar (highlight / underline / strikethrough / eraser) ---
+        const annotToolbar = document.getElementById('annot-toolbar');
+        const transBox = document.getElementById('trans-box');
+        let selectedTextStr = "";
+        let savedRange = null;
+        let currentTranslation = null;
+
+        // Keep text selection alive while clicking toolbar buttons
+        annotToolbar.addEventListener('mousedown', e => e.preventDefault());
+
+        const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+
+        function positionToolbar(rect) {
+            // On touch devices (iPad etc.) place the toolbar BELOW the selection so it
+            // doesn't collide/overlap with the OS's own native selection toolbar (which
+            // pops up above the selection).
+            annotToolbar.style.visibility = 'hidden';
+            annotToolbar.style.display = 'flex';
+            const tbWidth = annotToolbar.offsetWidth || 220;
+            const top = isCoarsePointer
+                ? (rect.bottom + window.scrollY + 14)
+                : (rect.top + window.scrollY - 48);
+            let left = rect.left + window.scrollX + (rect.width / 2) - (tbWidth / 2);
+            left = Math.max(10, Math.min(left, window.scrollX + window.innerWidth - tbWidth - 10));
+            annotToolbar.style.top = top + 'px';
+            annotToolbar.style.left = left + 'px';
+            annotToolbar.style.visibility = 'visible';
+        }
+
+        function handleSelectionUI(e) {
+            // Don't trigger if clicking inside the toolbar or the translation box itself
+            if (e && (transBox.contains(e.target) || annotToolbar.contains(e.target))) return;
+
+            const selection = window.getSelection();
+            const text = selection.toString().trim();
+
+            if (text.length > 0 && selection.rangeCount > 0 && text.split(/\s+/).length < 50) {
+                const anchorNode = selection.anchorNode;
+                const anchorEl = anchorNode && (anchorNode.nodeType === 3 ? anchorNode.parentNode : anchorNode);
+                const workspace = document.getElementById('main-workspace');
+                if (!anchorEl || !workspace.contains(anchorEl)) return;
+
+                savedRange = selection.getRangeAt(0).cloneRange();
+                selectedTextStr = text;
+
+                const rect = savedRange.getBoundingClientRect();
+                if (rect.width === 0 && rect.height === 0) return; // selection geometry not painted yet
+                positionToolbar(rect);
+                annotToolbar.style.display = 'flex';
+                transBox.style.display = 'none'; // hide translation box if making a new selection
+            } else {
+                annotToolbar.style.display = 'none';
+                if (!(e && transBox.contains(e.target))) transBox.style.display = 'none';
+            }
+        }
+
+        document.getElementById('main-workspace').addEventListener('mouseup', handleSelectionUI);
+
+        // iOS/iPad (and other touch/stylus devices) frequently don't fire a usable
+        // 'mouseup' after a native text-selection gesture, so 'selectionchange'
+        // (debounced) is used as a more reliable, cross-platform fallback.
+        let selectionDebounceTimer = null;
+        document.addEventListener('selectionchange', function() {
+            clearTimeout(selectionDebounceTimer);
+            selectionDebounceTimer = setTimeout(() => handleSelectionUI(null), 220);
+        });
+
+        // Touch: dismiss the toolbar when tapping empty space with no active selection
+        document.addEventListener('touchstart', function(e) {
+            if (!annotToolbar.contains(e.target) && !transBox.contains(e.target)) {
+                const sel = window.getSelection();
+                if (!sel || sel.toString().trim() === '') {
+                    annotToolbar.style.display = 'none';
+                }
+            }
+        }, { passive: true });
+
+        // --- Robust multi-node wrap/erase so annotations survive selections that
+        //     span multiple paragraphs or existing <span id="loc-..."> markers ---
+        function wrapRangeNodes(range, makeWrapper) {
+            if (!range || range.collapsed) return;
+            const root = range.commonAncestorContainer;
+            const walker = document.createTreeWalker(
+                root.nodeType === 3 ? root.parentNode : root,
+                NodeFilter.SHOW_TEXT,
+                null
+            );
+            const nodes = [];
+            let node;
+            while (node = walker.nextNode()) {
+                if (range.intersectsNode(node) && node.nodeValue.trim() !== '') nodes.push(node);
+            }
+            nodes.forEach(textNode => {
+                const nodeRange = document.createRange();
+                nodeRange.selectNodeContents(textNode);
+                if (textNode === range.startContainer) nodeRange.setStart(textNode, range.startOffset);
+                if (textNode === range.endContainer) nodeRange.setEnd(textNode, range.endOffset);
+                if (nodeRange.collapsed) return;
+                try {
+                    nodeRange.surroundContents(makeWrapper());
+                } catch (err) { /* skip nodes that can't be safely wrapped */ }
+            });
+        }
+
+        function applyHighlight(range, color, textColor) {
+            wrapRangeNodes(range, () => {
+                const span = document.createElement('span');
+                span.className = 'user-annotation user-highlight';
+                span.style.backgroundColor = color;
+                // Dark highlight colors (e.g. exam mode's maroon/wine) need white text
+                // on top to stay readable; pastel practice colors leave text untouched.
+                if (textColor) span.style.color = textColor;
+                return span;
+            });
+        }
+
+        function applyUnderline(range) {
+            wrapRangeNodes(range, () => {
+                const span = document.createElement('span');
+                span.className = 'user-annotation';
+                span.style.textDecoration = 'underline';
+                span.style.textDecorationColor = '#1a73e8';
+                span.style.textDecorationThickness = '2px';
+                return span;
+            });
+        }
+
+        function applyStrike(range) {
+            wrapRangeNodes(range, () => {
+                const span = document.createElement('span');
+                span.className = 'user-annotation';
+                span.style.textDecoration = 'line-through';
+                span.style.textDecorationColor = '#f44336';
+                return span;
+            });
+        }
+
+        function eraseAnnotations(range) {
+            if (!range) return;
+            document.querySelectorAll('.user-annotation').forEach(el => {
+                if (range.intersectsNode(el)) unwrapElement(el);
+            });
+        }
+
+        function unwrapElement(el) {
+            const parent = el.parentNode;
+            if (!parent) return;
+            while (el.firstChild) parent.insertBefore(el.firstChild, el);
+            parent.removeChild(el);
+            parent.normalize();
+        }
+
+        function cleanupAfterAnnotate() {
+            annotToolbar.style.display = 'none';
+            window.getSelection().removeAllRanges();
+            savedRange = null;
+        }
+
+        document.querySelectorAll('.annot-color').forEach(btn => {
+            btn.addEventListener('click', () => {
+                applyHighlight(savedRange, btn.dataset.color, btn.dataset.textColor || null);
+                cleanupAfterAnnotate();
+            });
+        });
+        document.getElementById('annot-underline').addEventListener('click', () => {
+            applyUnderline(savedRange);
+            cleanupAfterAnnotate();
+        });
+        document.getElementById('annot-strike').addEventListener('click', () => {
+            applyStrike(savedRange);
+            cleanupAfterAnnotate();
+        });
+        document.getElementById('annot-erase').addEventListener('click', () => {
+            eraseAnnotations(savedRange);
+            cleanupAfterAnnotate();
+        });
+
+        // --- Translation (real free API: Google Translate unofficial endpoint,
+        //     falling back to MyMemory if the first one fails/blocked) ---
+        document.getElementById('annot-translate-btn').addEventListener('click', () => {
+            if (!savedRange) return;
+            const rect = savedRange.getBoundingClientRect();
+            annotToolbar.style.display = 'none';
+            showTranslationBox(selectedTextStr, rect);
+        });
+
+        async function fetchTranslation(text) {
+            try {
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=vi&dt=t&q=${encodeURIComponent(text)}`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Google Translate request failed');
+                const data = await res.json();
+                const translated = data[0].map(chunk => chunk[0]).join('');
+                if (translated) return translated;
+                throw new Error('Empty result');
+            } catch (err) {
+                console.warn('Google Translate lỗi, thử MyMemory...', err);
+            }
+            try {
+                const url2 = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|vi`;
+                const res2 = await fetch(url2);
+                const data2 = await res2.json();
+                if (data2 && data2.responseData && data2.responseData.translatedText) {
+                    return data2.responseData.translatedText;
+                }
+                throw new Error('MyMemory trả về rỗng');
+            } catch (err2) {
+                console.error('Tất cả API dịch đều lỗi', err2);
+                return null;
+            }
+        }
+
+        async function showTranslationBox(text, rect) {
+            document.getElementById('trans-original').innerText = text;
+            const resultEl = document.getElementById('trans-result');
+            resultEl.innerText = 'Đang dịch...';
+            resultEl.style.opacity = '0.6';
+            currentTranslation = null;
+
+            transBox.style.top = (rect.bottom + window.scrollY + 10) + 'px';
+            transBox.style.left = (rect.left + window.scrollX) + 'px';
+            transBox.style.display = 'block';
+
+            requestAnimationFrame(() => {
+                const boxRect = transBox.getBoundingClientRect();
+                if (boxRect.right > window.innerWidth) {
+                    transBox.style.left = Math.max(10, window.innerWidth - boxRect.width - 20 + window.scrollX) + 'px';
+                }
+            });
+
+            const translated = await fetchTranslation(text);
+            resultEl.style.opacity = '1';
+            if (translated) {
+                resultEl.innerText = translated;
+                currentTranslation = translated;
+            } else {
+                resultEl.innerHTML = 'Không thể dịch lúc này.<br><span style="font-size:12px;color:#999;">(Kiểm tra kết nối mạng)</span>';
+            }
+        }
+
+        function closeTranslation() {
+            transBox.style.display = 'none';
+            window.getSelection().removeAllRanges();
+            savedRange = null;
+        }
+
+        // Text-to-Speech
+        document.getElementById('tts-play').addEventListener('click', function() {
+            if ('speechSynthesis' in window && selectedTextStr) {
+                window.speechSynthesis.cancel(); // stop current
+                let msg = new SpeechSynthesisUtterance(selectedTextStr);
+                msg.lang = 'en-US';
+                window.speechSynthesis.speak(msg);
+            } else {
+                alert("Trình duyệt không hỗ trợ đọc Text-to-Speech.");
+            }
+        });
+
+        // --- Vocabulary Notebook (saved locally in this browser) ---
+        const VOCAB_LIMIT = 300;
+
+        document.getElementById('save-vocab-btn').addEventListener('click', () => {
+            if (!selectedTextStr || !currentTranslation) return;
+            const result = saveToVocabBook(selectedTextStr, currentTranslation);
+            const btn = document.getElementById('save-vocab-btn');
+            const original = btn.innerText;
+            if (result === 'full') {
+                alert(`Sổ từ vựng đã đầy (tối đa ${VOCAB_LIMIT} từ). Hãy xoá bớt từ cũ trong "My Words" trước khi lưu thêm.`);
+                return;
+            }
+            btn.innerText = result === 'duplicate' ? '✓ Đã có sẵn' : '✅ Đã lưu!';
+            setTimeout(() => { btn.innerText = original; }, 1500);
+        });
+
+        function getVocabBook() {
+            try {
+                return JSON.parse(localStorage.getItem('ielts_vocab_book') || '[]');
+            } catch (e) { return []; }
+        }
+
+        // Returns 'saved' | 'duplicate' | 'full'
+        function saveToVocabBook(en, vi) {
+            let book = getVocabBook();
+            if (book.some(item => item.en.toLowerCase() === en.toLowerCase())) return 'duplicate'; // avoid duplicates
+            if (book.length >= VOCAB_LIMIT) return 'full'; // must delete old words before saving new ones
+            book.unshift({ en, vi, date: new Date().toLocaleDateString('vi-VN') });
+            localStorage.setItem('ielts_vocab_book', JSON.stringify(book));
+            updateVocabCount();
+            return 'saved';
+        }
+
+        function removeVocab(idx) {
+            let book = getVocabBook();
+            book.splice(idx, 1);
+            localStorage.setItem('ielts_vocab_book', JSON.stringify(book));
+            updateVocabCount();
+            renderVocabList();
+        }
+
+        function updateVocabCount() {
+            const el = document.getElementById('vocab-count');
+            if (el) {
+                const n = getVocabBook().length;
+                el.innerText = n >= VOCAB_LIMIT ? `${n}/${VOCAB_LIMIT}` : n;
+            }
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function renderVocabList() {
+            const book = getVocabBook();
+            const listEl = document.getElementById('vocab-list');
+            if (book.length === 0) {
+                listEl.innerHTML = '<p style="color:#888;">Chưa có từ nào được lưu. Hãy bôi đen một từ trong bài đọc, bấm 🌐 Dịch rồi Lưu vào Sổ!</p>';
+                return;
+            }
+            listEl.innerHTML = book.map((item, idx) => `
+                <div class="vocab-item">
+                    <div>
+                        <div class="vocab-en">${escapeHtml(item.en)}</div>
+                        <div class="vocab-vi">${escapeHtml(item.vi)}</div>
+                        <div class="vocab-date">${escapeHtml(item.date)}</div>
+                    </div>
+                    <button class="vocab-del-btn" onclick="removeVocab(${idx})" title="Xóa">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        function openVocabBook() {
+            renderVocabList();
+            document.getElementById('vocab-modal').style.display = 'flex';
+        }
+
+        function closeVocabBook() {
+            document.getElementById('vocab-modal').style.display = 'none';
+        }
+
+        updateVocabCount();
+
+    </script>
+
+    <!-- ============ BÁO CÁO KẾT QUẢ VỀ FIRESTORE (chỉ chạy khi bài test này được mở từ 1 bài
+         tập được giao qua "Bài tập" trên trang chủ — tức URL có ?assignmentId=&uid=). Tách riêng
+         thành 1 <script type="module"> độc lập, KHÔNG đụng vào script chính ở trên, để không phải
+         gắn lại hàng loạt hàm lên window. Script này chỉ đọc kết quả grading có sẵn (submitTest())
+         và ghi vào submissions/{assignmentId}_{uid}, không thay đổi hành vi làm bài bình thường. -->
+    <script type="module">
+        (function () {
+            var params = new URLSearchParams(location.search);
+            var assignmentId = params.get('assignmentId');
+            var uid = params.get('uid');
+            var scope = params.get('scope') || 'all';
+            if (!assignmentId || !uid) return; // mở bài test bình thường (không phải bài được giao) -> bỏ qua
+
+            // TODO(night): dán ĐÚNG firebaseConfig của project "b-s-english-house" — PHẢI GIỐNG HỆT
+            // khối config trong index.html / listeningtypegenerator.html, nếu không kết quả sẽ ghi
+            // nhầm sang project khác và giáo viên sẽ không thấy được.
+            var FB_CONFIG = {
+                apiKey: "AIzaSyDuoosjvJe3EoF22h9UJ6M95os5s_boQ-o",
+                authDomain: "b-s-english-house.firebaseapp.com",
+                projectId: "b-s-english-house",
+                storageBucket: "b-s-english-house.firebasestorage.app",
+                messagingSenderId: "946574286636",
+                appId: "1:946574286636:web:44624fb938e6b5dc961689",
+                measurementId: "G-YZR2QFWQGR"
+            };
+
+            Promise.all([
+                import('https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js'),
+                import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js')
+            ]).then(function (mods) {
+                var appMod = mods[0], fsMod = mods[1];
+                var app = appMod.initializeApp(FB_CONFIG, 'bseh-reading-report-' + Date.now());
+                var db = fsMod.getFirestore(app);
+                var subRef = fsMod.doc(db, 'submissions', assignmentId + '_' + uid);
+
+                // Bọc submitTest() gốc: chấm bài vẫn chạy y như cũ, chỉ thêm bước báo kết quả về
+                // Firestore ngay sau đó. submitTest là function khai báo ở top-level của <script>
+                // thường (không phải module) nên tự gắn lên window — an toàn để bọc lại ở đây vì
+                // module này chạy sau khi script chính đã thực thi xong (defer mặc định của module).
+                var origSubmitTest = window.submitTest;
+                window.submitTest = function () {
+                    if (typeof origSubmitTest === 'function') origSubmitTest();
+                    try { reportAssignmentResult(); } catch (e) { console.warn('BSEH: report failed', e); }
+                };
+
+                function reportAssignmentResult() {
+                    // submitTest() ở trên luôn chấm CẢ 3 passage rồi hiện tổng điểm ở #score-correct/#score-total.
+                    var fullCorrectEl = document.getElementById('score-correct');
+                    var fullTotalEl = document.getElementById('score-total');
+                    var reportCorrect = fullCorrectEl ? (parseInt(fullCorrectEl.innerText, 10) || 0) : 0;
+                    var reportTotal = fullTotalEl ? (parseInt(fullTotalEl.innerText, 10) || 0) : 0;
+
+                    // Nếu giáo viên chỉ giao 1 Passage (thường gặp nhất), báo điểm riêng của đúng
+                    // Passage đó thay vì điểm cả đề — chấm lại đúng khoảng câu hỏi của passage này
+                    // (an toàn để gọi lại: gradeQuestionRange ghi đè fbBox chứ không cộng dồn).
+                    if ((scope === '1' || scope === '2' || scope === '3') &&
+                        window.passageRanges && typeof window.gradeQuestionRange === 'function') {
+                        var range = window.passageRanges[parseInt(scope, 10) - 1];
+                        if (range) {
+                            reportCorrect = window.gradeQuestionRange(range[0], range[1]);
+                            reportTotal = range[1] - range[0] + 1;
+                        }
+                    }
+
+                    var percent = reportTotal > 0 ? Math.round(reportCorrect / reportTotal * 100) : 0;
+                    fsMod.setDoc(subRef, {
+                        status: 'done',
+                        percent: percent,
+                        score: reportCorrect + '/' + reportTotal,
+                        completedAt: fsMod.serverTimestamp()
+                    }, { merge: true }).catch(function (e) { console.warn('BSEH: submissions write failed', e); });
+                }
+            }).catch(function (e) { console.warn('BSEH: firebase init failed', e); });
+        })();
+    </script>
+</body>
+</html>
