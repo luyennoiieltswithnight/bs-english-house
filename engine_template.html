@@ -292,6 +292,14 @@
             margin-bottom: 10px;
         }
         .inline-blank-wrap { display: inline-block; }
+        /* "Complete the notes" dạng khối ghi chú/outline (có tiêu đề, gạch đầu dòng, thụt lề...) —
+           giữ nguyên xuống dòng + khoảng trắng gốc y hệt giáo viên đã gõ (xem genNotesFromTemplate()),
+           KHÔNG gộp thành 1 đoạn văn chảy liên tục như .inline-summary thường (dùng cho câu văn thật). */
+        .inline-summary.notes-template {
+            white-space: pre-wrap;
+            line-height: 2.1;
+            font-family: inherit;
+        }
         .inline-blank {
             width: 130px;
             text-align: center;
@@ -922,11 +930,15 @@
                         // tục (giống summary thật), không tách mỗi câu ra 1 dòng riêng có số tròn to.
                         html += genInlineGroup(g.questions);
                     } else if (g.type === 'text') {
-                        // Complete the notes/table (điền từ): CÙNG 1 cách render như 'inline' ở trên
-                        // — gộp cả nhóm thành 1 khối chảy liên tục, số câu nằm trong ô nhập liệu.
-                        // Khác 1 chỗ: 'text' không có sẵn pre/post tách riêng — tự tách bằng cách tìm
-                        // dấu gạch chân/chấm lửng (___, ...) trong q.text (xem splitBlankMarker()).
-                        html += genNotesGroup(g.questions);
+                        // Complete the notes: 2 kiểu nội dung khác nhau, KHÔNG dùng chung 1 cách render —
+                        // xem genNotesFromTemplate()/genNotesGroup() bên dưới để biết vì sao phải phân biệt.
+                        // - Có g.notesTemplate (giáo viên dán nguyên khối ghi chú/outline, có tiêu đề, gạch
+                        //   đầu dòng...): giữ NGUYÊN 100% chữ gốc, chỉ thay mỗi dấu "_____" bằng 1 ô nhập.
+                        // - Không có (nhóm chỉ là 1 đoạn văn liền mạch, câu nào cũng có blank riêng): dùng
+                        //   cách cũ — tự ghép pre/post của từng câu lại thành 1 khối chảy liên tục.
+                        html += (g.notesTemplate && g.notesTemplate.trim())
+                            ? genNotesFromTemplate(g.notesTemplate, g.questions)
+                            : genNotesGroup(g.questions);
                     } else {
                         g.questions.forEach(q => {
                             if (g.type === 'tfng') {
@@ -1018,6 +1030,39 @@
                 const { pre, post } = splitBlankMarker(q.text || '');
                 return { qNum: q.qNum, pre, post };
             }));
+        }
+
+        // "Complete the notes" khi đề KHÔNG phải 1 đoạn văn liền mạch mà là 1 khối ghi chú/outline có
+        // tiêu đề, gạch đầu dòng, các dòng con thụt lề... (vd lịch sử cuộc đời theo từng mốc thời gian).
+        // Ghép từng câu riêng lẻ như genNotesGroup() sẽ làm MẤT toàn bộ cấu trúc đó (tiêu đề, những dòng
+        // không có chỗ trống...). Ở đây ngược lại: giáo viên dán NGUYÊN VĂN cả khối ghi chú vào 1 ô duy
+        // nhất (template, giữ nguyên xuống dòng), đánh dấu mỗi chỗ trống bằng ___/..../… theo ĐÚNG thứ tự
+        // câu hỏi trong nhóm — hàm này CHỈ thay từng dấu đó bằng 1 ô nhập, còn lại giữ y nguyên 100% (kể
+        // cả tiêu đề, gạch đầu dòng, những dòng không có chỗ trống nào) nhờ escapeHtml() + white-space:
+        // pre-wrap (xem CSS .notes-template) để xuống dòng/khoảng trắng gốc hiển thị đúng như đã gõ.
+        function genNotesFromTemplate(template, questions) {
+            const re = /_{2,}|\.{4,}|…+/g;
+            const segments = [];
+            let lastIndex = 0, qi = 0, m;
+            while (qi < questions.length && (m = re.exec(template)) !== null) {
+                segments.push({ text: template.slice(lastIndex, m.index) });
+                segments.push({ q: questions[qi] });
+                lastIndex = m.index + m[0].length;
+                qi++;
+            }
+            segments.push({ text: template.slice(lastIndex) });
+            // Nếu template có ÍT dấu chỗ trống hơn số câu trong nhóm (giáo viên gõ thiếu ___), vẫn
+            // thêm ô nhập cho các câu còn lại vào cuối cùng để không mất câu hỏi nào.
+            for (; qi < questions.length; qi++) segments.push({ q: questions[qi] });
+
+            const bodyHtml = segments.map(seg => {
+                if (seg.q) {
+                    return `<span class="inline-blank-wrap" id="q-container-${seg.q.qNum}"><input type="text" class="text-input inline-blank" name="q${seg.q.qNum}" placeholder="${seg.q.qNum}"></span>`;
+                }
+                return escapeHtml(seg.text);
+            }).join('');
+            const feedbackHtml = questions.map(q => `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `<div class="inline-summary notes-template">${bodyHtml}</div>${feedbackHtml}`;
         }
 
         // Matching / drag-drop question type: a bank of draggable option chips
