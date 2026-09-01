@@ -439,8 +439,13 @@ function createGroupCard(passage, group, pIdx, gIdx) {
   }
   card.appendChild(headRow);
 
-  const instrField = el('div', { class: 'field' }, [el('label', {}, ['Hướng dẫn (instruction)'])]);
-  const instrInput = el('input', { type: 'text', value: group.instruction, placeholder: 'vd: Choose ONE WORD ONLY' });
+  // Nhiều đề (đặc biệt dạng "Choose THREE correct answers") có YÊU CẦU 2 DÒNG: 1 dòng hướng dẫn
+  // chung ("Choose THREE correct answers.") + 1 dòng câu hỏi/stem riêng của nhóm đó (vd "Which
+  // THREE of the following points are mentioned by the writer of the passage?"). Đổi thành textarea
+  // nhiều dòng để nhập được ĐỦ cả 2 dòng đó (giữ nguyên xuống dòng khi hiển thị cho học sinh).
+  const instrField = el('div', { class: 'field' }, [el('label', {}, ['Hướng dẫn (instruction) — có thể nhập nhiều dòng nếu đề gốc có 2 dòng (hướng dẫn chung + câu hỏi/stem riêng của nhóm)'])]);
+  const instrInput = el('textarea', { rows: 2, placeholder: 'vd:\nChoose THREE correct answers.\nWhich THREE of the following points are mentioned by the writer of the passage?' });
+  instrInput.value = group.instruction || '';
   instrInput.oninput = () => { group.instruction = instrInput.value; };
   instrField.appendChild(instrInput);
   card.appendChild(instrField);
@@ -729,7 +734,12 @@ function buildTestHTML(state) {
   const MATCH_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const questionsDataJs = state.passages.map((p, pIdx) => {
     return p.groups.filter(g => g.questions.length > 0).map(g => {
-      const groupOut = { instruction: g.instruction || '', type: g.type, reference: (g.reference || '').split('\n').map(s => s.trim()).filter(Boolean).join('<br>'), imageUrl: g.imageUrl || '' };
+      const groupOut = {
+        // Nhiều đề có "instruction" 2 dòng (vd "Choose THREE correct answers." + câu hỏi/stem riêng
+        // của nhóm) — giữ nguyên xuống dòng bằng <br> khi hiển thị, giống cách xử lý "reference".
+        instruction: (g.instruction || '').split('\n').map(s => s.trim()).filter(Boolean).join('<br>'),
+        type: g.type, reference: (g.reference || '').split('\n').map(s => s.trim()).filter(Boolean).join('<br>'), imageUrl: g.imageUrl || ''
+      };
       if (g.type === 'tfng') groupOut.labels = g.labels;
       if (g.type === 'text' && g.notesTemplate && g.notesTemplate.trim()) {
         groupOut.notesTemplate = g.notesTemplate;
@@ -1109,14 +1119,18 @@ function parseTemplate(text) {
 
 const QUICK_TEMPLATE_PROMPT = `Bạn là trợ lý giúp soạn đề thi IELTS Reading. Hãy xuất kết quả theo ĐÚNG định dạng văn bản dưới đây — không thêm lời dẫn, không thêm markdown, không đánh số ngoài các thẻ đã cho.
 
+QUY TẮC QUAN TRỌNG NHẤT — KHÔNG ĐƯỢC RÚT GỌN / DIỄN GIẢI LẠI (PARAPHRASE):
+- "paragraphs" (đoạn văn), "instruction" (yêu cầu của từng nhóm câu hỏi), "text" (nội dung câu hỏi / mệnh đề), các lựa chọn "A:"/"B:"/"C:"/"D:", "options:" (heading/grid/list_match/multi) — TẤT CẢ phải chép ĐÚNG NGUYÊN VĂN 100% từ đề gốc, giữ nguyên từng chữ, từng dấu câu. TUYỆT ĐỐI KHÔNG được tóm tắt, viết ngắn lại, đổi từ đồng nghĩa, hay bỏ bớt bất kỳ chữ nào — kể cả khi câu dài. Nếu không chắc chắn nhớ đúng nguyên văn, hãy nói rõ là không chắc thay vì tự bịa/rút gọn.
+- Nhiều nhóm câu hỏi có "instruction" gồm 2 DÒNG: 1 dòng hướng dẫn chung của DẠNG câu hỏi (vd "Choose THREE correct answers.") + 1 dòng câu hỏi/stem RIÊNG của nhóm đó (vd "Which THREE of the following points are mentioned by the writer of the passage?"). Trường hợp này PHẢI ghi ĐỦ CẢ 2 dòng trong "instruction:" (xuống dòng bình thường, xem ví dụ nhóm "multi" bên dưới) — KHÔNG được chỉ chọn 1 trong 2 dòng.
+
 QUY TẮC ĐỊNH DẠNG:
 - Mỗi section bắt đầu bằng 1 dòng riêng chứa đúng ký hiệu: [META], [PASSAGE 1], [PASSAGE 2], [PASSAGE 3], [GROUP], [Q]
 - Sau mỗi section là các dòng "key: value".
-- Riêng "paragraphs", "reference", "text", "exp" được phép xuống dòng nhiều dòng — chỉ dừng khi gặp dòng đánh dấu section mới hoặc key mới. Với "paragraphs": để 1 dòng trống giữa các đoạn văn để tool tự tách đoạn (paragraph).
+- Riêng "paragraphs", "instruction", "reference", "notes", "text", "exp" được phép xuống dòng nhiều dòng — chỉ dừng khi gặp dòng đánh dấu section mới hoặc key mới. Với "paragraphs": để 1 dòng trống giữa các đoạn văn để tool tự tách đoạn (paragraph).
 - type của [GROUP] nhận 1 trong các giá trị sau:
    - tfng = True/False/Not Given hoặc Yes/No/Not Given (thêm dòng "labels: TRUE/FALSE/NOT GIVEN" hoặc "labels: YES/NO/NOT GIVEN")
    - mcq = trắc nghiệm chọn 1 đáp án — dùng được cho CẢ "chọn 1 từ 3" lẫn A/B/C/D thường (mỗi [Q] cần các dòng A:/B:/C:/D: tương ứng số lựa chọn thật sự có — nếu chỉ có 3 lựa chọn thì chỉ ghi A:/B:/C:, không cần ghi D: ; "answer:" chỉ ghi 1 chữ cái)
-   - multi = "Choose TWO/THREE correct answers" (chọn NHIỀU đáp án đúng trong 1 danh sách chung) — thêm dòng "options:" ở cấp [GROUP] (mỗi dòng 1 lựa chọn, không cần viết "A." phía trước); mỗi [Q] trong nhóm này là 1 "suất" đáp án đúng — SỐ [Q] = SỐ đáp án đúng cần chọn (vd cần chọn đúng 2 thì viết đúng 2 khối [Q]), mỗi [Q] chỉ cần "answer:" là 1 chữ cái tương ứng thứ tự trong "options:" (không cần "text:")
+   - multi = "Choose TWO/THREE correct answers" (chọn NHIỀU đáp án đúng trong 1 danh sách chung) — thêm dòng "options:" ở cấp [GROUP] (mỗi dòng 1 lựa chọn NGUYÊN VĂN đầy đủ, không cần viết "A." phía trước); mỗi [Q] trong nhóm này là 1 "suất" đáp án đúng — SỐ [Q] = SỐ đáp án đúng cần chọn (vd cần chọn đúng 3 thì viết đúng 3 khối [Q]), mỗi [Q] chỉ cần "answer:" là 1 chữ cái tương ứng thứ tự trong "options:" (không cần "text:"). Dạng này HAY có "instruction" 2 dòng (dòng 1 hướng dẫn chung "Choose THREE correct answers.", dòng 2 là câu hỏi/stem riêng vd "Which THREE of the following points are mentioned by the writer of the passage?") — PHẢI ghi đủ cả 2 dòng nguyên văn trong "instruction:", xem ví dụ mẫu bên dưới.
    - text = điền từ / câu trả lời ngắn (Complete the notes/table — KHÔNG dùng cho matching nữa, xem "heading"/"grid"/"list_match" bên dưới). Có 2 cách khai báo tuỳ đề gốc là 1 đoạn văn liền mạch hay 1 khối GHI CHÚ/OUTLINE (có tiêu đề, gạch đầu dòng, dòng con thụt lề, có cả dòng KHÔNG có chỗ trống nào — vd 1 dòng thời gian "1835-1855" đứng riêng làm tiêu đề mục):
       (a) Đề là 1 đoạn văn liền mạch, MỖI câu chỉ là 1 vế câu có đúng 1 chỗ trống: dùng "text:" ở từng [Q] như trước — PHẢI có dấu gạch chân chỗ trống (5 dấu gạch dưới "_____") ở ĐÚNG vị trí cần điền, vd "text: Trees may be falling down because of _____ from nearby fields" — cả nhóm câu sẽ tự động được ghép lại thành 1 khối văn bản chảy liên tục.
       (b) Đề là 1 khối GHI CHÚ/OUTLINE có cấu trúc (tiêu đề, gạch đầu dòng "•"/"-", dòng con thụt lề, có dòng KHÔNG có chỗ trống...): PHẢI thêm dòng "notes:" ở cấp [GROUP] (xuống dòng nhiều dòng được), dán NGUYÊN VĂN cả khối ghi chú gốc vào đó — giữ nguyên tiêu đề/gạch đầu dòng/thụt lề/những dòng không có chỗ trống — đánh dấu MỖI chỗ trống bằng "_____" theo ĐÚNG thứ tự câu hỏi #1, #2... của các [Q] bên dưới (số dấu "_____" trong "notes:" phải khớp đúng số [Q] trong nhóm). Khi có "notes:", KHÔNG được bỏ sót bất kỳ chữ nào của đề gốc — kể cả những dòng không có chỗ trống (câu KHÔNG cần điền vẫn phải xuất hiện nguyên văn trong "notes:", KHÔNG được lược bỏ). Mỗi [Q] trong nhóm này vẫn cần "answer:"/"exp:"/"loc:" như bình thường, "text:" ở từng [Q] không bắt buộc khi đã có "notes:" (có thể để trống hoặc ghi lại đúng vế câu đó để dễ đối chiếu).
@@ -1127,7 +1141,7 @@ QUY TẮC ĐỊNH DẠNG:
    - matching = (loại CŨ, kéo-thả — chỉ dùng lại nếu cần tương thích ngược, khuyên dùng "grid" hoặc "list_match" ở trên) — cú pháp giống "list_match"
 - "image:" (không bắt buộc, đặt ở cấp [GROUP], dùng cho MỌI type) = link ảnh sơ đồ/chú thích nếu câu hỏi dạng đó cần nhìn hình (vd bài "Label the diagram") — dán link chia sẻ Google Drive hoặc link ảnh trực tiếp bất kỳ, để trống nếu không cần ảnh.
 - "loc:" (không bắt buộc) = copy CHÍNH XÁC một cụm từ có thật trong đoạn văn liên quan đến câu hỏi đó (để bật nút "xem vị trí trong bài"). Nếu không chắc cụm đó xuất hiện y hệt trong đoạn văn thì để trống.
-- "exp:" = giải thích ngắn gọn bằng tiếng Việt vì sao đáp án đó đúng.
+- "exp:" = giải thích ĐẦY ĐỦ, CHI TIẾT bằng tiếng Việt (không phải 1 câu ngắn cụt) — bắt buộc có đủ các ý sau: (1) chỉ rõ đáp án đúng dựa vào câu/đoạn nào trong bài (trích nguyên văn câu tiếng Anh đó hoặc paraphrase sát nghĩa), (2) giải thích logic vì sao câu/đoạn đó dẫn tới đáp án này, (3) với các dạng có nhiều lựa chọn (mcq/multi/tfng/heading/grid/list_match): giải thích thêm ngắn gọn vì sao MỖI lựa chọn còn lại SAI hoặc không phù hợp (không chỉ nói đúng 1 câu chung chung "vì đáp án là..." mà không có căn cứ). Viết như đang giảng lại cho học sinh hiểu tại sao, không phải chỉ xác nhận lại đáp án.
 - Một đề Cambridge chuẩn có 40 câu, chia đều cho 3 Passage (thường 13/13/14 hoặc tương đương).
 
 ĐỊNH DẠNG MẪU (điền đầy đủ nội dung thật, đủ 3 Passage, đủ số câu của đề gốc — đây chỉ là khung ví dụ rút gọn):
@@ -1241,6 +1255,36 @@ exp: <giải thích>
 title: <tên bài đọc 3>
 paragraphs:
 <nội dung đoạn văn...>
+
+[GROUP]
+type: multi
+instruction: Choose THREE correct answers.
+Which THREE of the following points are mentioned by the writer of the passage?
+reference:
+options:
+<lựa chọn A — nguyên văn đầy đủ>
+<lựa chọn B — nguyên văn đầy đủ>
+<lựa chọn C — nguyên văn đầy đủ>
+<lựa chọn D — nguyên văn đầy đủ>
+<lựa chọn E — nguyên văn đầy đủ>
+
+[Q]
+answer: B
+loc: <cụm từ trong bài chứng minh lựa chọn B đúng>
+exp: Đáp án B đúng vì đoạn 2 có câu "..." (trích nguyên văn), cho thấy rõ [giải thích logic]. Các lựa chọn A, C, D, E không được nhắc tới / bị bài viết bác bỏ ở đoạn nào đó — giải thích cụ thể vì sao từng lựa chọn sai.
+
+[Q]
+answer: D
+loc:
+exp: <giải thích đầy đủ tương tự — trích câu gốc + lý do đúng + vì sao các lựa chọn còn lại sai>
+
+[Q]
+answer: E
+loc:
+exp: <giải thích đầy đủ tương tự>
+(Lưu ý: instruction ở trên có ĐỦ 2 dòng nguyên văn — dòng hướng dẫn chung "Choose THREE correct
+answers." và dòng câu hỏi/stem riêng của nhóm này — KHÔNG được bỏ dòng nào. "options:" liệt kê
+NGUYÊN VĂN đầy đủ từng lựa chọn, không viết tắt.)
 
 [GROUP]
 type: inline
