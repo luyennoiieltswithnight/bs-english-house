@@ -934,7 +934,9 @@ async function ghPutFile(owner, repo, path, token, branch, contentUtf8, message,
   });
   if (!res.ok) {
     const j = await res.json().catch(() => ({}));
-    throw new Error(`Không ghi được ${path}: HTTP ${res.status} ${j.message || ''}`);
+    const err = new Error(`Không ghi được ${path}: HTTP ${res.status} ${j.message || ''}`);
+    err.status = res.status;
+    throw err;
   }
   return res.json();
 }
@@ -965,8 +967,9 @@ document.getElementById('publish-btn').addEventListener('click', async () => {
   const paths = currentTestPaths();
   logPublish('⏳ Bắt đầu xuất bản...', false);
 
-  try {
-    logPublish('⏳ Đang kiểm tra manifest hiện tại...');
+  // Tải manifest.json hiện tại trên GitHub + tự gộp thêm đúng 1 mục (book/test) của lần xuất bản
+  // này vào — tách riêng thành hàm để có thể gọi LẠI khi cần (xem retry bên dưới).
+  async function fetchAndMergeManifest() {
     const manifestFile = await ghGetFile(owner, repo, paths.manifestPath, token, branch);
     let manifest = { reading: { cam: {}, real: {} } };
     if (manifestFile) {
@@ -977,6 +980,12 @@ document.getElementById('publish-btn').addEventListener('click', async () => {
     }
     if (!manifest.reading[paths.prefix][paths.book]) manifest.reading[paths.prefix][paths.book] = {};
     manifest.reading[paths.prefix][paths.book][paths.testNum] = paths.testPath;
+    return { manifest, sha: manifestFile ? manifestFile.sha : null };
+  }
+
+  try {
+    logPublish('⏳ Đang kiểm tra manifest hiện tại...');
+    let { manifest, sha: manifestSha } = await fetchAndMergeManifest();
 
     logPublish(`⏳ Đang kiểm tra ${paths.testPath} ...`);
     const existingTestFile = await ghGetFile(owner, repo, paths.testPath, token, branch);
@@ -987,7 +996,26 @@ document.getElementById('publish-btn').addEventListener('click', async () => {
     await ghPutFile(owner, repo, paths.testPath, token, branch, build.html, `Add/update ${build.title}`, existingTestFile ? existingTestFile.sha : null);
 
     logPublish('⏳ Đang cập nhật manifest.json (trang chủ dùng file này để tự hiện link Test) ...');
-    await ghPutFile(owner, repo, paths.manifestPath, token, branch, JSON.stringify(manifest, null, 2), `Update reading manifest for ${build.title}`, manifestFile ? manifestFile.sha : null);
+    // Nếu vừa xuất bản 1 đề khác ngay trước đó (vd 2 tab, hoặc bấm "Xuất bản" liên tiếp cho nhiều
+    // đề) thì sha của manifest.json đã đổi kể từ lúc tải ở trên → ghi đè sẽ bị GitHub từ chối
+    // (409/422, "sha does not match"). KHÔNG được bỏ qua lỗi này — nếu bỏ qua thì đề vừa publish
+    // trước đó (vd Test 4) sẽ MẤT khỏi manifest dù file .html của nó vẫn còn nguyên trên GitHub
+    // (đúng triệu chứng "đã tải test 4, 6 nhưng trang chủ không hiện"). Thay vào đó: tải lại
+    // manifest MỚI NHẤT, gộp lại đúng 1 mục của lần xuất bản này, rồi thử ghi lại — tối đa 3 lần.
+    let manifestPutOk = false;
+    for (let attempt = 1; attempt <= 3 && !manifestPutOk; attempt++) {
+      try {
+        await ghPutFile(owner, repo, paths.manifestPath, token, branch, JSON.stringify(manifest, null, 2), `Update reading manifest for ${build.title}`, manifestSha);
+        manifestPutOk = true;
+      } catch (manifestErr) {
+        const isConflict = manifestErr.status === 409 || manifestErr.status === 422;
+        if (!isConflict || attempt === 3) throw manifestErr;
+        logPublish(`⚠️ manifest.json vừa bị 1 lượt xuất bản khác cập nhật trước (lần ${attempt}/3) — đang tải lại bản mới nhất và gộp lại...`);
+        const refetched = await fetchAndMergeManifest();
+        manifest = refetched.manifest;
+        manifestSha = refetched.sha;
+      }
+    }
 
     const liveUrl = `https://${owner}.github.io/${repo}/${paths.testPath}`;
     const slot = document.getElementById('publish-log-slot');
