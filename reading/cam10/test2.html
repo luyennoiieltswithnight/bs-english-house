@@ -18,6 +18,21 @@
             --hover-bg: #e0d9c5;
         }
 
+        /* --- Exam mode ("Thi Thật"): minimal white theme, purple accent only ---
+             Applied by adding class="exam-mode" to <body> in startTest(). Practice
+             mode keeps the original green/parchment look untouched. */
+        body.exam-mode {
+            --bg-color: #ffffff;
+            --panel-bg: #ffffff;
+            --border-color: #6d3fa0;
+            --primary-button: #7c4dab;
+            --hover-bg: #f2ebfa;
+            background-image: none;
+        }
+        body.exam-mode .q-circle.answered { background-color: #e3d2f7; }
+        body.exam-mode .question-group { border-color: #e6dcf2; }
+        body.exam-mode .instruction { background: #faf7fd; }
+
         body {
             margin: 0;
             padding: 20px;
@@ -120,7 +135,7 @@
         /* Main Content Area */
         .main-container {
             display: flex;
-            gap: 20px;
+            gap: 0;
             flex: 1;
             min-height: 0;
             position: relative; /* For translation popup */
@@ -131,10 +146,35 @@
             border: 2px solid var(--border-color);
             border-radius: 12px;
             flex: 1;
+            min-width: 220px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Draggable resizer between the two panels */
+        .panel-resizer {
+            width: 18px;
+            flex-shrink: 0;
+            cursor: col-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+        }
+        .panel-resizer::after {
+            content: '';
+            width: 6px;
+            height: 56px;
+            border-radius: 6px;
+            background: rgba(44, 62, 45, 0.25);
+            transition: background 0.15s, height 0.15s;
+        }
+        .panel-resizer:hover::after,
+        .panel-resizer.dragging::after {
+            background: rgba(44, 62, 45, 0.55);
+            height: 80px;
         }
 
         .panel-content {
@@ -195,6 +235,9 @@
             align-items: flex-start;
             position: relative;
         }
+        /* Điền từ / notes completion: các dòng gần nhau hơn để cả nhóm nhìn liền mạch như 1 khối
+           ghi chú duy nhất, thay vì từng câu tách xa nhau như thẻ riêng biệt. */
+        .question-item.compact-item { margin-bottom: 14px; }
 
         .q-num {
             background-color: white;
@@ -241,6 +284,29 @@
         }
         .text-input:focus { background-color: rgba(255,255,255,0.8); }
 
+        /* Complete the summary/table — cả nhóm câu 'inline' chảy thành 1 đoạn văn liên tục, số
+           câu hỏi nằm ngay trong placeholder của ô nhập (không có vòng tròn số riêng). */
+        .inline-summary {
+            line-height: 2.6;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+        .inline-blank-wrap { display: inline-block; }
+        /* "Complete the notes" dạng khối ghi chú/outline (có tiêu đề, gạch đầu dòng, thụt lề...) —
+           giữ nguyên xuống dòng + khoảng trắng gốc y hệt giáo viên đã gõ (xem genNotesFromTemplate()),
+           KHÔNG gộp thành 1 đoạn văn chảy liên tục như .inline-summary thường (dùng cho câu văn thật). */
+        .inline-summary.notes-template {
+            white-space: pre-wrap;
+            line-height: 2.1;
+            font-family: inherit;
+        }
+        .inline-blank {
+            width: 130px;
+            text-align: center;
+            font-weight: 700;
+        }
+        .inline-blank::placeholder { font-weight: 800; color: var(--border-color); opacity: 0.8; }
+
         /* Review Mode Features */
         .feedback-box {
             display: none;
@@ -263,6 +329,155 @@
             border-top: 1px dashed #ccc;
             padding-top: 10px;
         }
+
+        /* Optional diagram/labeling image, attachable to any question group */
+        .group-image-wrap { margin-bottom: 15px; text-align: center; }
+        .group-image { max-width: 100%; border-radius: 8px; border: 1px solid #ddd; }
+
+        /* --- Matching / Drag-and-drop question type --- */
+        .match-bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            border: 1px dashed #bbb;
+        }
+        .match-chip {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: grab;
+            touch-action: none;
+            user-select: none;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.08);
+            transition: opacity 0.15s;
+        }
+        .match-chip:active { cursor: grabbing; }
+        .match-chip-ghost {
+            opacity: 0.9;
+            box-shadow: 4px 6px 12px rgba(0,0,0,0.25);
+        }
+        .match-row { flex-wrap: wrap; }
+        .match-prompt-text { flex: 1; min-width: 160px; }
+        .match-slot {
+            min-width: 140px;
+            min-height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 14px;
+            border: 2px dashed #aaa;
+            border-radius: 8px;
+            background: #fafafa;
+            color: #999;
+            font-size: 13px;
+            font-weight: 600;
+            touch-action: none;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .match-slot.filled { border-style: solid; border-color: var(--border-color); background: white; color: var(--text-color); }
+        .match-slot.drag-over { background: var(--hover-bg); border-color: var(--primary-button); }
+
+        /* --- Matching Headings / Matching Names-Claims-Sentence Endings (dropdown-based) --- */
+        .match-legend .match-chip-static { cursor: default; }
+        .lettered-select {
+            border: 1px solid #ccc;
+            border-bottom: 2px solid var(--border-color);
+            background: white;
+            padding: 6px 8px;
+            font-family: inherit;
+            font-size: 14px;
+            border-radius: 4px;
+            min-width: 220px;
+            max-width: 100%;
+        }
+
+        /* --- Matching Information / Names / Features (grid/matrix) --- */
+        .grid-scroll-wrap { overflow-x: auto; margin: 10px 0; }
+        table.match-grid {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 13px;
+        }
+        table.match-grid th, table.match-grid td {
+            border: 1px solid #ddd;
+            padding: 8px 10px;
+            text-align: center;
+        }
+        table.match-grid thead th { background: #f5f5f5; font-weight: 800; }
+        table.match-grid td.grid-row-label { text-align: left; font-weight: 600; min-width: 220px; }
+        .grid-q-num {
+            display: inline-flex; width: 22px; height: 22px; font-size: 11px;
+            margin-right: 6px; vertical-align: middle;
+        }
+        table.match-grid input.grid-radio { width: 18px; height: 18px; cursor: pointer; }
+
+        /* --- Table Completion ("Complete the table below") — bảng thật có cột/hàng, khác với
+           "Complete the notes" (khối ghi chú chảy liên tục) vì đề gốc TRÌNH BÀY dạng bảng thật,
+           mất cấu trúc cột/hàng nếu render như 1 đoạn văn — xem genTableGroup() bên dưới. */
+        .data-table-scroll-wrap { overflow-x: auto; margin: 10px 0; }
+        table.data-table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 14px;
+        }
+        table.data-table th, table.data-table td {
+            border: 1px solid #ddd;
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        table.data-table thead th { background: #f5f5f5; font-weight: 800; }
+        table.data-table .inline-blank { width: 110px; }
+
+        /* --- Summary/Sentence completion CÓ danh sách từ cho chọn (word bank) — select gọn nằm
+           giữa dòng chữ, khác .lettered-select thường (dùng cho list_match, rộng 220px cố định) --- */
+        .inline-select {
+            width: auto;
+            min-width: 110px;
+            max-width: 220px;
+            padding: 4px 6px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        /* --- Ghi chú/note giáo viên thêm vào bài đọc (chọn 1 đoạn chữ -> in đậm + note đỏ trong
+           ngoặc [ ] ngay bên phải) — xem cú pháp {{đoạn chữ|nội dung note}} ở công cụ soạn đề. --- */
+        .reading-note { color: var(--incorrect-color); font-weight: 700; font-size: 0.92em; }
+
+        /* --- "Choose N of M" multi-select checkboxes --- */
+        .multi-group .multi-hint {
+            margin: 0 0 10px 0; font-style: italic; font-weight: 600; color: #666;
+            padding: 6px 10px; background: #f5f5f5; border-left: 3px solid var(--border-color); border-radius: 0 4px 4px 0;
+        }
+        .multi-check-label input.multi-check { width: 16px; height: 16px; cursor: pointer; }
+        /* Nhãn "21-22" (gộp nhiều câu vào 1 nhóm) không vừa hình tròn q-num bình thường — đổi
+           sang hình bầu dục/chữ nhật bo góc, rộng vừa đủ chữ, tránh chữ số bị đè/tràn ra ngoài. */
+        .q-num.q-num-range {
+            width: auto; min-width: 40px; height: 24px; border-radius: 12px;
+            padding: 0 10px; font-size: 12px; white-space: nowrap;
+        }
+
+        /* --- Per-part grading bar (Practice mode only) --- */
+        .part-grade-bar { display: none; margin-bottom: 20px; text-align: right; }
+        .part-grade-bar.visible { display: block; }
+        .part-grade-btn {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 7px 16px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .part-grade-btn:hover { background: var(--hover-bg); }
 
         .show-loc-btn {
             background: var(--border-color);
@@ -329,10 +544,72 @@
             color: #1a73e8;
         }
 
+        .annot-note-btn { color: var(--incorrect-color); font-weight: 700; }
+
         .user-annotation.user-highlight {
             border-radius: 2px;
             padding: 1px 0;
         }
+
+        /* Note input popup — hiện thay chỗ #annot-toolbar khi bấm nút "📝 Note" */
+        #note-input-box {
+            position: absolute;
+            display: none;
+            align-items: center;
+            gap: 4px;
+            background: white;
+            border-radius: 30px;
+            padding: 5px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            z-index: 1000;
+            font-family: 'Inter', sans-serif;
+            border: 1px solid #e5e5e5;
+        }
+        #note-input-field {
+            border: none;
+            outline: none;
+            font-size: 13px;
+            padding: 6px 10px;
+            width: 200px;
+            font-family: 'Inter', sans-serif;
+        }
+        #note-input-ok, #note-input-cancel {
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        #note-input-ok { color: #2e7d32; font-weight: 700; }
+        #note-input-cancel { color: var(--incorrect-color); font-weight: 700; }
+        #note-input-ok:hover, #note-input-cancel:hover { background: #f0f0f0; }
+
+        /* Highlight tạm thời trong lúc đang gõ note (giữ cho người dùng vẫn thấy rõ đoạn chữ mình vừa
+           chọn, vì mở ô nhập note sẽ làm trình duyệt tự huỷ vùng bôi đen xanh mặc định) */
+        .note-pending-highlight { background: #fff3b0; border-radius: 2px; padding: 1px 0; }
+
+        /* Nút nổi "🗑 Xóa note" khi bấm trực tiếp vào 1 note đã có sẵn */
+        #note-delete-box {
+            position: absolute;
+            display: none;
+            z-index: 1000;
+        }
+        #note-delete-btn {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 30px;
+            padding: 8px 14px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--incorrect-color);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        #note-delete-btn:hover { background: #fdecea; }
 
         /* Translation Popup */
         #trans-box {
@@ -475,16 +752,34 @@
 
     <!-- Floating Annotation Toolbar -->
     <div id="annot-toolbar">
-        <button class="annot-color" data-color="#aecbfa" style="background:#aecbfa" title="Highlight xanh dương"></button>
-        <button class="annot-color" data-color="#f8bbd0" style="background:#f8bbd0" title="Highlight hồng"></button>
-        <button class="annot-color" data-color="#b9f6ca" style="background:#b9f6ca" title="Highlight xanh lá"></button>
-        <button class="annot-color" data-color="#fff59d" style="background:#fff59d" title="Highlight vàng"></button>
+        <button class="annot-color annot-color-practice" data-color="#aecbfa" style="background:#aecbfa" title="Highlight xanh dương"></button>
+        <button class="annot-color annot-color-practice" data-color="#f8bbd0" style="background:#f8bbd0" title="Highlight hồng"></button>
+        <button class="annot-color annot-color-practice" data-color="#b9f6ca" style="background:#b9f6ca" title="Highlight xanh lá"></button>
+        <button class="annot-color annot-color-practice" data-color="#fff59d" style="background:#fff59d" title="Highlight vàng"></button>
+        <button class="annot-color annot-color-exam" data-color="#7a1a35" data-text-color="#ffffff" style="background:#7a1a35; display:none;" title="Highlight rượu vang"></button>
         <span class="annot-divider"></span>
         <button class="annot-btn" id="annot-underline" title="Gạch chân"><u>U</u></button>
         <button class="annot-btn" id="annot-strike" title="Gạch ngang"><s>abc</s></button>
         <button class="annot-btn" id="annot-erase" title="Xóa định dạng">🧹</button>
+        <button class="annot-btn annot-note-btn" id="annot-note-btn" title="Thêm note">📝 Note</button>
         <span class="annot-divider"></span>
         <button class="annot-btn annot-translate" id="annot-translate-btn" title="Dịch">🌐 Dịch</button>
+    </div>
+
+    <!-- Note input popup (bôi đen chữ -> bấm "📝 Note" trên thanh nổi -> gõ note ở đây -> đoạn đã
+         chọn được IN ĐẬM, note hiện chữ ĐỎ trong ngoặc [ ] ngay bên phải. Chỉ là ghi chú cá nhân của
+         người đang làm bài trên máy/trình duyệt này lúc đó — giống hệt highlight/gạch chân/gạch ngang
+         ở trên, không lưu lại qua lần tải trang sau, không đồng bộ giữa các người dùng khác nhau. -->
+    <div id="note-input-box">
+        <input type="text" id="note-input-field" placeholder="Nhập nội dung note…" maxlength="200" />
+        <button type="button" id="note-input-ok" title="Thêm note">✓</button>
+        <button type="button" id="note-input-cancel" title="Huỷ">✕</button>
+    </div>
+
+    <!-- Bấm trực tiếp vào 1 note đã có (chữ in đậm hoặc phần [note] đỏ) -> nút này nổi lên để xoá riêng
+         note đó, không cần bôi đen lại. -->
+    <div id="note-delete-box">
+        <button type="button" id="note-delete-btn">🗑 Xóa note</button>
     </div>
 
     <!-- Translation Popup -->
@@ -526,7 +821,7 @@
                 </button>
                 <button class="mode-btn" id="btn-exam" onclick="selectMode('exam')">
                     <h3>Chế độ Thi Thật</h3>
-                    <p>90 phút đếm ngược. Làm full 3 Passages. Trả điểm Band IELTS.</p>
+                    <p>60 phút đếm ngược. Làm full 3 Passages. Trả điểm Band IELTS.</p>
                 </button>
             </div>
 
@@ -542,7 +837,10 @@
     <!-- Results Modal -->
     <div id="results-modal" class="overlay" style="display: none;">
         <div class="modal-box">
-            <h2>Kết quả làm bài</h2>
+            <h2 id="results-modal-title">Kết quả làm bài</h2>
+            <div id="homework-success-banner" style="display:none; margin-bottom:14px; padding:10px 14px; border-radius:10px; background:#e6f4d9; border:2px solid #4b7a2a; color:#2B4214; font-weight:800;">
+                ✅ Đã nộp homework thành công! Giáo viên sẽ thấy kết quả này.
+            </div>
             <div class="score-display">
                 <span id="score-correct">0</span> / <span id="score-total">40</span>
             </div>
@@ -557,7 +855,7 @@
     <!-- Main Interface -->
     <div class="header">
         <div class="header-left">
-            <button class="nav-btn" onclick="location.reload()">← Thoát</button>
+            <button class="nav-btn" onclick="exitTest()">← Thoát</button>
             <div class="passage-tabs" id="passage-tabs">
                 <button class="tab-btn active" onclick="switchPassage(1)">P1</button>
                 <button class="tab-btn" onclick="switchPassage(2)">P2</button>
@@ -572,7 +870,7 @@
         </div>
         <div class="header-right">
             <button class="nav-btn" onclick="openVocabBook()">📖 Sổ từ vựng (<span id="vocab-count">0</span>)</button>
-            <div class="timer" id="timer-display" style="display:none;">90:00</div>
+            <div class="timer" id="timer-display" style="display:none;">60:00</div>
             <button class="submit-btn" id="main-submit-btn" onclick="submitTest()">Nộp bài</button>
         </div>
     </div>
@@ -580,57 +878,59 @@
     <div class="main-container" id="main-workspace">
 
         <!-- LEFT PANEL: Reading Passage -->
-        <div class="panel">
+        <div class="panel" id="panel-passage">
             <div class="panel-content passage-text">
 
                 <!-- PASSAGE 1 -->
                 <div id="passage-1-text" class="content-wrapper active" data-title="Tea and the Industrial Revolution">
                     <p style="color: #666; font-size: 14px;">READING PASSAGE 1</p>
                     <h2>Tea and the Industrial Revolution</h2>
-                    <p>Alan Macfarlane, professor of anthropological science at King’s College, Cambridge has, like other historians, spent decades wrestling with the enigma of the Industrial Revolution. <span id="loc-1">Why did this particular Big Bang – the world-changing birth of industry-happen in Britain? And why did it strike at the end of the 18th century?</span></p>
-<p>Macfarlane compares the puzzle to a combination lock. ‘There are about 20 different factors and all of them need to be present before the revolution can happen,’ he says. <span id="loc-2">For industry to take off, there needs to be the technology and power to drive factories, large urban populations to provide cheap labour, easy transport to move goods around</span>, an affluent middle-class willing to buy mass-produced objects, a market-driven economy and a political system that allows this to happen. While this was the case for England, other nations, such as Japan, the Netherlands and France also met some of these criteria but were not industrialising. All these factors must have been necessary. But not sufficient to cause the revolution, says Macfarlane. ‘After all, Holland had everything except coal while <span id="loc-8">China also had many of these factors.</span> Most historians are convinced there are one or two missing factors that you need to open the lock.’</p>
-<p>The missing factors, he proposes, are to be found in almost even kitchen cupboard. <span id="loc-3">Tea and beer, two of the nation’s favourite drinks, fuelled the revolution.</span> <span id="loc-9">The antiseptic properties of tannin, the active ingredient in tea, and of hops in beer – plus the fact that both are made with boiled water – allowed urban communities to flourish at close quarters without succumbing to water-borne diseases such as dysentery.</span> The theory sounds eccentric but once he starts to explain the detective work that went into his deduction, the scepticism gives way to wary admiration. Macfarlanes case has been strengthened by support from notable quarters – <span id="loc-10">Roy Porter, the distinguished medical historian, recently wrote a favourable appraisal of his research.</span></p>
-<p>Macfarlane had wondered for a long time how the Industrial Revolution came about. Historians had alighted on one interesting factor around the mid-18th century that required explanation. Between about 1650 and 1740, the population in Britain was static. <span id="loc-11">But then there was a burst in population growth.</span> Macfarlane says: ‘The infant mortality rate halved in the space of 20 years, and this happened in both rural areas and cities, and across all classes. People suggested four possible causes. Was there a sudden change in the viruses and bacteria around? Unlikely. Was there a revolution in medical science? But this was a century before Lister’s revolution*. Was there a change in environmental conditions? There were improvements in agriculture that wiped out malaria, but these were small gains. Sanitation did not become widespread until the 19th century. The only option left is food. But the height and weight statistics show a decline. So the food must have got worse. <span id="loc-4">Efforts to explain this sudden reduction in child deaths appeared to draw a blank.</span>’</p>
-<p>This population burst seemed to happen at just the right time to provide labour for the Industrial Revolution. ‘When you start moving towards an industrial revolution, it is economically efficient to have people living close together,’ says Macfarlane. ‘But then you get disease, particularly from human waste.’ Some digging around in historical records revealed that there was a change in the incidence of water-borne disease at that time, especially dysentery. Macfarlane deduced that whatever the British were drinking must have been important in regulating disease. He says, ‘<span id="loc-5"><span id="loc-12">We drank beer.</span></span> For a long time, the English were protected by the strong antibacterial agent in hops, which were added to help preserve the beer. But in the late 17th century a tax was introduced on malt, the basic ingredient of beer. <span id="loc-13">The poor turned to water and gin and in the 1720s the mortality rate began to rise again.</span> Then it suddenly dropped again. What caused this?’</p>
-<p><span id="loc-6">Macfarlane looked to Japan</span>, which was also developing large cities about the same time, and also had no sanitation. Water-borne diseases had a much looser grip on the Japanese population than those in Britain. Could it be the prevalence of tea in their culture? Macfarlane then noted that the history of tea in Britain provided an extraordinary coincidence of dates. Tea was relatively expensive until Britain started a direct clipper trade with China in the early 18th century. By the 1740s, about the time that infant mortality was dipping, the drink was common. Macfarlane guessed that the fact that water had to be boiled, together with the stomach-purifying properties of tea meant that the breast milk provided by mothers was healthier than it had ever been. No other European nation sipped tea like the British, which, by Macfarlanes logic, pushed these other countries out of contention for the revolution.</p>
-<p>But, if tea is a factor in the combination lock, why didn’t Japan forge ahead in a tea-soaked industrial revolution of its own? Macfarlane notes that even though 17th-century Japan had large cities, high literacy rates, even a futures market, it had turned its back on the essence of any work-based revolution by <span id="loc-7">giving up labour-saving devices such as animals, afraid that they would put people out of work</span>. So, the nation that we now think of as one of the most technologically advanced entered the 19th century having ‘abandoned the wheel’.</p>
+                    <p><span class="heading-gap" data-qnum="1" data-group="hg1"></span> A Alan Macfarlane, professor of anthropological science at King’s College, Cambridge, has, like other historians, spent decades wrestling with the enigma of the Industrial Revolution. <span id="loc-1">Why did this particular Big Bang - the world-changing birth of industry - happen in Britain? And why did it strike at the end of the 18th century?</span></p>
+<p><span class="heading-gap" data-qnum="2" data-group="hg1"></span> B Macfarlane compares the puzzle to a combination lock. ‘There are about 20 different factors and all of them need to be present before the revolution can happen,’ he says. <span id="loc-2">For industry to take off, there needs to be the technology and power to drive factories, large urban populations to provide cheap labour, easy transport to move goods around</span>, an affluent middle-class willing to buy mass-produced objects, a market-driven economy and a political system that allows this to happen. While this was the case for England, other nations, such as Japan, the Netherlands and France also met some of these criteria but were not industrialising. ‘All these factors must have been necessary but not sufficient to cause the revolution,’ says Macfarlane. ‘After all, Holland had everything except coal, <span id="loc-8">while China also had many of these factors</span>. Most historians are convinced there are one or two missing factors that you need to open the lock.’</p>
+<p><span class="heading-gap" data-qnum="3" data-group="hg1"></span> C The missing factors, he proposes, are to be found in almost every kitchen cupboard. <span id="loc-3">Tea and beer, two of the nation’s favourite drinks, fuelled the revolution.</span> <span id="loc-9">The antiseptic properties of tannin, the active ingredient in tea, and of hops in beer - plus the fact that both are made with boiled water - allowed urban communities to flourish at close quarters without succumbing to water-borne diseases such as dysentery.</span> The theory sounds eccentric but once he starts to explain the detective work that went into his deduction, the scepticism gives way to wary admiration. Macfarlane’s case has been strengthened by support from notable quarters - <span id="loc-10">Roy Porter, the distinguished medical historian, recently wrote a favourable appraisal of his research.</span></p>
+<p><span class="heading-gap" data-qnum="4" data-group="hg1"></span> D Macfarlane had wondered for a long time how the Industrial Revolution came about. Historians had alighted on one interesting factor around the mid-18th century that required explanation. Between about 1650 and 1740, the population in Britain was static. <span id="loc-4">But then there was a burst in population growth.</span> Macfarlane says: ‘The infant mortality rate halved in the space of 20 years, and this happened in both rural areas and cities, and across all classes. People suggested four possible causes. Was there a sudden change in the viruses and bacteria around? Unlikely. Was there a revolution in medical science? But this was a century before Lister’s revolution*. Was there a change in environmental conditions? There were improvements in agriculture that wiped out malaria, but these were small gains. Sanitation did not become widespread until the 19th century. The only option left is food. But the height and weight statistics show a decline. So the food must have got worse. Efforts to explain this sudden reduction in child deaths appeared to draw a blank’</p>
+<p><span class="heading-gap" data-qnum="5" data-group="hg1"></span> E This population burst seemed to happen at just the right time to provide labour for the Industrial Revolution. ‘When you start moving towards an industrial revolution, it is economically efficient to have people living close together,’ says Macfarlane. ‘But then you get disease, particularly from human waste.’ Some digging around in historical records revealed that there was a change in the incidence of water-borne disease at that time, especially dysentery. Macfarlane deduced that whatever the British were drinking must have been important in regulating disease. He says, ‘We drank beer. For a long time, the English were protected by the strong antibacterial agent in hops, which were added to help preserve the beer. But in the late 17th century a tax was introduced on malt, the basic ingredient of beer. <span id="loc-5">The poor turned to water and gin and in the 1720s the mortality rate began to rise again.</span> Then it suddenly dropped again. What caused this?’</p>
+<p><span class="heading-gap" data-qnum="6" data-group="hg1"></span> F <span id="loc-6">Macfarlane looked to Japan, which was also developing large cities about the same time, and also had no sanitation.</span> Water-borne diseases had a much looser grip on the Japanese population than those in Britain. Could it be the prevalence of tea in their culture? Macfarlane then noted that the history of tea in Britain provided an extraordinary coincidence of dates. Tea was relatively expensive until Britain started a direct clipper trade with China in the early 18th century. By the 1740s, about the time that infant mortality was dipping, the drink was common. Macfarlane guessed that the fact that water had to be boiled, together with the stomach-purifying properties of tea meant that the breast milk provided by mothers was healthier than it had ever been. No other European nation sipped tea like the British, which, by Macfarlane’s logic, pushed these other countries out of contention for the revolution.</p>
+<p><span class="heading-gap" data-qnum="7" data-group="hg1"></span> G But, if tea is a factor in the combination lock, why didn’t Japan forge ahead in a tea-soaked industrial revolution of its own? Macfarlane notes that even though 17th-century Japan had large cities, high literacy rates, even a futures market, <span id="loc-7">it had turned its back on the essence of any work-based revolution by giving up labour-saving devices such as animals, afraid that they would put people out of work.</span> So, the nation that we now think of as one of the most technologically advanced entered the 19th century having ‘abandoned the wheel’.</p>
                 </div>
 
                 <!-- PASSAGE 2 -->
                 <div id="passage-2-text" class="content-wrapper" data-title="Gifted children and learning">
                     <p style="color: #666; font-size: 14px;">READING PASSAGE 2</p>
                     <h2>Gifted children and learning</h2>
-                    <p>Internationally, ‘giftedness’ is most frequently determined by a score on a general intelligence test, known as an IQ test, which is above a chosen cutoff point, usually at around the top 2-5%. Children’s educational environment contributes to the IQ score and the way intelligence is used. For example, <span id="loc-14">a very close positive relationship was found when children’s IQ scores were compared with their home educational provision</span> (Freeman, 2010). <span id="loc-21">The higher the children’s IQ scores, especially over IQ 130, the better the quality of their educational backup, measured in terms of reported verbal interactions with parents</span>, <span id="loc-23">number of books and activities in their home</span> etc. Because IQ tests are decidedly influenced by what the child has learned, they are to some extent measures of current achievement based on age-norms; that is, how well the children have learned to manipulate their knowledge and know-how within the terms of the test. The vocabulary aspect, for example, is dependent on having heard those words. But IQ tests can neither identify the processes of learning and thinking nor predict creativity.</p>
-<p>Excellence does not emerge without appropriate help. To reach an exceptionally high standard in any area very able children need the means to learn, which includes material to work with and focused challenging tuition -and the encouragement to follow their dream. There appears to be a qualitative difference in the way the intellectually highly able think, compared with more average-ability or older pupils, for whom external regulation by the teacher often compensates for <span id="loc-24">lack of internal regulation</span>. To be at their most effective in their self-regulation, all children can be helped to identify their own ways of learning – metacognition – which will include strategies of planning, monitoring, evaluation, and choice of what to learn. <span id="loc-25">Emotional awareness is also part of metacognition</span>, so children should be helped to be aware of their feelings around the area to be learned, feelings of curiosity or confidence, for example.</p>
-<p>High achievers have been found to use self-regulatory learning strategies more often and more effectively than lower achievers, and are better able to transfer these strategies to deal with unfamiliar tasks. This happens to such a high degree in some children that they appear to be demonstrating talent in particular areas. Overviewing research on the thinking process of highly able children, (Shore and Kanevsky, 1993) put the instructor’s problem succinctly: ‘If they [the gifted] merely think more quickly, then .we need only teach more quickly. If they merely make fewer errors, then we can shorten the practice’. But of course, this is not entirely the case; adjustments have to be made in methods of learning and teaching, to take account of the many ways individuals think.</p>
-<p>Yet in order to learn by themselves, the gifted do need some support from their teachers. Conversely, teachers who have a tendency to ‘overdirect’ can diminish their gifted pupils’ learning autonomy. Although <span id="loc-26">‘spoon-feeding’ can produce extremely high examination results</span>, these are not always followed by equally impressive life successes. <span id="loc-15">Too much dependence on the teachers risks loss of autonomy and motivation to discover.</span> However, when teachers o pupils to reflect on their own learning and thinking activities, they increase their pupils’ self-regulation. For a young child, it may be just the simple question ‘What have you learned today?’ which helps them to recognise what they are doing. Given that a fundamental goal of education is to transfer the control of learning from teachers to pupils, improving pupils’ learning to learn techniques should be a major outcome of the school experience, especially for the highly competent. There are quite a number of new methods which can help, such as child- initiated learning, ability-peer tutoring, etc. <span id="loc-17">Such practices have been found to be particularly useful for bright children from deprived areas.</span></p>
-<p>But scientific progress is not all theoretical, knowledge is a so vital to outstanding performance: <span id="loc-22">individuals who know a great deal about a specific domain will achieve at a higher level than those who do not</span> (Elshout, 1995). Research with creative scientists by Simonton (1988) brought him to the conclusion that above a certain high level, <span id="loc-19">characteristics such as independence seemed to contribute more to reaching the highest levels of expertise than intellectual skills</span>, due to the great demands of effort and time needed for learning and practice. Creativity in all forms can be seen as expertise se mixed with a high level of motivation (Weisberg, 1993).</p>
-<p>To sum up, learning is affected by emotions of both the individual and significant others. Positive emotions facilitate the creative aspects of earning and negative emotions inhibit it. <span id="loc-16">Fear, for example, can limit the development of curiosity</span>, which is a strong force in scientific advance, because it motivates problem-solving behaviour. In Boekaerts’ (1991) review of emotion the learning of very high IQ and highly achieving children, she found emotional forces in harness. <span id="loc-20">They were not only curious, but often had a strong desire to control their environment, improve their learning efficiency and increase their own learning resources.</span></p>
+                    <p>A Internationally, ‘giftedness’ is most frequently determined by a score on a general intelligence test, known as an IQ test, which is above a chosen cut-off point, usually at around the top 2-5%. Children’s educational environment contributes to the IQ score and the way intelligence is used. For example, a very close positive relationship was found when children’s IQ scores were compared with their home educational provision (Freeman, 2010). The higher the children’s IQ scores, especially over IQ 130, <span id="loc-14">the better the quality of their educational backup, measured in terms of reported <span id="loc-21">verbal interactions with parents, <span id="loc-23">number of books and activities in their home</span> etc.</span></span> Because IQ tests are decidedly influenced by what the child has learned, they are to some extent measures of current achievement based on age-norms; that is, how well the children have learned to manipulate their knowledge and know-how within the terms of the test. The vocabulary aspect, for example, is dependent on having heard those words. But IQ tests can neither identify the processes of learning and thinking nor predict creativity.</p>
+<p>B Excellence does not emerge without appropriate help. To reach an exceptionally high standard in any area very able children need the means to learn, which includes material to work with and focused challenging tuition - and the encouragement to follow their dream. There appears to be a qualitative difference in the way the intellectually highly able think, compared with more average-ability or older pupils, for whom external regulation by the teacher often compensates for <span id="loc-24">lack of internal regulation</span>. To be at their most effective in their self-regulation, all children can be helped to identify their own ways of learning - metacognition - which will include strategies of planning, monitoring, evaluation, and choice of what to learn. Emotional awareness is also part of metacognition, so children should be helped to be aware of their feelings around the area to be learned, feelings of curiosity or confidence, for example.</p>
+<p>C High achievers have been found to use self-regulatory learning strategies more often and more effectively than lower achievers, and are better able to transfer these strategies to deal with unfamiliar tasks. This happens to such a high degree in some children that they appear to be demonstrating talent in particular areas. Overviewing research on the thinking process of highly able children, (Shore and Kanevsky, 1993) put the instructor’s problem succinctly: ‘If they [the gifted] merely think more quickly, then we need only teach more quickly. <span id="loc-18">If they merely make fewer errors, then we can shorten the practice</span>’. But of course, this is not entirely the case; adjustments have to be made in methods of learning and teaching, to take account of the many ways individuals think.</p>
+<p>D Yet in order to learn by themselves, the gifted do need some support from their teachers. Conversely, <span id="loc-15">teachers who have a tendency to ‘overdirect’ can diminish their gifted pupils’ learning autonomy.</span> <span id="loc-26">Although ‘spoon-feeding’ can produce extremely high examination results</span>, these are not always followed by equally impressive life successes. Too much dependence on the teacher risks loss of autonomy and motivation to discover. However, when teachers help pupils to reflect on their own learning and thinking activities, they increase their pupils’ self-regulation. For a young child, it may be just the simple question ‘What have you learned today?’ which helps them to recognise what they are doing. Given that a fundamental goal of education is to transfer the control of learning from teachers to pupils, improving pupils’ learning to learn techniques should be a major outcome of the school experience, especially for the highly competent. <span id="loc-17">There are quite a number of new methods which can help, such as child-initiated learning, ability-peer tutoring, etc. Such practices have been found to be particularly useful for bright children from deprived areas.</span></p>
+<p>E But scientific progress is not all theoretical, knowledge is also vital to outstanding performance: <span id="loc-22">individuals who know a great deal about a specific domain will achieve at a higher level than those who do not</span> (Elshout, 1995). Research with creative scientists by Simonton (1988) brought him to the conclusion that above a certain high level, <span id="loc-19">characteristics such as independence seemed to contribute more to reaching the highest levels of expertise</span> than intellectual skills, due to the great demands of effort and time needed for learning and practice. Creativity in all forms can be seen as expertise mixed with a high level of motivation (Weisberg, 1993).</p>
+<p>F To sum up, learning is affected by emotions of both the individual and significant others. Positive emotions facilitate the creative aspects of learning and negative emotions inhibit it. <span id="loc-16">Fear, for example, can limit the development of curiosity</span>, which is a strong force in scientific advance, because it motivates problem-solving behaviour. In Boekaerts’ (1991) review of emotion in the learning of very high IQ and highly achieving children, she found emotional forces in harness. They were not only curious, but often had a strong desire to control their environment, <span id="loc-20">improve their learning efficiency, and increase their own learning resources.</span></p>
                 </div>
 
                 <!-- PASSAGE 3 -->
                 <div id="passage-3-text" class="content-wrapper" data-title="Museums of fine art and their public">
                     <p style="color: #666; font-size: 14px;">READING PASSAGE 3</p>
                     <h2>Museums of fine art and their public</h2>
-                    <p>The fact that people go to the Louvre museum in Paris to see the original painting Mona Lisa when they can see a reproduction anywhere leads us to question some assumptions about the role of museums of fine art in today’s world</p>
-<p>One of the most famous works of art in the world is Leonardo da Vinci’s Mona Lisa. Nearly everyone who goes to see the original will already be familiar with it from reproductions, but they accept that fine art is more rewardingly viewed in its original form.</p>
-<p>However, if Mona Lisa was a famous novel, few people would bother to go to a museum to read the writer’s actual manuscript rather than a printed reproduction. This might be explained by the fact that the novel has evolved precisely because of <span id="loc-27">technological developments that made it possible to print out huge numbers of texts</span>, whereas oil paintings have always been produced as unique objects. In addition, it could be argued that the practice of interpreting or ‘reading’ each medium follows different conventions. With novels, <span id="loc-28">the reader attends mainly to the meaning of words rather than the way they are printed on the page</span>, whereas the ‘reader’ of a painting must attend just as closely to the material form of marks and shapes in the picture as to any ideas they may signify.</p>
-<p>Yet it has always been possible to make very accurate facsimiles of pretty well any fine art work. The seven surviving versions of Mona Lisa bear witness to the fact that in the 16th century, <span id="loc-29">artists seemed perfectly content to assign the reproduction of their creations to their workshop apprentices</span> as regular ‘bread and butter’ work. And today the task of reproducing pictures is incomparably more simple and reliable, with reprographic techniques that allow the production of <span id="loc-30">high-quality prints made exactly to the original scale, with faithful colour values, and even with duplication of the surface relief of the painting</span>.</p>
-<p>But despite an implicit recognition that the spread of good reproductions can be culturally valuable, <span id="loc-31">museums continue to promote the special status of original work</span>.</p>
-<p>Unfortunately, this seems to place severe limitations on the kind of experience offered to visitors.</p>
-<p>One limitation is related to the way the museum presents its exhibits. As repositories of unique historical objects, art museums are often called ‘treasure houses’. We are reminded of this even before we view a collection by the presence of security guards, attendants, ropes and display cases to keep us away from the exhibits. In many cases, the architectural style of the building further reinforces that notion. In addition, a major collection like that of London’s National Gallery is housed in numerous rooms, each with dozens of works, any one of which is likely to be worth more than all the average visitor possesses. In a society that judges the personal status of the individual so much by their material worth, <span id="loc-32">it is therefore difficult not to be impressed by one’s own relative ‘worthlessness’ in such an environment.</span></p>
-<p>Furthermore, consideration of the ‘value’ of the original work in its treasure house setting impresses upon the viewer that, since these works were originally produced, they have been assigned a huge monetary value by some person or institution more powerful than themselves. <span id="loc-33">Evidently, nothing the viewer thinks about the work is going to alter that value</span>, and so today’s viewer is deterred from trying to extend that spontaneous, immediate, self-reliant kind of reading which would originally have met the work.</p>
-<p>The visitor may then be struck by the strangeness of <span id="loc-34">seeing such diverse paintings, drawings and sculptures brought together in an environment for which they were not originally created</span>. This ‘displacement effect’ is further heightened by the sheer volume of exhibits. In the case of a major collection, there are probably more works on display than we could realistically view in weeks or even months.</p>
-<p>This is particularly distressing because time seems to be a vital factor in the appreciation of all art forms. A fundamental difference between paintings and other art forms is that there is no prescribed time over which a painting is viewed. By contrast, the audience encourage an opera or a play over a specific time, which is the duration of the performance. Similarly novels and poems are read in a prescribed temporal sequence, whereas <span id="loc-35">a picture has no clear place at which to start viewing, or at which to finish.</span> Thus art works themselves encourage us to view them superficially, without appreciating the richness of detail and labour that is involved.</p>
-<p>Consequently, <span id="loc-36">the dominant critical approach becomes that of the art historian</span>, a specialised academic approach devoted to ‘discovering the meaning’ of art within the cultural context of its time. <span id="loc-37">This is in perfect harmony with the museum s function</span>, since the approach is dedicated to seeking out and conserving ‘authentic’, original, readings of the exhibits. Again, this seems to put paid to that spontaneous, participators criticism which can be found in abundance in criticism of classic works of literature, but is absent from most art history.</p>
-<p>The displays of art museums serve as a warning of what critical practices can emerge when spontaneous criticism is suppressed. <span id="loc-38">The museum public, like any other audience, experience art more rewardingly when given the confidence to express their views.</span> If appropriate works of fine art could be rendered permanently accessible to the public by means of <span id="loc-39">high-fidelity reproductions</span>, as literature and music already are, the public may feel somewhat less in awe of them. Unfortunately, <span id="loc-40">that may be too much to ask from those who seek to maintain and control the art establishment.</span></p>
+                    <p><em>The fact that people go to the Louvre museum in Paris to see the original painting Mona Lisa when they can see a reproduction anywhere leads us to question some assumptions about the role of museums of fine art in today’s world</em></p>
+<p>A One of the most famous works of art in the world is Leonardo da Vinci’s Mona Lisa. Nearly everyone who goes to see the original will already be familiar with it from reproductions, but they accept that fine art is more rewardingly viewed in its original form.</p>
+<p>B However, if Mona Lisa was a famous novel, few people would bother to go to a museum to read the writer’s actual manuscript rather than a printed reproduction. This might be explained by the fact that the novel has evolved precisely because of <span id="loc-27">technological developments that made it possible to print out huge numbers of texts</span>, whereas oil paintings have always been produced as unique objects. In addition, it could be argued that the practice of interpreting or ‘reading’ each medium follows different conventions. <span id="loc-28">With novels, the reader attends mainly to the meaning of words rather than the way they are printed on the page</span>, whereas the ‘reader’ of a painting must attend just as closely to the material form of marks and shapes in the picture as to any ideas they may signify.</p>
+<p>C Yet it has always been possible to make very accurate facsimiles of pretty well any fine art work. The seven surviving versions of Mona Lisa bear witness to the fact that in the 16th century, <span id="loc-29">artists seemed perfectly content to assign the reproduction of their creations to their workshop apprentices</span> as regular ‘bread and butter’ work. And today the task of reproducing pictures is incomparably more simple and reliable, with reprographic techniques that allow the production of high-quality prints <span id="loc-30">made exactly to the original scale</span>, with faithful colour values, and even with duplication of the surface relief of the painting.</p>
+<p>D But despite an implicit recognition that the spread of good reproductions can be culturally valuable, museums continue to promote the special status of original work. Unfortunately, this seems to place severe limitations on <span id="loc-31">the kind of experience offered to visitors</span>.</p>
+<p>E One limitation is related to the way the museum presents its exhibits. As repositories of unique historical objects, art museums are often called ‘treasure houses’. We are reminded of this even before we view a collection by the presence of security guards, attendants, ropes and display cases to keep us away from the exhibits. In many cases, the architectural style of the building further reinforces that notion. In addition, a major collection like that of London’s National Gallery is housed in numerous rooms, each with dozens of works, any one of which is likely to be worth more than all the average visitor possesses. In a society that judges the personal status of the individual so much by their material worth, <span id="loc-32">it is therefore difficult not to be impressed by one’s own relative ‘worthlessness’ in such an environment.</span></p>
+<p>F Furthermore, consideration of the ‘value’ of the original work in its treasure house setting impresses upon the viewer that, since these works were originally produced, they have been assigned a huge monetary value by some person or institution more powerful than themselves. <span id="loc-33">Evidently, nothing the viewer thinks about the work is going to alter that value</span>, and so today’s viewer is deterred from trying to extend that spontaneous, immediate, self-reliant kind of reading which would originally have met the work.</p>
+<p>G <span id="loc-34">The visitor may then be struck by the strangeness of seeing such diverse paintings, drawings and sculptures brought together in an environment for which they were not originally created.</span> This ‘displacement effect’ is further heightened by the sheer volume of exhibits. In the case of a major collection, there are probably more works on display than we could realistically view in weeks or even months.</p>
+<p>H This is particularly distressing because time seems to be a vital factor in the appreciation of all art forms. A fundamental difference between paintings and other art forms is that there is no prescribed time over which a painting is viewed. By contrast, the audience encounters an opera or a play over a specific time, which is the duration of the performance. Similarly, novels and poems are read in a prescribed temporal sequence, <span id="loc-35">whereas a picture has no clear place at which to start viewing, or at which to finish.</span> Thus art works themselves encourage us to view them superficially, without appreciating the richness of detail and labour that is involved.</p>
+<p>I Consequently, the dominant critical approach becomes that of the art historian, a specialised academic approach <span id="loc-36">devoted to ‘discovering the meaning’ of art within the cultural context of its time</span>. <span id="loc-37">This is in perfect harmony with the museum’s function</span>, since the approach is dedicated to seeking out and conserving ‘authentic’, ‘original’ readings of the exhibits. Again, this seems to put paid to that spontaneous, participatory criticism which can be found in abundance in criticism of classic works of literature, but is absent from most art history.</p>
+<p>K The displays of art museums serve as a warning of what critical practices can emerge when spontaneous criticism is suppressed. <span id="loc-38">The museum public, like any other audience, experience art more rewardingly when given the confidence to express their views.</span> If appropriate works of fine art could be rendered permanently accessible to the public by means of <span id="loc-39">high-fidelity reproductions</span>, as literature and music already are, the public may feel somewhat less in awe of them. <span id="loc-40">Unfortunately, that may be too much to ask from those who seek to maintain and control the art establishment.</span></p>
                 </div>
 
             </div>
         </div>
 
+        <!-- DRAGGABLE RESIZER -->
+        <div class="panel-resizer" id="panel-resizer"></div>
+
         <!-- RIGHT PANEL: Questions -->
-        <div class="panel">
+        <div class="panel" id="panel-questions">
             <div class="panel-content" id="questions-container">
                 <!-- JavaScript will inject questions here -->
             </div>
@@ -640,7 +940,22 @@
     <script>
         // --- Data Structure (generated by the Test Builder tool) ---
         // questionsData[passageIndex] = array of question groups for that passage
-        const questionsData = [[{"instruction":"Choose the correct heading for each paragraph from the list of headings below.","type":"text","reference":"i The search for the reasons for an increase in population<br>ii Industrialisation and the fear of unemployment<br>iii The development of cities in Japan<br>iv The time and place of the Industrial Revolution<br>v The cases of Holland, France and China<br>vi Changes in drinking habits in Britain<br>vii Two keys to Britain’s industrial revolution<br>viii Conditions required for industrialisation<br>ix Comparisons with Japan lead to the answer","questions":[{"text":"Paragraph A","answer":"iv","exp":"","loc":"loc-1"},{"text":"Paragraph B","answer":"viii","exp":"","loc":"loc-2"},{"text":"Paragraph C","answer":"vii","exp":"","loc":"loc-3"},{"text":"Paragraph D","answer":"i","exp":"","loc":"loc-4"},{"text":"Paragraph E","answer":"vi","exp":"","loc":"loc-5"},{"text":"Paragraph F","answer":"ix","exp":"","loc":"loc-6"},{"text":"Paragraph G","answer":"ii","exp":"","loc":"loc-7"}]},{"instruction":"TRUE / FALSE / NOT GIVEN","type":"tfng","reference":"","labels":["TRUE","FALSE","NOT GIVEN"],"questions":[{"text":"China’s transport system was not suitable for industry in the 18th century.","answer":"NOT GIVEN","exp":"","loc":"loc-8"},{"text":"Tea and beer both helped to prevent dysentery in Britain.","answer":"TRUE","exp":"","loc":"loc-9"},{"text":"Roy Porter disagrees with Professor Macfarlane’s findings.","answer":"FALSE","exp":"","loc":"loc-10"},{"text":"After 1740, there was a reduction in population in Britain.","answer":"FALSE","exp":"","loc":"loc-11"},{"text":"People in Britain used to make beer at home.","answer":"NOT GIVEN","exp":"","loc":"loc-12"},{"text":"The tax on malt indirectly caused a rise in the death rate.","answer":"TRUE","exp":"","loc":"loc-13"}]}],[{"instruction":"Which paragraph contains the following information?","type":"text","reference":"","questions":[{"text":"a reference to the influence of the domestic background on the gifted child.","answer":"A","exp":"","loc":"loc-14"},{"text":"reference to what can be lost if learners are given too much guidance.","answer":"D","exp":"","loc":"loc-15"},{"text":"a reference to the damaging effects of anxiety.","answer":"F","exp":"","loc":"loc-16"},{"text":"examples of classroom techniques which favour socially-disadvantaged children.","answer":"D","exp":"","loc":"loc-17"}]},{"instruction":"Match each statement with the correct person or people.","type":"text","reference":"A Freeman<br>B Shore and Kanevsky<br>C Elshout<br>D Simonton<br>E Boekaerts","questions":[{"text":"Less time can be spent on exercises with gifted pupils who produce accurate work.","answer":"B","exp":"","loc":""},{"text":"Self-reliance is a valuable tool that helps gifted students reach their goals.","answer":"D","exp":"","loc":"loc-19"},{"text":"Gifted children know how to channel their feelings to assist their learning.","answer":"E","exp":"","loc":"loc-20"},{"text":"The very gifted child benefits from appropriate support from close relatives.","answer":"A","exp":"","loc":"loc-21"},{"text":"Really successful students have learnt a considerable amount about their subject.","answer":"C","exp":"","loc":"loc-22"}]},{"instruction":"Complete the sentences below. Choose NO MORE THAN THREE WORDS from the passage for each answer.","type":"inline","reference":"","questions":[{"pre":"One study found a strong connection between children’s IQ and the availability of","post":"and activities at home.","answer":"books","exp":"","loc":"loc-23"},{"pre":"Children of average ability seem to need more direction from teachers because they do not have","post":".","answer":"internal regulation","exp":"","loc":"loc-24"},{"pre":"Meta-cognition involves children understanding their own learning strategies, as well as developing","post":".","answer":"emotional awareness","exp":"","loc":"loc-25"},{"pre":"Teachers who rely on what is known as","post":"often produce sets of impressive grades in class tests.","answer":"spoon-feeding","exp":"","loc":"loc-26"}]}],[{"instruction":"Complete the summary using the list of words, A-L, below.","type":"text","reference":"A institution<br>B mass production<br>C mechanical processes<br>D public<br>E paints<br>F artist<br>G size<br>H underlying ideas<br>I basic technology<br>J readers<br>K picture frames<br>L assistants","questions":[{"text":"People go to art museums because they accept the value of seeing an original work of art. But they do not go to museums to read original manuscripts of novels, perhaps because the availability of novels has depended on","answer":"B","exp":"","loc":"loc-27"},{"text":"with novels, the","answer":"H","exp":"","loc":"loc-28"},{"text":"artists such as Leonardo were happy to instruct","answer":"L","exp":"","loc":"loc-29"},{"text":"new methods of reproduction allow excellent replication of surface relief features as well as colour and","answer":"G","exp":"","loc":"loc-30"},{"text":"It is regrettable that museums still promote the superiority of original works of art, since this may not be in the interests of the","answer":"D","exp":"","loc":"loc-31"}]},{"instruction":"Multiple Choice (A, B, C, D)","type":"mcq","reference":"","questions":[{"text":"The writer mentions London’s National Gallery to illustrate","options":["A. the undesirable cost to a nation of maintaining a huge collection of art.","B. the conflict that may arise in society between financial and artistic values.","C. the negative effect a museum can have on visitors’ opinions of themselves.","D. the need to put individual well-being above large-scale artistic schemes."],"answer":"C","exp":"","loc":"loc-32"},{"text":"The writer says that today, viewers may be unwilling to criticise a work of art because","options":["A. they lack the knowledge needed to support an opinion.","B. they fear it may have financial implications.","C. they have no real concept of the work’s value.","D. they feel their personal reaction is of no significance."],"answer":"D","exp":"","loc":"loc-33"},{"text":"According to the writer, the ‘displacement effect’ on the visitor is caused by","options":["A. the variety of works on display and the way they are arranged.","B. the impossibility of viewing particular works of art over a long period.","C. the similar nature of the paintings and the lack of great works.","D. the inappropriate nature of the individual works selected for exhibition."],"answer":"A","exp":"","loc":"loc-34"},{"text":"The writer says that unlike other forms of art, a painting does not","options":["A. involve direct contact with an audience.","B. require a specific location for a performance.","C. need the involvement of other professionals.","D. have a specific beginning or end."],"answer":"D","exp":"","loc":"loc-35"}]},{"instruction":"YES / NO / NOT GIVEN","type":"tfng","reference":"","labels":["YES","NO","NOT GIVEN"],"questions":[{"text":"Art history should focus on discovering the meaning of art using a range of media.","answer":"NOT GIVEN","exp":"","loc":"loc-36"},{"text":"The approach of art historians conflicts with that of art museums.","answer":"NO","exp":"","loc":"loc-37"},{"text":"People should be encouraged to give their opinions openly on works of art.","answer":"YES","exp":"","loc":"loc-38"},{"text":"Reproductions of fine art should only be sold to the public if they are of high quality.","answer":"NOT GIVEN","exp":"","loc":"loc-39"},{"text":"In the future, those with power are likely to encourage more people to enjoy art.","answer":"NO","exp":"","loc":"loc-40"}]}]];
+        const questionsData = [[{"instruction":"Reading Passage 1 has seven paragraphs, A-G.<br>Choose the correct heading for each paragraph from the list of headings below.<br>Write the correct number, i-ix, in boxes 1-7 on your answer sheet.","type":"heading","reference":"","imageUrl":"","options":["i. The search for the reasons for an increase in population","ii. Industrialisation and the fear of unemployment","iii. The development of cities in Japan","iv. The time and place of the Industrial Revolution","v. The cases of Holland, France and China","vi. Changes in drinking habits in Britain","vii. Two keys to Britain’s industrial revolution","viii. Conditions required for industrialisation","ix. Comparisons with Japan lead to the answer"],"questions":[{"text":"Paragraph A","answer":"iv","exp":"Đáp án iv vì đoạn A tập trung vào hai vấn đề được đặt ra ngay từ đầu: cuộc Cách mạng Công nghiệp xảy ra ở đâu và vào thời điểm nào. Cụm “happen in Britain” cho biết địa điểm, còn “at the end of the 18th century” cho biết thời gian. Heading i nói về nguyên nhân dân số tăng, không phải nội dung đoạn A. Heading ii nói về thất nghiệp, không xuất hiện. Heading iii nói về các thành phố ở Nhật Bản, cũng chưa được đề cập. Heading v nói về Holland, France và China, thuộc nội dung đoạn B. Heading vi nói về drinking habits, thuộc các đoạn sau. Heading vii nói về tea và beer, thuộc đoạn C. Heading viii nói về các điều kiện công nghiệp hóa, thuộc đoạn B. Heading ix nói về so sánh với Japan, thuộc đoạn F.","loc":"loc-1"},{"text":"Paragraph B","answer":"viii","exp":"Đáp án viii vì đoạn B liệt kê hàng loạt điều kiện cần thiết để Industrial Revolution xảy ra: technology and power, large urban populations, easy transport, affluent middle-class, market-driven economy và political system. Đây chính xác là “Conditions required for industrialisation”. Heading i chỉ nói về population growth. Heading ii nói về fear of unemployment nhưng đoạn B chưa bàn đến điều này. Heading iii và ix liên quan đến Japan nhưng không phải trọng tâm. Heading iv chỉ nói về time and place, thuộc đoạn A. Heading v chỉ tập trung vào các nước Holland, France và China, trong khi đoạn B chủ yếu liệt kê các điều kiện. Heading vi và vii đều liên quan đến drinking habits, thuộc đoạn C-E.","loc":"loc-2"},{"text":"Paragraph C","answer":"vii","exp":"Đáp án vii vì đoạn C xác định tea và beer là những yếu tố còn thiếu giúp Britain tiến tới Industrial Revolution. Câu “Tea and beer, two of the nation’s favourite drinks, fuelled the revolution” khớp trực tiếp với “Two keys to Britain’s industrial revolution”. Heading i không phù hợp vì đoạn C không tìm nguyên nhân dân số tăng. Heading ii không nói về unemployment. Heading iii và ix đều liên quan đến Japan nhưng đoạn C không tập trung vào Japan. Heading iv nói về time and place, không phải nội dung chính. Heading v nói về Holland, France và China. Heading vi chỉ nhấn mạnh drinking habits, trong khi heading vii thể hiện đầy đủ hơn vai trò của tea và beer như hai yếu tố then chốt. Heading viii thuộc đoạn B.","loc":"loc-3"},{"text":"Paragraph D","answer":"i","exp":"Đáp án i vì đoạn D đặt ra vấn đề population growth ở Britain và sau đó xem xét nhiều giả thuyết để giải thích sự thay đổi này, bao gồm viruses and bacteria, medical science, environmental conditions và food. Vì vậy nội dung chính là “The search for the reasons for an increase in population”. Heading viii không phù hợp vì đoạn D không liệt kê điều kiện để industrialisation xảy ra. Heading vii về tea and beer thuộc đoạn C. Heading vi nói về drinking habits thuộc đoạn E. Heading ix về comparison with Japan thuộc đoạn F. Các heading còn lại không phản ánh trọng tâm của đoạn D.","loc":"loc-4"},{"text":"Paragraph E","answer":"vi","exp":"Đáp án vi vì đoạn E giải thích mối liên hệ giữa đồ uống và disease/mortality. Khi tax was introduced on malt, “The poor turned to water and gin” và mortality rate tăng trở lại. Đây là sự thay đổi drinking habits ở Britain. Heading i thuộc đoạn D vì nói về population growth. Heading ii về unemployment không được đề cập. Heading iii và ix liên quan đến Japan. Heading iv về time and place thuộc đoạn A. Heading v về các nước khác thuộc đoạn B. Heading vii về tea and beer như hai yếu tố then chốt thuộc đoạn C. Heading viii về điều kiện industrialisation cũng thuộc đoạn B.","loc":"loc-5"},{"text":"Paragraph F","answer":"ix","exp":"Đáp án ix vì Macfarlane chuyển sang Japan để so sánh với Britain. Hai nước có những điểm tương đồng nhưng water-borne diseases có ảnh hưởng khác nhau, từ đó Macfarlane đặt ra giả thuyết về prevalence of tea ở Japan và vai trò của tea ở Britain. Heading iii chỉ nói riêng về development of cities in Japan, trong khi mục đích chính của đoạn F là comparison with Japan để tìm ra lời giải. Heading vi chỉ nói về drinking habits nhưng không bao quát ý so sánh. Các heading còn lại không phù hợp với trọng tâm đoạn F.","loc":"loc-6"},{"text":"Paragraph G","answer":"ii","exp":"Đáp án ii vì đoạn G giải thích tại sao Japan không tiến hành một industrial revolution dù có large cities, high literacy rates và futures market. Nhật Bản từ bỏ labour-saving devices vì sợ chúng “would put people out of work”. Điều này khớp trực tiếp với “Industrialisation and the fear of unemployment”. Heading iii chỉ đề cập đến cities in Japan, không phải nguyên nhân Nhật Bản không công nghiệp hóa. Heading ix phù hợp với đoạn F hơn vì F mới là đoạn comparison dẫn đến answer. Các heading còn lại không nói về fear of unemployment.","loc":"loc-7"}]},{"instruction":"Do the following statements agree with the information given in Reading Passage 1?<br>In boxes 8-13 on your answer sheet, write<br>TRUE if the statement agrees with the information<br>FALSE if the statement contradicts the information<br>NOT GIVEN if there is no information on this","type":"tfng","reference":"Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","imageUrl":"","labels":["TRUE","FALSE","NOT GIVEN"],"questions":[{"text":"China’s transport system was not suitable for industry in the 18th century.","answer":"NOT GIVEN","exp":"Đáp án NOT GIVEN vì đoạn B chỉ nói China có nhiều yếu tố cần thiết cho industrialisation, nhưng không cung cấp thông tin cụ thể về transport system của China trong thế kỷ 18. Vì vậy không thể kết luận transport system phù hợp hay không phù hợp. TRUE không có căn cứ và FALSE cũng không có căn cứ.","loc":"loc-8"},{"text":"Tea and beer both helped to prevent dysentery in Britain.","answer":"TRUE","exp":"Đáp án TRUE vì đoạn C nói rõ tannin trong tea và hops trong beer có antiseptic properties, đồng thời cả hai được làm với boiled water, giúp các urban communities không mắc water-borne diseases such as dysentery. Statement khớp trực tiếp với thông tin bài đọc. FALSE sai vì bài không phủ nhận tác dụng này. NOT GIVEN sai vì thông tin được nêu rõ trong đoạn C. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":"loc-9"},{"text":"Roy Porter disagrees with Professor Macfarlane’s findings.","answer":"FALSE","exp":"Đáp án FALSE vì Roy Porter được mô tả là người ủng hộ nghiên cứu của Macfarlane: ông “recently wrote a favourable appraisal of his research”. “Favourable appraisal” trái ngược với “disagrees”. TRUE sai vì Porter không phản đối. NOT GIVEN sai vì thái độ của Porter được nêu trực tiếp. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":"loc-10"},{"text":"After 1740, there was a reduction in population in Britain.","answer":"FALSE","exp":"Đáp án FALSE vì bài nói rằng sau giai đoạn 1650-1740, population experienced “a burst in population growth”, hoàn toàn ngược với “a reduction in population”. TRUE sai vì dân số tăng chứ không giảm. NOT GIVEN sai vì bài cung cấp thông tin trực tiếp về sự thay đổi dân số. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":""},{"text":"People in Britain used to make beer at home.","answer":"NOT GIVEN","exp":"Đáp án NOT GIVEN vì đoạn E nói người Anh uống beer và hops được sử dụng để bảo quản beer, nhưng không nói beer được sản xuất ở nhà. TRUE không có căn cứ vì bài không khẳng định “make beer at home”. FALSE cũng không có căn cứ vì bài không nói họ không làm beer at home.","loc":""},{"text":"The tax on malt indirectly caused a rise in the death rate.","answer":"TRUE","exp":"Đáp án TRUE vì đoạn E thể hiện một chuỗi nguyên nhân: tax on malt → the poor turned to water and gin → mortality rate began to rise again. Vì vậy tax on malt có tác động gián tiếp dẫn đến rise in the death rate. FALSE sai vì bài mô tả mortality rate tăng sau thay đổi này. NOT GIVEN sai vì mối liên hệ được trình bày rõ trong đoạn E.","loc":""}]}],[{"instruction":"Reading Passage 2 has six paragraphs, A-F.<br>Which paragraph contains the following information?<br>Write the correct letter, A-F, in boxes 14-17 on your answer sheet.<br>NB You may use any letter more than once.","type":"grid","reference":"Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","imageUrl":"","options":["A","B","C","D","E","F"],"questions":[{"text":"a reference to the influence of the domestic background on the gifted child","answer":"A","exp":"Đáp án A vì đoạn A nói rõ mối quan hệ giữa IQ và “home educational provision”, bao gồm verbal interactions with parents, number of books and activities in their home. Đây chính là ảnh hưởng của domestic background. B tập trung vào metacognition; C tập trung vào learning strategies; D tập trung vào teacher support và autonomy; E tập trung vào knowledge, independence và expertise; F tập trung vào emotions. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":"loc-14"},{"text":"reference to what can be lost if learners are given too much guidance","answer":"D","exp":"Đáp án D vì đoạn D nói trực tiếp rằng việc giáo viên “overdirect” có thể làm giảm “learning autonomy” của gifted pupils. Đó chính là thứ có thể bị mất khi learners được guidance quá nhiều. A nói về domestic background; B nói về metacognition; C nói về learning strategies; E nói về expertise; F nói về emotions. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":"loc-15"},{"text":"a reference to the damaging effects of anxiety","answer":"F","exp":"Đáp án F vì đoạn F nói “Fear, for example, can limit the development of curiosity”, cho thấy một cảm xúc tiêu cực có thể gây tác động bất lợi tới curiosity và scientific advance. A không nói về anxiety. B có nói về feelings nhưng không tập trung vào damaging effects of anxiety. C nói về learning strategies. D nói về teacher guidance. E nói về knowledge và expertise. Vì vậy F là đoạn phù hợp. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":"loc-16"},{"text":"examples of classroom techniques which favour socially-disadvantaged children","answer":"D","exp":"Đáp án D vì đoạn D đưa ra các phương pháp “child-initiated learning” và “ability-peer tutoring”, sau đó nói rõ những practices này đặc biệt hữu ích cho “bright children from deprived areas”. Đây chính là socially-disadvantaged children. A nói về home educational provision; B về metacognition; C về self-regulatory learning strategies; E về expertise; F về emotions.","loc":"loc-17"}]},{"instruction":"Look at the following statements (Questions 18-22) and the list of people below.<br>Match each statement with the correct person or people, A-E.<br>Write the correct letter, A-E, in boxes 18-22 on your answer sheet.","type":"list_match","reference":"","imageUrl":"","options":["A. Freeman","B. Shore and Kanevsky","C. Elshout","D. Simonton","E. Boekaerts"],"questions":[{"text":"Less time can be spent on exercises with gifted pupils who produce accurate work.","answer":"B","exp":"Đáp án B vì Shore and Kanevsky viết rằng nếu gifted pupils “make fewer errors”, thì “we can shorten the practice”. Điều này khớp trực tiếp với ý less time can be spent on exercises with pupils who produce accurate work. A Freeman nói về home educational provision. C Elshout nói về knowledge of a specific domain. D Simonton nói về independence và expertise. E Boekaerts nói về emotions và learning efficiency.","loc":"loc-18"},{"text":"Self-reliance is a valuable tool that helps gifted students reach their goals.","answer":"D","exp":"Đáp án D vì Simonton cho rằng “independence” góp phần đạt “the highest levels of expertise”. “Self-reliance” trong câu hỏi tương ứng với independence. A Freeman nói về home background; B Shore and Kanevsky nói về thinking and practice; C Elshout nói về knowledge; E Boekaerts nói về emotions.","loc":"loc-19"},{"text":"Gifted children know how to channel their feelings to assist their learning.","answer":"E","exp":"Đáp án E vì Boekaerts nghiên cứu emotions ở children with very high IQ and highly achieving children và nhận thấy emotional forces in harness, cùng với mong muốn “improve their learning efficiency, and increase their own learning resources”. A nói về parents và home environment; B về practice; C về knowledge; D về independence.","loc":"loc-20"},{"text":"The very gifted child benefits from appropriate support from close relatives.","answer":"A","exp":"Đáp án A vì Freeman được nhắc đến trong đoạn A khi nói về mối quan hệ giữa IQ và home educational provision. Educational backup được đo qua “verbal interactions with parents, number of books and activities in their home etc.”, cho thấy sự hỗ trợ từ gia đình có liên hệ với gifted child. B nói về thinking process; C về domain knowledge; D về independence; E về emotions. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":"loc-21"},{"text":"Really successful students have learnt a considerable amount about their subject.","answer":"C","exp":"Đáp án C vì Elshout được trích dẫn khi tác giả nói rằng những người “know a great deal about a specific domain” sẽ “achieve at a higher level”. Điều này tương ứng với việc successful students đã learnt a considerable amount about their subject. A nói về home background; B về learning strategies; D về independence; E về emotions.","loc":"loc-22"}]},{"instruction":"Complete the sentences below.<br>Choose NO MORE THAN TWO WORDS from the passage for each answer.<br>Write your answers in boxes 23-26 on your answer sheet.","type":"text","reference":"Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","imageUrl":"","questions":[{"text":"One study found a strong connection between children’s IQ and the availability of _____ and _____ at home.","answer":"books, activities","exp":"Đáp án là “books” và “activities”. Đoạn A nói quality of educational backup được đo bằng “number of books and activities in their home”. Câu hỏi yêu cầu hai từ nối với nhau bằng “and”, nên hai danh từ chính xác là books và activities. “Parents” không phải đáp án vì câu hỏi đang yêu cầu hai mục được availability at home đề cập đến trong nguồn. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":"loc-23"},{"text":"Children of average ability seem to need more direction from teachers because they do not have _____.","answer":"internal regulation","exp":"Đáp án “internal regulation” vì đoạn B nói external regulation by the teacher thường compensates for “lack of internal regulation” ở more average-ability pupils. Vì vậy những học sinh này cần thêm direction vì thiếu internal regulation. “External regulation” là sự điều chỉnh từ giáo viên, không phải thứ học sinh thiếu.","loc":"loc-24"},{"text":"Metacognition involves children understanding their own learning strategies, as well as developing _____.","answer":"emotional awareness","exp":"Đáp án “emotional awareness” vì đoạn B liệt kê các strategies of planning, monitoring, evaluation, and choice of what to learn rồi nói trực tiếp “Emotional awareness is also part of metacognition.” Vì vậy emotional awareness là phần còn lại được yêu cầu trong câu. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":""},{"text":"Teachers who rely on what is known as _____ often produce sets of impressive grades in class tests.","answer":"spoon-feeding","exp":"Đáp án “spoon-feeding” vì đoạn D nói trực tiếp rằng “‘spoon-feeding’ can produce extremely high examination results”. Câu hỏi paraphrase ý này thành “produce sets of impressive grades in class tests”. Đây là thuật ngữ duy nhất trong đoạn phù hợp với cấu trúc “what is known as”. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":"loc-26"}]}],[{"instruction":"Complete the summary using the list of words, A-L, below.<br>Write the correct letter, A-L, in boxes 27-31 on your answer sheet.","type":"wordbank","reference":"Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","imageUrl":"","notesTemplate":"The value attached to original works of art\n\nPeople go to art museums because they accept the value of seeing an original work of art. But they do not go to museums to read original manuscripts of novels, perhaps because the availability of novels has depended on _____ for so long, and also because with novels, the _____ are the most important thing.\n\nHowever, in historical times artists such as Leonardo were happy to instruct _____ to produce copies of their work and these days new methods of reproduction allow excellent replication of surface relief features as well as colour and _____. It is regrettable that museums still promote the superiority of original works of art, since this may not be in the interests of the _____.","options":["A. institution","B. mass production","C. mechanical processes","D. public","E. paints","F. artist","G. size","H. underlying ideas","I. basic technology","J. readers","K. picture frames","L. assistants"],"questions":[{"text":"","answer":"B","exp":"Đáp án B vì B là “mass production”. Đoạn B giải thích rằng technological developments made it possible to “print out huge numbers of texts”, tức novels có thể được sản xuất hàng loạt. Các lựa chọn còn lại không diễn đạt ý production of large quantities of texts.","loc":"loc-27"},{"text":"","answer":"H","exp":"Đáp án H vì H là “underlying ideas”. Với novels, reader tập trung vào meaning of words chứ không chú ý chủ yếu đến physical form of the printed page. Vì vậy underlying ideas là lựa chọn phù hợp nhất. Các lựa chọn như mass production, assistants, size, paints và picture frames không thể làm chủ thể của ý này.","loc":"loc-28"},{"text":"","answer":"L","exp":"Đáp án L vì L là “assistants”. Đoạn C nói các artists giao reproduction of their creations cho workshop apprentices. Trong word list, “assistants” là lựa chọn tương ứng với những người hỗ trợ nghệ sĩ. Các lựa chọn khác không phải người được giao nhiệm vụ này.","loc":"loc-29"},{"text":"","answer":"G","exp":"Đáp án G vì G là “size”. Đoạn C nói high-quality prints được làm “exactly to the original scale”, tức có cùng kích thước với bản gốc. Các lựa chọn khác không thể phù hợp với cấu trúc “colour and _____” trong ngữ cảnh này.","loc":"loc-30"},{"text":"","answer":"D","exp":"Đáp án D vì D là “public”. Đoạn D nói việc museums promote the special status of original work “place severe limitations on the kind of experience offered to visitors”. Vì visitors thuộc public, câu summary kết luận điều này may not be in the interests of the public. Các lựa chọn còn lại không phù hợp về nghĩa và ngữ pháp.","loc":"loc-31"}]},{"instruction":"Choose the correct letter, A, B, C or D.<br>Write the correct letter in boxes 32-35 on your answer sheet.","type":"mcq","reference":"Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","imageUrl":"","questions":[{"text":"The writer mentions London’s National Gallery to illustrate","options":["A. the undesirable cost to a nation of maintaining a huge collection of art.","B. the conflict that may arise in society between financial and artistic values.","C. the negative effect a museum can have on visitors’ opinions of themselves.","D. the need to put individual well-being above large-scale artistic schemes."],"answer":"C","exp":"Đáp án C vì đoạn E dùng London’s National Gallery để minh họa cách một bộ sưu tập lớn với những tác phẩm có giá trị vật chất rất cao có thể khiến visitor cảm thấy “relative ‘worthlessness’”. A sai vì bài không nói về cost to a nation. B sai vì trọng tâm không phải conflict giữa financial và artistic values. D sai vì tác giả không nói về việc đặt individual well-being lên trên large-scale artistic schemes. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":"loc-32"},{"text":"The writer says that today, viewers may be unwilling to criticise a work because","options":["A. they lack the knowledge needed to support an opinion.","B. they fear it may have financial implications.","C. they have no real concept of the work’s value.","D. they feel their personal reaction is of no significance."],"answer":"D","exp":"Đáp án D vì tác giả nói monetary value của tác phẩm đã được gán bởi “some person or institution more powerful than themselves”, và “nothing the viewer thinks about the work is going to alter that value”. Vì vậy viewer bị deterred from extending their own spontaneous, self-reliant reading. A sai vì bài không nói viewers thiếu knowledge. B sai vì không có financial consequences đối với việc criticise. C sai vì viewers biết tác phẩm có monetary value; vấn đề là họ cảm thấy ý kiến của mình không thể thay đổi giá trị đó. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":"loc-33"},{"text":"According to the writer, the ‘displacement effect’ on the visitor is caused by","options":["A. the variety of works on display and the way they are arranged.","B. the impossibility of viewing particular works of art over a long period.","C. the similar nature of the paintings and the lack of great works.","D. the inappropriate nature of the individual works selected for exhibition."],"answer":"A","exp":"Đáp án A vì đoạn G mô tả diverse paintings, drawings and sculptures được brought together trong một environment for which they were not originally created, và displacement effect còn được heightened bởi sheer volume of exhibits. B không đúng vì vấn đề viewing time được bàn ở đoạn H. C sai vì tác giả dùng “diverse”, không phải similar, và không nói thiếu great works. D sai vì vấn đề không nằm ở từng individual work được lựa chọn mà ở việc các tác phẩm đa dạng bị đặt together trong một môi trường không phải nơi chúng được tạo ra. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":"loc-34"},{"text":"The writer says that unlike other forms of art, a painting does not","options":["A. involve direct contact with an audience.","B. require a specific location for a performance.","C. need the involvement of other professionals.","D. have a specific beginning or end."],"answer":"D","exp":"Đáp án D vì đoạn H nói rõ painting không có prescribed temporal sequence và “no clear place at which to start viewing, or at which to finish”. A không được đề cập. B không phải ý được nêu về painting; đoạn chỉ so sánh prescribed time của opera/play với painting. C hoàn toàn không xuất hiện trong lập luận. Vì vậy D là lựa chọn được bài đọc chứng minh trực tiếp. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":"loc-35"}]},{"instruction":"Do the following statements agree with the views of the writer in Reading Passage 3?<br>In boxes 36-40 on your answer sheet, write<br>YES if the statement agrees with the views of the writer<br>NO if the statement contradicts the views of the writer<br>NOT GIVEN if it is impossible to say what the writer thinks about this","type":"tfng","reference":"Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","imageUrl":"","labels":["YES","NO","NOT GIVEN"],"questions":[{"text":"Art history should focus on discovering the meaning of art using a range of media.","answer":"NOT GIVEN","exp":"Đáp án NOT GIVEN vì đoạn I nói art historians có một specialised academic approach devoted to “discovering the meaning” of art within the cultural context of its time, nhưng không nói rằng art history “should focus” on using “a range of media”. Vì vậy không đủ thông tin để chọn YES. Cũng không có thông tin phủ định việc sử dụng a range of media, nên NO không phù hợp. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":"loc-36"},{"text":"The approach of art historians conflicts with that of art museums.","answer":"NO","exp":"Đáp án NO vì statement nói “conflicts”, trong khi tác giả nói phương pháp của art historians “is in perfect harmony with the museum’s function”. Đây là mâu thuẫn trực tiếp. YES sai vì bài nói harmony, không phải conflict. NOT GIVEN sai vì mối quan hệ giữa hai approaches được nêu rất rõ. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":"loc-37"},{"text":"People should be encouraged to give their opinions openly on works of art.","answer":"YES","exp":"Đáp án YES vì tác giả nói museum public trải nghiệm art more rewardingly khi được given the confidence to express their views. Điều này phù hợp trực tiếp với việc people nên được khuyến khích đưa ra opinions openly. NO sai vì tác giả không phản đối spontaneous criticism; ngược lại, ông phê phán việc nó bị suppressed. NOT GIVEN sai vì quan điểm được nêu rõ ở đoạn K. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":"loc-38"},{"text":"Reproductions of fine art should only be sold to the public if they are of high quality.","answer":"NOT GIVEN","exp":"Đáp án NOT GIVEN vì đoạn K chỉ nói rằng nếu fine art được rendered permanently accessible bằng high-fidelity reproductions thì public có thể feel somewhat less in awe of them. Bài không nói rằng reproductions “should only be sold” nếu chúng có high quality. Vì vậy YES không có căn cứ. NO cũng không có căn cứ vì tác giả không nói reproductions chất lượng thấp nên được bán hoặc không được bán. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":"loc-39"},{"text":"In the future, those with power are likely to encourage more people to enjoy art.","answer":"NO","exp":"Đáp án NO vì tác giả cho rằng việc làm fine art permanently accessible và giúp public bớt in awe có thể “be too much to ask” from those who seek to maintain and control the art establishment. Điều này đi ngược với statement rằng những người có quyền lực có khả năng sẽ encourage more people to enjoy art. YES sai vì tác giả không thể hiện sự kỳ vọng đó. NOT GIVEN sai vì tác giả trực tiếp đưa ra nhận xét về nhóm people có quyền lực trong đoạn K. Giải để READING trong bộ IELTS Cambridge 10-12 (dragged)(1).pdf","loc":"loc-40"}]}]];
+
+        // --- Chế độ "làm bài tập được giao" ---
+        // Khi trang này được mở từ nút "Bài tập" bên trang chủ (index.html), URL sẽ có kèm
+        // assignmentId+uid (và scope = 'all'/'1'/'2'/'3'). Lúc đó đây KHÔNG phải luyện tập tự do
+        // mà là một bài homework cụ thể — giao diện + nút "Nộp bài" cần rõ ràng theo đúng phạm vi
+        // (1 Passage hay cả bài) mà giáo viên đã giao, thay vì luôn mở full 3 Passage mập mờ.
+        const __assignParams = new URLSearchParams(location.search);
+        const ASSIGN_ID = __assignParams.get('assignmentId') || '';
+        const ASSIGN_UID = __assignParams.get('uid') || '';
+        const ASSIGN_SCOPE = __assignParams.get('scope') || 'all'; // 'all' | '1' | '2' | '3'
+        const IS_ASSIGNMENT_MODE = !!(ASSIGN_ID && ASSIGN_UID);
+        function assignmentScopeLabel() {
+            return (ASSIGN_SCOPE === '1' || ASSIGN_SCOPE === '2' || ASSIGN_SCOPE === '3')
+                ? `Passage ${ASSIGN_SCOPE}` : 'Cả bài (3 Passage)';
+        }
 
         const testData = {};
         const passageRanges = [];
@@ -662,6 +977,11 @@
             passageRanges.push([start, qCounter]);
         });
         const TOTAL_QUESTIONS = qCounter;
+        // passageRanges/TOTAL_QUESTIONS được khai báo bằng const nên KHÔNG tự gắn lên window
+        // (khác với "var"/function ở top-level của script thường) — gắn tay ở đây để đoạn
+        // <script type="module"> báo kết quả về Firestore ở cuối trang đọc được khoảng câu hỏi
+        // của từng Passage khi cần chấm riêng 1 Passage.
+        window.passageRanges = passageRanges;
 
         // Populate the practice-mode passage dropdown from passage titles
         (function initDropdown() {
@@ -674,34 +994,128 @@
             dd.innerHTML = opts.join('');
         })();
 
+        // Khi đang làm 1 bài tập được giao (IS_ASSIGNMENT_MODE): ẩn phần chọn chế độ Luyện
+        // tập/Thi thật (không liên quan tới homework), thay bằng 1 dòng thông báo rõ ràng giáo
+        // viên đã giao đúng phạm vi nào, tự chọn sẵn đúng Passage đó trong dropdown (ẩn), và đổi
+        // chữ trên nút nộp bài chính (header) thành "Nộp homework (...)" để không còn mập mờ.
+        (function initAssignmentMode() {
+            if (!IS_ASSIGNMENT_MODE) return;
+
+            const modeSelectEl = document.querySelector('#setup-screen .mode-select');
+            const passageSelectorEl = document.getElementById('passage-selector');
+            const setupIntro = document.querySelector('#setup-screen .modal-box > p');
+            if (modeSelectEl) modeSelectEl.style.display = 'none';
+            if (passageSelectorEl) passageSelectorEl.style.display = 'none';
+            if (setupIntro) {
+                setupIntro.innerHTML = `📩 Bạn đang làm <strong>BÀI TẬP được giao</strong>: <strong>${assignmentScopeLabel()}</strong>. Làm xong nhớ bấm nút <strong>"Nộp homework"</strong> ở góc trên bên phải để nộp bài nhé!`;
+            }
+
+            const dd = document.getElementById('passage-dropdown');
+            if (dd && (ASSIGN_SCOPE === '1' || ASSIGN_SCOPE === '2' || ASSIGN_SCOPE === '3')) {
+                dd.value = ASSIGN_SCOPE;
+            }
+
+            const mainSubmitBtn = document.getElementById('main-submit-btn');
+            if (mainSubmitBtn) mainSubmitBtn.textContent = `📩 Nộp homework (${assignmentScopeLabel()})`;
+        })();
+
         // --- HTML Question Templates Generation ---
         function generateQuestionsHTML() {
             let html = '';
+            let groupCounter = 0;
             questionsData.forEach((groups, pIdx) => {
                 html += `<div id="questions-p${pIdx + 1}" class="content-wrapper${pIdx === 0 ? ' active' : ''}">`;
+                html += `<div class="part-grade-bar" id="part-grade-bar-${pIdx + 1}">
+                            <button class="part-grade-btn" type="button" onclick="gradePart(${pIdx + 1})">✅ Chấm riêng Part ${pIdx + 1}</button>
+                          </div>`;
                 groups.forEach(g => {
+                    groupCounter++;
                     const nums = g.questions.map(q => q.qNum);
                     const rangeLabel = nums.length > 1 ? `Questions ${nums[0]}-${nums[nums.length - 1]}` : `Question ${nums[0]}`;
                     html += `<div class="question-group"><h3>${rangeLabel}</h3><p class="instruction">${g.instruction || ''}</p>`;
+                    if (g.imageUrl) {
+                        html += renderGroupImage(g.imageUrl);
+                    }
                     if (g.reference) {
                         html += `<div style="border:1px solid #ccc; padding:15px; margin-bottom:15px; background:#fff;">${g.reference}</div>`;
                     }
-                    g.questions.forEach(q => {
-                        if (g.type === 'tfng') {
-                            html += genRadio(q.qNum, q.text, g.labels || ['TRUE', 'FALSE', 'NOT GIVEN']);
-                        } else if (g.type === 'mcq') {
-                            html += genRadio(q.qNum, q.text, q.options || []);
-                        } else if (g.type === 'inline') {
-                            html += genTextInline(q.qNum, q.pre || '', q.post || '');
-                        } else {
-                            html += genText(q.qNum, q.text || '');
-                        }
-                    });
+                    if (g.type === 'matching') {
+                        html += genMatching(groupCounter, g.options || [], g.questions);
+                    } else if (g.type === 'heading') {
+                        // Matching Headings: kéo-thả heading (i, ii, iii...) từ ngân hàng ở panel câu
+                        // hỏi thẳng vào "khe" đã đặt sẵn ở ĐẦU mỗi đoạn văn tương ứng bên panel bài đọc
+                        // (xem initHeadingGapsInPassage() + span.heading-gap do test-builder chèn sẵn).
+                        html += genHeadingDrag('hg' + g.questions[0].qNum, g.options || [], g.questions);
+                    } else if (g.type === 'list_match') {
+                        // Matching Names-Claims-Sentence Endings: 1 bảng chú thích (legend) các lựa
+                        // chọn A/B/C... + mỗi câu hỏi có 1 dropdown chọn đáp án đúng (không kéo thả,
+                        // vì các mục ở đây không nằm trong bài đọc để mà "thả vào" như headings).
+                        html += genLettered(groupCounter, g.options || [], g.questions);
+                    } else if (g.type === 'grid') {
+                        // Matching Information / Matching Names / Matching Features dạng bảng: mỗi
+                        // dòng là 1 câu, mỗi cột là 1 chữ cái — click radio ở đúng ô giao nhau.
+                        html += genGrid(groupCounter, g.options || [], g.questions);
+                    } else if (g.type === 'multi') {
+                        // "Choose TWO/THREE correct answers": checkbox dùng chung cho cả nhóm câu.
+                        html += genMulti(groupCounter, g.options || [], g.questions, g.pickCount || g.questions.length);
+                    } else if (g.type === 'inline') {
+                        // Complete the summary/table: gộp CẢ NHÓM câu hỏi thành 1 đoạn văn chảy liên
+                        // tục (giống summary thật), không tách mỗi câu ra 1 dòng riêng có số tròn to.
+                        html += genInlineGroup(g.questions);
+                    } else if (g.type === 'text') {
+                        // Complete the notes: 2 kiểu nội dung khác nhau, KHÔNG dùng chung 1 cách render —
+                        // xem genNotesFromTemplate()/genNotesGroup() bên dưới để biết vì sao phải phân biệt.
+                        // - Có g.notesTemplate (giáo viên dán nguyên khối ghi chú/outline, có tiêu đề, gạch
+                        //   đầu dòng...): giữ NGUYÊN 100% chữ gốc, chỉ thay mỗi dấu "_____" bằng 1 ô nhập.
+                        // - Không có (nhóm chỉ là 1 đoạn văn liền mạch, câu nào cũng có blank riêng): dùng
+                        //   cách cũ — tự ghép pre/post của từng câu lại thành 1 khối chảy liên tục.
+                        html += (g.notesTemplate && g.notesTemplate.trim())
+                            ? genNotesFromTemplate(g.notesTemplate, g.questions)
+                            : genNotesGroup(g.questions);
+                    } else if (g.type === 'table') {
+                        // Complete the table below: đề gốc là 1 BẢNG THẬT có cột/hàng (vd Stepwells |
+                        // Date | Features | Other notes) — khác "Complete the notes" (khối ghi chú chảy
+                        // liên tục), nên render đúng thành <table> giữ nguyên cột/hàng, xem genTableGroup().
+                        html += genTableGroup(g.tableColumns || [], g.tableRows || [], g.questions);
+                    } else if (g.type === 'wordbank') {
+                        // Summary/Sentence completion CÓ SẴN danh sách từ (word list/box) — khác "text"
+                        // (điền từ tự gõ, lấy nguyên văn từ bài đọc): ở đây học sinh CHỌN đúng từ trong
+                        // 1 ngân hàng cho sẵn (thường NHIỀU từ hơn số chỗ trống), không được gõ tự do.
+                        // Vẫn là 1 đoạn văn chảy liên tục (dùng g.notesTemplate y hệt "text" (b)), chỉ
+                        // khác chỗ mỗi blank là 1 <select> thay vì <input> tự gõ — xem genWordBankGroup().
+                        html += genWordBankGroup(g.notesTemplate || '', g.options || [], g.questions);
+                    } else {
+                        g.questions.forEach(q => {
+                            if (g.type === 'tfng') {
+                                html += genRadio(q.qNum, q.text, g.labels || ['TRUE', 'FALSE', 'NOT GIVEN']);
+                            } else if (g.type === 'mcq') {
+                                html += genRadio(q.qNum, q.text, q.options || []);
+                            } else {
+                                html += genText(q.qNum, q.text || '');
+                            }
+                        });
+                    }
                     html += `</div>`;
                 });
                 html += `</div>`;
             });
             document.getElementById('questions-container').innerHTML = html;
+        }
+
+        // Converts a typical Google Drive "share" link into a directly-viewable
+        // image URL; passes any other URL (Imgur, direct image host, etc.) through untouched.
+        function toDirectImageUrl(url) {
+            if (!url) return '';
+            url = url.trim();
+            const m = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || (url.includes('drive.google.com') && url.match(/[?&]id=([a-zA-Z0-9_-]+)/));
+            if (m && m[1]) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+            return url;
+        }
+
+        function renderGroupImage(url) {
+            const src = toDirectImageUrl(url);
+            return `<div class="group-image-wrap"><img src="${src}" alt="Sơ đồ minh hoạ" class="group-image" loading="lazy"
+                        onerror="this.parentElement.innerHTML='&lt;p style=&quot;color:#c62828;font-size:13px;&quot;&gt;⚠️ Không tải được ảnh — kiểm tra lại link (cần bật chia sẻ &quot;Anyone with the link&quot;).&lt;/p&gt;'"></div>`;
         }
 
         function genRadio(qNum, text, options) {
@@ -715,32 +1129,496 @@
                         </div>
                     </div>`;
         }
+        // Fallback đơn lẻ (chỉ dùng khi type không xác định được) — 1 câu/1 dòng, KHÔNG dùng cho
+        // 'text' hay 'inline' nữa (2 loại đó giờ render theo nhóm, xem genNotesGroup/genInlineGroup
+        // + renderFlowingBlanks() bên dưới, để cả nhóm chảy liền mạch thành 1 khối ghi chú/đoạn văn
+        // thay vì mỗi câu là 1 thẻ tách rời có vòng tròn số to).
         function genText(qNum, text) {
-            return `<div class="question-item" id="q-container-${qNum}">
-                        <div class="q-num">${qNum}</div>
-                        <div style="flex:1;">
-                            <p style="margin:0 0 10px 0;">${text}</p>
-                            <input type="text" class="text-input" name="q${qNum}" placeholder="Your answer...">
-                            <div class="feedback-box" id="fb-${qNum}"></div>
-                        </div>
-                    </div>`;
-        }
-        function genTextInline(qNum, preText, postText) {
-             return `<div class="question-item" id="q-container-${qNum}" style="margin-bottom:15px; align-items:center;">
+            return `<div class="question-item compact-item" id="q-container-${qNum}" style="align-items:center;">
                         <div class="q-num" style="width:24px;height:24px;font-size:12px;">${qNum}</div>
                         <div style="flex:1; display:flex; align-items:center; flex-wrap:wrap; gap:10px;">
-                            <span>${preText}</span>
-                            <input type="text" class="text-input" name="q${qNum}" style="width:120px;">
-                            <span>${postText}</span>
+                            <span>${text}</span>
+                            <input type="text" class="text-input" name="q${qNum}" placeholder="Your answer..." style="width:160px;">
                             <div class="feedback-box" id="fb-${qNum}" style="width:100%; margin-top:5px;"></div>
                         </div>
                     </div>`;
+        }
+
+        // Tìm dấu chỗ trống trong 1 câu văn (___, ....., …) để tách ra phần TRƯỚC/SAU chỗ trống đó
+        // — dùng cho "Complete the notes" (type 'text') khi giáo viên gõ nguyên câu kèm gạch chân
+        // (vd "Trees may be falling down because of _____ from nearby fields") thay vì tách sẵn
+        // pre/post như 'inline'. Không tìm thấy dấu nào thì coi cả câu là phần TRƯỚC, chỗ trống tự
+        // nối ngay sau (ô nhập nằm ở cuối câu).
+        function splitBlankMarker(text) {
+            const t = text || '';
+            const m = t.match(/_{2,}|\.{4,}|…+/);
+            if (!m) return { pre: t.trim(), post: '' };
+            return { pre: t.slice(0, m.index).trim(), post: t.slice(m.index + m[0].length).trim() };
+        }
+
+        // Render CHUNG cho cả 'inline' (Complete the summary/table) lẫn 'text' (Complete the
+        // notes) — nhận vào 1 mảng {qNum, pre, post}, gộp CẢ NHÓM thành 1 khối văn bản chảy liên
+        // tục (pre câu 1 -> ô trống 1 -> post câu 1 -> pre câu 2 -> ...) thay vì tách mỗi câu ra 1
+        // dòng riêng với vòng tròn số to — số câu hỏi nằm NGAY TRONG ô nhập liệu (placeholder), gõ
+        // chữ vào là số tự biến mất, đúng như 1 chỗ trống thật trong bài.
+        function renderFlowingBlanks(items) {
+            const spansHtml = items.map(it => `<span>${it.pre || ''}</span><span class="inline-blank-wrap" id="q-container-${it.qNum}"><input type="text" class="text-input inline-blank" name="q${it.qNum}" placeholder="${it.qNum}"></span><span>${it.post || ''}</span>`).join(' ');
+            const feedbackHtml = items.map(it =>
+                `<div class="feedback-box" id="fb-${it.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `<div class="inline-summary">${spansHtml}</div>${feedbackHtml}`;
+        }
+        function genInlineGroup(questions) {
+            return renderFlowingBlanks(questions.map(q => ({ qNum: q.qNum, pre: q.pre || '', post: q.post || '' })));
+        }
+        function genNotesGroup(questions) {
+            return renderFlowingBlanks(questions.map(q => {
+                const { pre, post } = splitBlankMarker(q.text || '');
+                return { qNum: q.qNum, pre, post };
+            }));
+        }
+
+        // "Complete the notes" khi đề KHÔNG phải 1 đoạn văn liền mạch mà là 1 khối ghi chú/outline có
+        // tiêu đề, gạch đầu dòng, các dòng con thụt lề... (vd lịch sử cuộc đời theo từng mốc thời gian).
+        // Ghép từng câu riêng lẻ như genNotesGroup() sẽ làm MẤT toàn bộ cấu trúc đó (tiêu đề, những dòng
+        // không có chỗ trống...). Ở đây ngược lại: giáo viên dán NGUYÊN VĂN cả khối ghi chú vào 1 ô duy
+        // nhất (template, giữ nguyên xuống dòng), đánh dấu mỗi chỗ trống bằng ___/..../… theo ĐÚNG thứ tự
+        // câu hỏi trong nhóm — hàm này CHỈ thay từng dấu đó bằng 1 ô nhập, còn lại giữ y nguyên 100% (kể
+        // cả tiêu đề, gạch đầu dòng, những dòng không có chỗ trống nào) nhờ escapeHtml() + white-space:
+        // pre-wrap (xem CSS .notes-template) để xuống dòng/khoảng trắng gốc hiển thị đúng như đã gõ.
+        function genNotesFromTemplate(template, questions) {
+            const re = /_{2,}|\.{4,}|…+/g;
+            const segments = [];
+            let lastIndex = 0, qi = 0, m;
+            while (qi < questions.length && (m = re.exec(template)) !== null) {
+                segments.push({ text: template.slice(lastIndex, m.index) });
+                segments.push({ q: questions[qi] });
+                lastIndex = m.index + m[0].length;
+                qi++;
+            }
+            segments.push({ text: template.slice(lastIndex) });
+            // Nếu template có ÍT dấu chỗ trống hơn số câu trong nhóm (giáo viên gõ thiếu ___), vẫn
+            // thêm ô nhập cho các câu còn lại vào cuối cùng để không mất câu hỏi nào.
+            for (; qi < questions.length; qi++) segments.push({ q: questions[qi] });
+
+            const bodyHtml = segments.map(seg => {
+                if (seg.q) {
+                    return `<span class="inline-blank-wrap" id="q-container-${seg.q.qNum}"><input type="text" class="text-input inline-blank" name="q${seg.q.qNum}" placeholder="${seg.q.qNum}"></span>`;
+                }
+                return escapeHtml(seg.text);
+            }).join('');
+            const feedbackHtml = questions.map(q => `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `<div class="inline-summary notes-template">${bodyHtml}</div>${feedbackHtml}`;
+        }
+
+        // Thay lần lượt từng dấu chỗ trống (___/..../…) trong 1 đoạn text bằng 1 ô nhập, bắt đầu từ
+        // questions[startQi] — dùng CHUNG logic với genNotesFromTemplate() nhưng nhận thêm "con trỏ"
+        // startQi vì genTableGroup() cần đánh số blank xuyên suốt NHIỀU Ô của bảng theo đúng thứ tự
+        // đọc trái-qua-phải, trên-xuống-dưới (không reset lại mỗi ô như genNotesFromTemplate làm với
+        // mỗi khối text riêng biệt). Trả về {html, qi} để caller biết đã dùng tới câu hỏi thứ mấy.
+        function fillBlanksInText(text, questions, startQi) {
+            const re = /_{2,}|\.{4,}|…+/g;
+            let qi = startQi, lastIndex = 0, m;
+            let out = '';
+            while (qi < questions.length && (m = re.exec(text)) !== null) {
+                out += escapeHtml(text.slice(lastIndex, m.index));
+                const q = questions[qi];
+                out += `<span class="inline-blank-wrap" id="q-container-${q.qNum}"><input type="text" class="text-input inline-blank" name="q${q.qNum}" placeholder="${q.qNum}"></span>`;
+                lastIndex = m.index + m[0].length;
+                qi++;
+            }
+            out += escapeHtml(text.slice(lastIndex));
+            return { html: out, qi };
+        }
+
+        // "Complete the table below": đề gốc là 1 bảng THẬT có cột/hàng (test-builder đã tách sẵn
+        // thành columns[] + rows[][] khi xuất bản — xem currentTestPaths()/buildTestHTML() phía tool
+        // soạn đề). Ô nào KHÔNG có chỗ trống thì hiện nguyên văn; ô nào có 1+ dấu ___ thì thay bằng ô
+        // nhập, đánh số blank LIÊN TỤC theo thứ tự đọc bảng (trái→phải, trên→dưới) khớp đúng thứ tự
+        // các câu hỏi trong nhóm — giữ được cấu trúc cột/hàng thật thay vì dồn hết thành 1 đoạn văn
+        // chảy liên tục như "Complete the notes" (xem genNotesFromTemplate).
+        function genTableGroup(columns, rows, questions) {
+            let qi = 0;
+            const theadHtml = (columns && columns.length)
+                ? `<thead><tr>${columns.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr></thead>`
+                : '';
+            const tbodyHtml = (rows || []).map(row => {
+                const cellsHtml = (row || []).map(cellText => {
+                    const filled = fillBlanksInText(cellText || '', questions, qi);
+                    qi = filled.qi;
+                    return `<td>${filled.html}</td>`;
+                }).join('');
+                return `<tr>${cellsHtml}</tr>`;
+            }).join('');
+            // Nếu bảng có ÍT chỗ trống hơn số câu trong nhóm, vẫn thêm ô nhập cho các câu còn lại
+            // (không mất câu hỏi nào) — dồn vào cuối dòng cuối bảng dưới dạng 1 hàng phụ.
+            let extraRowHtml = '';
+            if (qi < questions.length) {
+                const remaining = questions.slice(qi);
+                const spans = remaining.map(q => `<span class="inline-blank-wrap" id="q-container-${q.qNum}"><input type="text" class="text-input inline-blank" name="q${q.qNum}" placeholder="${q.qNum}"></span>`).join(' ');
+                extraRowHtml = `<tr><td colspan="${Math.max(1, (columns || []).length)}">${spans}</td></tr>`;
+            }
+            const feedbackHtml = questions.map(q => `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `<div class="data-table-scroll-wrap"><table class="data-table">${theadHtml}<tbody>${tbodyHtml}${extraRowHtml}</tbody></table></div>${feedbackHtml}`;
+        }
+
+        // Summary/Sentence completion CÓ SẴN danh sách từ (word list/box) — khác genNotesFromTemplate
+        // (điền tự gõ): ở đây mỗi chỗ trống là 1 <select> chọn từ ngân hàng chung "options" (thường
+        // NHIỀU lựa chọn hơn số chỗ trống, đúng chuẩn IELTS thật — học sinh phải loại trừ bớt). Ngân
+        // hàng hiện 1 lần dạng "chip" phía trên (giống genLettered), select mặc định hiện SỐ THỨ TỰ
+        // câu hỏi (option value="") để học sinh biết đang ở câu mấy trước khi chọn — cùng quy ước với
+        // mọi loại "điền chỗ trống" khác trong bài (xem fillBlanksInText/genNotesFromTemplate).
+        function genWordBankGroup(template, options, questions) {
+            const legendHtml = `<div class="match-bank match-legend">${options.map(opt =>
+                `<div class="match-chip match-chip-static">${opt}</div>`).join('')}</div>`;
+
+            const re = /_{2,}|\.{4,}|…+/g;
+            const segments = [];
+            let lastIndex = 0, qi = 0, m;
+            while (qi < questions.length && (m = re.exec(template)) !== null) {
+                segments.push({ text: template.slice(lastIndex, m.index) });
+                segments.push({ q: questions[qi] });
+                lastIndex = m.index + m[0].length;
+                qi++;
+            }
+            segments.push({ text: template.slice(lastIndex) });
+            for (; qi < questions.length; qi++) segments.push({ q: questions[qi] });
+
+            const bodyHtml = segments.map(seg => {
+                if (seg.q) {
+                    const optHtml = options.map(opt => {
+                        const letter = (opt.split('.')[0] || '').trim();
+                        return `<option value="${letter}">${opt}</option>`;
+                    }).join('');
+                    return `<span class="inline-blank-wrap" id="q-container-${seg.q.qNum}"><select name="q${seg.q.qNum}" class="lettered-select inline-select"><option value="">${seg.q.qNum}</option>${optHtml}</select></span>`;
+                }
+                return escapeHtml(seg.text);
+            }).join('');
+            const feedbackHtml = questions.map(q => `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `${legendHtml}<div class="inline-summary notes-template">${bodyHtml}</div>${feedbackHtml}`;
+        }
+
+        // Matching / drag-drop question type: a bank of draggable option chips
+        // (A, B, C...) that get dragged into a slot next to each prompt. Answers
+        // are mirrored into a hidden <input name="qN"> so all the existing grading /
+        // "answered" nav-circle logic works unchanged, with no special-casing needed.
+        function genMatching(groupId, options, questions) {
+            const bankHtml = options.map(opt => {
+                const letter = (opt.split('.')[0] || '').trim();
+                return `<div class="match-chip" data-letter="${letter}" data-group="${groupId}" id="chip-${groupId}-${letter}">${opt}</div>`;
+            }).join('');
+
+            const rowsHtml = questions.map(q => `
+                <div class="question-item match-row" id="q-container-${q.qNum}">
+                    <div class="q-num">${q.qNum}</div>
+                    <span class="match-prompt-text">${q.text}</span>
+                    <div class="match-slot" id="slot-${q.qNum}" data-group="${groupId}" data-qnum="${q.qNum}" data-letter="">Kéo đáp án vào đây</div>
+                    <input type="hidden" name="q${q.qNum}" id="input-q${q.qNum}" value="">
+                    <div class="feedback-box" id="fb-${q.qNum}" style="width:100%; margin-top:5px;"></div>
+                </div>
+            `).join('');
+
+            return `<div class="match-bank" id="bank-${groupId}">${bankHtml}</div>${rowsHtml}`;
+        }
+
+        // Matching Headings: kéo-thả trực tiếp vào bài đọc. Panel câu hỏi (bên phải) chỉ hiện
+        // NGÂN HÀNG heading (i, ii, iii...) để kéo, cộng với 1 hộp feedback nhỏ/câu (hiện sau khi
+        // nộp bài) — vị trí thả (slot) thật sự nằm ngay ĐẦU mỗi đoạn văn tương ứng bên panel bài
+        // đọc (trái), do test-builder.html chèn sẵn 1 <span class="heading-gap"> tĩnh vào đúng
+        // đoạn văn khớp thứ tự câu hỏi, rồi initHeadingGapsInPassage() (gọi trong startTest()) sẽ
+        // "nâng cấp" span đó thành 1 match-slot thật để dùng chung bộ máy kéo-thả Pointer Events
+        // đã có sẵn của genMatching() (chip + slot cùng data-group) — không cần viết lại logic kéo
+        // thả riêng, không cần các dropdown cồng kềnh.
+        function genHeadingDrag(groupId, options, questions) {
+            const bankHtml = options.map(opt => {
+                const letter = (opt.split('.')[0] || '').trim();
+                return `<div class="match-chip" data-letter="${letter}" data-group="${groupId}" id="chip-${groupId}-${letter}">${opt}</div>`;
+            }).join('');
+
+            const feedbackHtml = questions.map(q =>
+                `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+
+            return `<div class="match-bank" id="bank-${groupId}">${bankHtml}</div>
+                    <p class="hint" style="margin:0 0 10px 0;">👆 Kéo heading phía trên vào đúng vị trí đầu mỗi đoạn văn bên bài đọc (panel trái).</p>
+                    ${feedbackHtml}`;
+        }
+
+        // Matching Names-Claims-Sentence Endings (nối người/mệnh đề với đáp án đúng, A-G...): một
+        // bảng chú thích tĩnh (legend) liệt kê hết các lựa chọn, và mỗi câu hỏi có 1 dropdown
+        // <select> để chọn đáp án đúng — không kéo-thả vì các mục ở đây (tên người, mệnh đề...)
+        // không nằm sẵn trong bài đọc để "thả vào" như Matching Headings.
+        function genLettered(groupId, options, questions) {
+            const legendHtml = `<div class="match-bank match-legend" id="bank-${groupId}">${options.map(opt =>
+                `<div class="match-chip match-chip-static">${opt}</div>`).join('')}</div>`;
+
+            const rowsHtml = questions.map(q => {
+                const optHtml = options.map(opt => {
+                    const letter = (opt.split('.')[0] || '').trim();
+                    return `<option value="${letter}">${opt}</option>`;
+                }).join('');
+                return `<div class="question-item match-row" id="q-container-${q.qNum}">
+                            <div class="q-num">${q.qNum}</div>
+                            <span class="match-prompt-text">${q.text}</span>
+                            <select name="q${q.qNum}" class="lettered-select">
+                                <option value="">-- Chọn đáp án --</option>${optHtml}
+                            </select>
+                            <div class="feedback-box" id="fb-${q.qNum}" style="width:100%; margin-top:5px;"></div>
+                        </div>`;
+            }).join('');
+
+            return `${legendHtml}${rowsHtml}`;
+        }
+
+        // Matching Information / Matching Names / Matching Features dạng LƯỚI (grid/matrix): mỗi
+        // dòng là 1 câu (đoạn văn/thông tin cần tìm), mỗi cột là 1 chữ cái (A-I, A-F...) — bấm
+        // radio ở đúng ô giao giữa dòng và cột. Cho phép dùng lại cùng 1 chữ cái cho nhiều dòng
+        // (mỗi dòng có input name="qN" RIÊNG nên các radio ở các dòng khác nhau không loại trừ
+        // lẫn nhau — chỉ những ô CÙNG dòng mới loại trừ nhau, đúng chuẩn "may use any letter more
+        // than once").
+        function genGrid(groupId, options, questions) {
+            const letters = options.map(opt => (opt.split('.')[0] || opt).trim());
+            const hasLegend = options.some(opt => opt.includes('.'));
+            const legendHtml = hasLegend
+                ? `<div class="match-bank match-legend" id="bank-${groupId}">${options.map(opt =>
+                    `<div class="match-chip match-chip-static">${opt}</div>`).join('')}</div>`
+                : '';
+
+            const headerCells = letters.map(l => `<th>${l}</th>`).join('');
+            const rowsHtml = questions.map(q => {
+                const cells = letters.map(l =>
+                    `<td><input type="radio" name="q${q.qNum}" value="${l}" class="grid-radio"></td>`).join('');
+                return `<tr id="q-container-${q.qNum}"><td class="grid-row-label"><span class="q-num grid-q-num">${q.qNum}</span> ${q.text}</td>${cells}</tr>`;
+            }).join('');
+            const feedbackHtml = questions.map(q =>
+                `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+
+            return `${legendHtml}
+                <div class="grid-scroll-wrap">
+                    <table class="match-grid"><thead><tr><th></th>${headerCells}</tr></thead><tbody>${rowsHtml}</tbody></table>
+                </div>
+                ${feedbackHtml}`;
+        }
+
+        // "Choose TWO/THREE correct answers" (chọn N trong M đáp án bằng checkbox, dùng chung 1
+        // danh sách lựa chọn cho cả nhóm câu). Mỗi checkbox KHÔNG gắn trực tiếp vào 1 câu — thay
+        // vào đó, mỗi lần tick/bỏ tick sẽ đồng bộ danh sách chữ cái đang được chọn xuống các
+        // <input type="hidden" name="qN"> riêng của từng câu trong nhóm (xem initMultiSelect() bên
+        // dưới): nếu chữ cái đúng của câu N nằm trong tập đang chọn thì input đó = đáp án đúng
+        // (chấm ĐÚNG), ngược lại = danh sách học sinh đã chọn (chấm SAI, vẫn hiển thị rõ học sinh
+        // đã chọn gì) — nhờ vậy gradeQuestionRange() ở dưới chấm điểm y hệt các dạng câu khác mà
+        // không cần thêm logic riêng.
+        function genMulti(groupId, options, questions, pickCount) {
+            const optsHtml = options.map(opt => {
+                const letter = (opt.split('.')[0] || '').trim();
+                return `<label class="radio-label multi-check-label">
+                            <input type="checkbox" class="multi-check" value="${letter}"> ${opt}
+                        </label>`;
+            }).join('');
+
+            const qNums = questions.map(q => q.qNum);
+            const firstQ = qNums[0], lastQ = qNums[qNums.length - 1];
+            const isRange = firstQ !== lastQ;
+            const qLabel = isRange ? `${firstQ}-${lastQ}` : String(firstQ);
+
+            // KHÔNG hiện lại số câu (21, 22...) riêng lẻ ở đây nữa — con số đó đã hiện ở "viên
+            // thuốc" q-num phía trên rồi, lặp lại bên dưới gây rối mắt. Vẫn giữ input ẩn + hộp
+            // feedback riêng cho từng câu (bắt buộc để gradeQuestionRange() chấm đúng từng câu).
+            const perQFeedback = qNums.map(n => `
+                <div id="q-container-${n}" style="margin-top:6px;">
+                    <input type="hidden" name="q${n}" id="input-q${n}" value="">
+                    <div class="feedback-box" id="fb-${n}" style="width:100%; margin-top:0;"></div>
+                </div>`).join('');
+
+            return `<div class="question-item multi-group" data-multi-group="${groupId}" data-pick-count="${pickCount}">
+                        <div class="q-num${isRange ? ' q-num-range' : ''}">${qLabel}</div>
+                        <div style="flex:1;">
+                            <p class="multi-hint">Chọn đúng <strong>${pickCount}</strong> đáp án.</p>
+                            <div class="mcq-options">${optsHtml}</div>
+                            ${perQFeedback}
+                        </div>
+                    </div>`;
+        }
+
+        // Đồng bộ checkbox "Choose N of M" -> các input hidden qN riêng của từng câu trong nhóm
+        // (xem giải thích ở genMulti() phía trên). Giới hạn tối đa đúng pickCount checkbox được
+        // tick cùng lúc để học sinh không "ăn gian" bằng cách tick hết.
+        (function initMultiSelect() {
+            document.addEventListener('change', e => {
+                if (!e.target.classList || !e.target.classList.contains('multi-check')) return;
+                const container = e.target.closest('.multi-group');
+                if (!container) return;
+                const pickCount = parseInt(container.dataset.pickCount, 10) || 1;
+                const allChecks = container.querySelectorAll('.multi-check');
+                const checked = Array.from(allChecks).filter(c => c.checked);
+
+                if (checked.length > pickCount) {
+                    e.target.checked = false;
+                    return;
+                }
+
+                const checkedLetters = checked.map(c => c.value.toUpperCase());
+                container.querySelectorAll('input[type="hidden"]').forEach(hidden => {
+                    const qNum = hidden.name.substring(1);
+                    const info = testData[qNum];
+                    if (!info) return;
+                    const correctLetter = (info.answer || '').toUpperCase();
+                    const isRight = checkedLetters.includes(correctLetter);
+                    hidden.value = isRight ? info.answer : checkedLetters.join(', ');
+                    hidden.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+            });
+        })();
+
+        // --- Matching drag-and-drop engine (Pointer Events, so it works the same
+        //     with mouse, touch and pen — unlike the native HTML5 DnD API, which
+        //     iOS Safari does not support at all). Delegated at document level so
+        //     it works for every matching group generated above. ---
+        (function initMatchingDnD() {
+            const DEFAULT_SLOT_TEXT = 'Kéo đáp án vào đây';
+            let dragSource = null; // { letter, label, group, sourceSlot }
+            let dragGhost = null;
+
+            function showBankChip(group, letter) {
+                const chip = document.getElementById(`chip-${group}-${letter}`);
+                if (chip) chip.style.display = '';
+            }
+            function hideBankChip(group, letter) {
+                const chip = document.getElementById(`chip-${group}-${letter}`);
+                if (chip) chip.style.display = 'none';
+            }
+            function setSlotInput(slotEl) {
+                const input = document.getElementById('input-q' + slotEl.dataset.qnum);
+                if (!input) return;
+                input.value = slotEl.dataset.letter || '';
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            function clearSlot(slotEl) {
+                if (!slotEl.dataset.letter) return;
+                showBankChip(slotEl.dataset.group, slotEl.dataset.letter);
+                slotEl.dataset.letter = '';
+                slotEl.textContent = DEFAULT_SLOT_TEXT;
+                slotEl.classList.remove('filled');
+                setSlotInput(slotEl);
+            }
+            function fillSlot(slotEl, letter, label) {
+                if (slotEl.dataset.letter && slotEl.dataset.letter !== letter) {
+                    showBankChip(slotEl.dataset.group, slotEl.dataset.letter);
+                }
+                slotEl.dataset.letter = letter;
+                slotEl.textContent = label;
+                slotEl.classList.add('filled');
+                hideBankChip(slotEl.dataset.group, letter);
+                setSlotInput(slotEl);
+            }
+            function makeGhost(sourceEl, text) {
+                const ghost = document.createElement('div');
+                ghost.className = 'match-chip match-chip-ghost';
+                ghost.textContent = text;
+                ghost.style.position = 'fixed';
+                ghost.style.pointerEvents = 'none';
+                ghost.style.zIndex = 3000;
+                ghost.style.width = sourceEl.offsetWidth + 'px';
+                document.body.appendChild(ghost);
+                return ghost;
+            }
+            function moveGhost(x, y) {
+                if (!dragGhost) return;
+                dragGhost.style.left = (x - dragGhost.offsetWidth / 2) + 'px';
+                dragGhost.style.top = (y - dragGhost.offsetHeight / 2) + 'px';
+            }
+            function clearDragOverStyles() {
+                document.querySelectorAll('.match-slot.drag-over').forEach(s => s.classList.remove('drag-over'));
+            }
+            function cleanup() {
+                if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+                clearDragOverStyles();
+                dragSource = null;
+            }
+
+            document.addEventListener('pointerdown', e => {
+                const chip = e.target.closest('.match-chip');
+                const slot = e.target.closest('.match-slot');
+                if (chip && chip.style.display !== 'none') {
+                    dragSource = { letter: chip.dataset.letter, label: chip.textContent, group: chip.dataset.group, sourceSlot: null };
+                    dragGhost = makeGhost(chip, chip.textContent);
+                    moveGhost(e.clientX, e.clientY);
+                    e.preventDefault();
+                } else if (slot && slot.classList.contains('filled')) {
+                    dragSource = { letter: slot.dataset.letter, label: slot.textContent, group: slot.dataset.group, sourceSlot: slot };
+                    dragGhost = makeGhost(slot, slot.textContent);
+                    moveGhost(e.clientX, e.clientY);
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            document.addEventListener('pointermove', e => {
+                if (!dragSource) return;
+                moveGhost(e.clientX, e.clientY);
+                clearDragOverStyles();
+                if (dragGhost) dragGhost.style.display = 'none';
+                const target = document.elementFromPoint(e.clientX, e.clientY);
+                if (dragGhost) dragGhost.style.display = '';
+                const slotUnder = target && target.closest && target.closest('.match-slot');
+                if (slotUnder && slotUnder.dataset.group === dragSource.group) slotUnder.classList.add('drag-over');
+            }, { passive: true });
+
+            document.addEventListener('pointerup', e => {
+                if (!dragSource) return;
+                if (dragGhost) dragGhost.style.display = 'none';
+                const target = document.elementFromPoint(e.clientX, e.clientY);
+                if (dragGhost) dragGhost.style.display = '';
+                const slotUnder = target && target.closest && target.closest('.match-slot');
+
+                if (slotUnder && slotUnder.dataset.group === dragSource.group && slotUnder !== dragSource.sourceSlot) {
+                    if (dragSource.sourceSlot) clearSlot(dragSource.sourceSlot);
+                    fillSlot(slotUnder, dragSource.letter, dragSource.label);
+                } else if (!slotUnder && dragSource.sourceSlot) {
+                    // dropped outside any slot -> send the chip back to the bank
+                    clearSlot(dragSource.sourceSlot);
+                }
+                // dropped back on its own slot, or a bank chip dropped nowhere valid: no-op
+
+                cleanup();
+            });
+
+            document.addEventListener('pointercancel', cleanup);
+        })();
+
+        function gradePart(pNum) {
+            const [startQ, endQ] = passageRanges[pNum - 1];
+            const score = gradeQuestionRange(startQ, endQ);
+            const total = endQ - startQ + 1;
+            const btn = document.querySelector(`#part-grade-bar-${pNum} .part-grade-btn`);
+            if (btn) {
+                const original = btn.dataset.original || btn.innerText;
+                btn.dataset.original = original;
+                btn.innerText = `✅ Part ${pNum}: đúng ${score}/${total} câu`;
+                clearTimeout(btn._resetTimer);
+                btn._resetTimer = setTimeout(() => { btn.innerText = original; }, 5000);
+            }
         }
 
         // --- Application Logic ---
         let appMode = 'practice'; // 'practice' or 'exam'
         let currentPassage = 1;
         let timerInterval;
+
+        // Nút "← Thoát": đóng hẳn tab/cửa sổ này luôn (giống bấm nút ✕ của trình duyệt) thay vì
+        // reload lại trang như trước. window.close() chỉ được trình duyệt cho phép khi tab này do
+        // 1 script khác mở ra (vd window.open() từ trang chủ khi bấm "Bài tập", hoặc mở từ Test
+        // Builder) — đúng với cách hầu hết học sinh mở trang này. Nếu trình duyệt CHẶN việc đóng
+        // (tab được gõ thẳng URL / mở từ dấu 3 chấm... không phải do script mở), fallback về lại
+        // trang trước đó (hoặc trang chủ nếu không có trang trước) để vẫn "thoát" ra được thay vì
+        // đứng yên không phản hồi gì.
+        function exitTest() {
+            if (timerInterval) clearInterval(timerInterval);
+            window.close();
+            setTimeout(function () {
+                if (!window.closed) {
+                    if (window.history.length > 1) window.history.back();
+                    else window.location.href = 'index.html';
+                }
+            }, 250);
+        }
 
         function initNavCircles() {
             for (let p = 1; p <= 3; p++) {
@@ -760,11 +1638,47 @@
             document.getElementById('passage-selector').style.display = mode === 'practice' ? 'block' : 'none';
         }
 
+        // "Nâng cấp" các <span class="heading-gap"> tĩnh (do test-builder.html chèn sẵn ở đầu mỗi
+        // đoạn văn liên quan tới câu hỏi Matching Headings) thành match-slot thật — có thể kéo-thả
+        // được — rồi thêm input ẩn để gradeQuestionRange() chấm điểm y như mọi loại câu khác.
+        function initHeadingGapsInPassage() {
+            document.querySelectorAll('.heading-gap').forEach(gapEl => {
+                const qNum = gapEl.dataset.qnum;
+                const groupId = gapEl.dataset.group;
+                if (!qNum || !groupId) return;
+                gapEl.classList.add('match-slot');
+                gapEl.dataset.qnum = qNum;
+                gapEl.dataset.group = groupId;
+                gapEl.dataset.letter = '';
+                gapEl.id = 'slot-' + qNum;
+                gapEl.textContent = 'Kéo heading vào đây';
+                if (!document.getElementById('input-q' + qNum)) {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'q' + qNum;
+                    hidden.id = 'input-q' + qNum;
+                    hidden.value = '';
+                    gapEl.insertAdjacentElement('afterend', hidden);
+                }
+            });
+        }
+
         function startTest() {
             document.getElementById('setup-screen').style.display = 'none';
             generateQuestionsHTML();
+            initHeadingGapsInPassage();
             initNavCircles();
             setupInputListeners();
+
+            // Exam mode: minimal white theme + single purple highlight colour, no
+            // per-part "chấm riêng" buttons (real exam only submits once at the end).
+            // Practice mode: original theme, full 4-colour highlight palette, and a
+            // per-part grade button on top of the shared "Nộp bài" button.
+            const isExam = appMode === 'exam';
+            document.body.classList.toggle('exam-mode', isExam);
+            document.querySelectorAll('.annot-color-practice').forEach(btn => btn.style.display = isExam ? 'none' : '');
+            document.querySelectorAll('.annot-color-exam').forEach(btn => btn.style.display = isExam ? '' : 'none');
+            document.querySelectorAll('.part-grade-bar').forEach(bar => bar.classList.toggle('visible', !isExam));
 
             if (appMode === 'practice') {
                 let p = parseInt(document.getElementById('passage-dropdown').value);
@@ -774,7 +1688,7 @@
                 document.getElementById('passage-tabs').style.display = 'flex'; // allow manual nav in exam
                 switchPassage(1);
                 document.getElementById('timer-display').style.display = 'block';
-                startTimer(90 * 60);
+                startTimer(60 * 60); // Reading section is 60 minutes in the real IELTS exam
             }
         }
 
@@ -796,6 +1710,47 @@
             if(qEl) qEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
+        // --- Draggable resizer between the passage panel and questions panel ---
+        (function initPanelResizer() {
+            const resizer = document.getElementById('panel-resizer');
+            const leftPanel = document.getElementById('panel-passage');
+            const container = document.getElementById('main-workspace');
+            if (!resizer || !leftPanel || !container) return;
+
+            let dragging = false;
+
+            function startDrag() {
+                dragging = true;
+                resizer.classList.add('dragging');
+                document.body.style.userSelect = 'none';
+            }
+            function doDrag(clientX) {
+                if (!dragging) return;
+                const rect = container.getBoundingClientRect();
+                let leftWidth = clientX - rect.left;
+                const min = 220;
+                const max = rect.width - 220 - resizer.offsetWidth;
+                leftWidth = Math.max(min, Math.min(max, leftWidth));
+                leftPanel.style.flex = 'none';
+                leftPanel.style.width = leftWidth + 'px';
+            }
+            function endDrag() {
+                dragging = false;
+                resizer.classList.remove('dragging');
+                document.body.style.userSelect = '';
+            }
+
+            resizer.addEventListener('mousedown', e => { startDrag(); e.preventDefault(); });
+            document.addEventListener('mousemove', e => doDrag(e.clientX));
+            document.addEventListener('mouseup', endDrag);
+
+            resizer.addEventListener('touchstart', () => { startDrag(); }, { passive: true });
+            document.addEventListener('touchmove', e => {
+                if (dragging) { doDrag(e.touches[0].clientX); e.preventDefault(); }
+            }, { passive: false });
+            document.addEventListener('touchend', endDrag);
+        })();
+
         function setupInputListeners() {
             document.addEventListener('input', e => {
                 if (e.target.name && e.target.name.startsWith('q')) {
@@ -806,8 +1761,21 @@
                     let isAnswered = false;
                     if (e.target.type === 'text') isAnswered = e.target.value.trim() !== '';
                     if (e.target.type === 'radio') isAnswered = e.target.checked;
+                    // 'hidden' = ô đồng bộ của nhóm "Choose N of M" (genMulti); 'select-one' = dropdown
+                    // của Matching Headings / Matching Names-Claims (genLettered).
+                    if (e.target.type === 'hidden' || e.target.type === 'select-one') isAnswered = e.target.value.trim() !== '';
 
                     circle.classList.toggle('answered', isAnswered);
+                }
+            });
+            // <select> chỉ tự bắn ra sự kiện 'change', không phải 'input' trên mọi trình duyệt —
+            // lắng thêm 'change' và tái dùng lại đúng logic ở trên cho chắc chắn nút tròn số câu
+            // hỏi luôn sáng lên khi học sinh đã chọn xong dropdown.
+            document.addEventListener('change', e => {
+                if (e.target.tagName === 'SELECT' && e.target.name && e.target.name.startsWith('q')) {
+                    const qNum = e.target.name.substring(1);
+                    const circle = document.getElementById(`nav-q${qNum}`);
+                    if (circle) circle.classList.toggle('answered', e.target.value.trim() !== '');
                 }
             });
         }
@@ -823,18 +1791,11 @@
             }, 1000);
         }
 
-        function submitTest() {
-            if(timerInterval) clearInterval(timerInterval);
-
+        // Grades questions [startQ, endQ] inclusive, writing feedback into each
+        // question's #fb-N box, and returns the number correct. Shared by the
+        // full "Nộp bài" submit and the per-part "Chấm riêng Part N" buttons.
+        function gradeQuestionRange(startQ, endQ) {
             let score = 0;
-            let startQ, endQ;
-            if (appMode === 'practice') {
-                [startQ, endQ] = passageRanges[currentPassage - 1];
-            } else {
-                startQ = 1; endQ = TOTAL_QUESTIONS;
-            }
-            let total = endQ - startQ + 1;
-
             for (let i = startQ; i <= endQ; i++) {
                 let uAns = "";
                 const inputs = document.getElementsByName(`q${i}`);
@@ -871,14 +1832,47 @@
                     }
                 }
             }
+            return score;
+        }
+
+        function submitTest() {
+            if(timerInterval) clearInterval(timerInterval);
+
+            // Mặc định: chấm cả 3 passage/part cùng lúc (luyện tập tự do / thi thử), không chỉ
+            // passage tab đang mở. NHƯNG nếu đây là 1 bài tập được giao (IS_ASSIGNMENT_MODE) chỉ
+            // cho ĐÚNG 1 Passage, thì CHỈ chấm đúng Passage đó — để điểm hiển thị khớp với chính
+            // xác phần bài giáo viên đã giao, tránh gây hiểu nhầm "làm 1 đoạn nhưng điểm tính cả bài".
+            let startQ = 1, endQ = TOTAL_QUESTIONS;
+            if (IS_ASSIGNMENT_MODE && (ASSIGN_SCOPE === '1' || ASSIGN_SCOPE === '2' || ASSIGN_SCOPE === '3')) {
+                const range = passageRanges[parseInt(ASSIGN_SCOPE, 10) - 1];
+                if (range) { startQ = range[0]; endQ = range[1]; }
+            }
+            const total = endQ - startQ + 1;
+            const score = gradeQuestionRange(startQ, endQ);
 
             // Show results
             document.getElementById('score-correct').innerText = score;
             document.getElementById('score-total').innerText = total;
 
-            if (appMode === 'exam') {
-                document.getElementById('band-container').style.display = 'block';
-                document.getElementById('band-score').innerText = calculateBand(score);
+            // Show the estimated band score in both modes now that grading always
+            // covers all 3 passages.
+            document.getElementById('band-container').style.display = 'block';
+            const band = calculateBand(score);
+            document.getElementById('band-score').innerText = band;
+
+            saveProgressRecord(score, total, band);
+
+            // Khi đang nộp 1 bài tập được giao: hiện rõ banner "Đã nộp homework thành công" +
+            // đổi tiêu đề modal, để học sinh biết chắc chắn bài đã được ghi nhận (không chỉ là
+            // "xem điểm luyện tập" như bình thường).
+            const successBanner = document.getElementById('homework-success-banner');
+            const resultsTitle = document.getElementById('results-modal-title');
+            if (IS_ASSIGNMENT_MODE) {
+                if (successBanner) successBanner.style.display = 'block';
+                if (resultsTitle) resultsTitle.innerText = `Đã nộp homework thành công! (${assignmentScopeLabel()})`;
+            } else {
+                if (successBanner) successBanner.style.display = 'none';
+                if (resultsTitle) resultsTitle.innerText = 'Kết quả làm bài';
             }
 
             document.getElementById('results-modal').style.display = 'flex';
@@ -890,6 +1884,29 @@
             if (scaled>=33) return "7.5"; if (scaled>=30) return "7.0"; if (scaled>=27) return "6.5";
             if (scaled>=23) return "6.0"; if (scaled>=19) return "5.5"; if (scaled>=15) return "5.0";
             if (scaled>=13) return "4.5"; if (scaled>=10) return "4.0"; return "< 4.0";
+        }
+
+        // --- Shared progress/history log (read by the site's index page) ---
+        // Kept deliberately tiny per attempt and capped in count so it never
+        // eats meaningful localStorage space.
+        const PROGRESS_HISTORY_KEY = 'bseh_progress_history';
+        const PROGRESS_HISTORY_LIMIT = 40;
+
+        function saveProgressRecord(score, total, band) {
+            try {
+                let history = JSON.parse(localStorage.getItem(PROGRESS_HISTORY_KEY) || '[]');
+                history.unshift({
+                    t: document.title,                // test title
+                    u: location.pathname.split('/').pop(), // filename, so index.html can link back
+                    s: score,
+                    n: total,
+                    b: band,
+                    m: appMode,
+                    d: new Date().toLocaleDateString('vi-VN')
+                });
+                if (history.length > PROGRESS_HISTORY_LIMIT) history = history.slice(0, PROGRESS_HISTORY_LIMIT);
+                localStorage.setItem(PROGRESS_HISTORY_KEY, JSON.stringify(history));
+            } catch (e) { /* localStorage unavailable or full - fail silently, non-critical */ }
         }
 
         function closeResultsAndReview() {
@@ -919,46 +1936,99 @@
             }
         }
 
-        // --- Annotation Toolbar (highlight / underline / strikethrough / eraser) ---
+        // --- Annotation Toolbar (highlight / underline / strikethrough / eraser / note) ---
         const annotToolbar = document.getElementById('annot-toolbar');
         const transBox = document.getElementById('trans-box');
+        const noteInputBox = document.getElementById('note-input-box');
+        const noteInputField = document.getElementById('note-input-field');
         let selectedTextStr = "";
         let savedRange = null;
         let currentTranslation = null;
+        let noteInputOpen = false;
 
         // Keep text selection alive while clicking toolbar buttons
         annotToolbar.addEventListener('mousedown', e => e.preventDefault());
+        noteInputBox.addEventListener('mousedown', e => e.preventDefault());
 
-        document.getElementById('main-workspace').addEventListener('mouseup', function(e) {
-            // Don't trigger if clicking inside the toolbar or the translation box itself
-            if (transBox.contains(e.target) || annotToolbar.contains(e.target)) return;
+        const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+
+        function positionFloatingBox(boxEl, rect) {
+            // On touch devices (iPad etc.) place the box BELOW the selection so it
+            // doesn't collide/overlap with the OS's own native selection toolbar (which
+            // pops up above the selection).
+            boxEl.style.visibility = 'hidden';
+            boxEl.style.display = 'flex';
+            const tbWidth = boxEl.offsetWidth || 220;
+            const top = isCoarsePointer
+                ? (rect.bottom + window.scrollY + 14)
+                : (rect.top + window.scrollY - 48);
+            let left = rect.left + window.scrollX + (rect.width / 2) - (tbWidth / 2);
+            left = Math.max(10, Math.min(left, window.scrollX + window.innerWidth - tbWidth - 10));
+            boxEl.style.top = top + 'px';
+            boxEl.style.left = left + 'px';
+            boxEl.style.visibility = 'visible';
+        }
+
+        function positionToolbar(rect) { positionFloatingBox(annotToolbar, rect); }
+
+        function handleSelectionUI(e) {
+            // Don't trigger if clicking inside the toolbar, note-input popup, or translation box itself
+            if (e && (transBox.contains(e.target) || annotToolbar.contains(e.target) || noteInputBox.contains(e.target))) return;
+            if (noteInputOpen) return; // đang gõ dở note thì không xử lý lại theo selection nữa
 
             const selection = window.getSelection();
             const text = selection.toString().trim();
 
             if (text.length > 0 && selection.rangeCount > 0 && text.split(/\s+/).length < 50) {
+                const anchorNode = selection.anchorNode;
+                const anchorEl = anchorNode && (anchorNode.nodeType === 3 ? anchorNode.parentNode : anchorNode);
+                const workspace = document.getElementById('main-workspace');
+                if (!anchorEl || !workspace.contains(anchorEl)) return;
+
                 savedRange = selection.getRangeAt(0).cloneRange();
                 selectedTextStr = text;
 
                 const rect = savedRange.getBoundingClientRect();
+                if (rect.width === 0 && rect.height === 0) return; // selection geometry not painted yet
                 positionToolbar(rect);
                 annotToolbar.style.display = 'flex';
                 transBox.style.display = 'none'; // hide translation box if making a new selection
+                noteInputBox.style.display = 'none'; noteInputOpen = false; // hide note popup too
             } else {
                 annotToolbar.style.display = 'none';
-                if (!transBox.contains(e.target)) transBox.style.display = 'none';
+                if (!(e && transBox.contains(e.target))) transBox.style.display = 'none';
             }
+        }
+
+        document.getElementById('main-workspace').addEventListener('mouseup', handleSelectionUI);
+
+        // iOS/iPad (and other touch/stylus devices) frequently don't fire a usable
+        // 'mouseup' after a native text-selection gesture, so 'selectionchange'
+        // (debounced) is used as a more reliable, cross-platform fallback.
+        let selectionDebounceTimer = null;
+        document.addEventListener('selectionchange', function() {
+            clearTimeout(selectionDebounceTimer);
+            selectionDebounceTimer = setTimeout(() => handleSelectionUI(null), 220);
         });
 
-        function positionToolbar(rect) {
-            annotToolbar.style.top = (rect.top + window.scrollY - 48) + 'px';
-            annotToolbar.style.left = Math.max(10, rect.left + window.scrollX + (rect.width / 2) - 110) + 'px';
-        }
+        // Touch: dismiss the toolbar when tapping empty space with no active selection
+        document.addEventListener('touchstart', function(e) {
+            if (!annotToolbar.contains(e.target) && !transBox.contains(e.target) && !noteInputBox.contains(e.target) && !noteDeleteBox.contains(e.target)) {
+                const sel = window.getSelection();
+                if (!sel || sel.toString().trim() === '') {
+                    annotToolbar.style.display = 'none';
+                    if (!noteInputOpen) noteInputBox.style.display = 'none';
+                    if (!findNoteAtClick(e.target)) hideNoteDeleteBox();
+                }
+            }
+        }, { passive: true });
 
         // --- Robust multi-node wrap/erase so annotations survive selections that
         //     span multiple paragraphs or existing <span id="loc-..."> markers ---
+        // Trả về mảng các phần tử wrapper vừa tạo (theo đúng thứ tự trong văn bản) — dùng để, vd, chèn
+        // thêm 1 note ngay sau phần tử CUỐI CÙNG khi vùng chọn note trải dài qua nhiều đoạn/node.
         function wrapRangeNodes(range, makeWrapper) {
-            if (!range || range.collapsed) return;
+            if (!range || range.collapsed) return [];
             const root = range.commonAncestorContainer;
             const walker = document.createTreeWalker(
                 root.nodeType === 3 ? root.parentNode : root,
@@ -970,6 +2040,7 @@
             while (node = walker.nextNode()) {
                 if (range.intersectsNode(node) && node.nodeValue.trim() !== '') nodes.push(node);
             }
+            const wrappers = [];
             nodes.forEach(textNode => {
                 const nodeRange = document.createRange();
                 nodeRange.selectNodeContents(textNode);
@@ -977,16 +2048,22 @@
                 if (textNode === range.endContainer) nodeRange.setEnd(textNode, range.endOffset);
                 if (nodeRange.collapsed) return;
                 try {
-                    nodeRange.surroundContents(makeWrapper());
+                    const wrapper = makeWrapper();
+                    nodeRange.surroundContents(wrapper);
+                    wrappers.push(wrapper);
                 } catch (err) { /* skip nodes that can't be safely wrapped */ }
             });
+            return wrappers;
         }
 
-        function applyHighlight(range, color) {
+        function applyHighlight(range, color, textColor) {
             wrapRangeNodes(range, () => {
                 const span = document.createElement('span');
                 span.className = 'user-annotation user-highlight';
                 span.style.backgroundColor = color;
+                // Dark highlight colors (e.g. exam mode's maroon/wine) need white text
+                // on top to stay readable; pastel practice colors leave text untouched.
+                if (textColor) span.style.color = textColor;
                 return span;
             });
         }
@@ -1035,7 +2112,7 @@
 
         document.querySelectorAll('.annot-color').forEach(btn => {
             btn.addEventListener('click', () => {
-                applyHighlight(savedRange, btn.dataset.color);
+                applyHighlight(savedRange, btn.dataset.color, btn.dataset.textColor || null);
                 cleanupAfterAnnotate();
             });
         });
@@ -1050,6 +2127,135 @@
         document.getElementById('annot-erase').addEventListener('click', () => {
             eraseAnnotations(savedRange);
             cleanupAfterAnnotate();
+        });
+
+        // --- Note popup: bấm "📝 Note" trên thanh nổi -> ẩn thanh nổi, hiện ô nhập note ngay tại
+        //     đúng vị trí đó -> Enter/nút ✓ để xác nhận, Esc/nút ✕ để huỷ.
+        //     QUAN TRỌNG: bấm vào ô nhập (input) sẽ làm trình duyệt tự huỷ vùng bôi đen xanh mặc định,
+        //     nên NGAY khi mở ô nhập, đoạn chữ vừa chọn được bọc tạm trong 1 lớp highlight vàng
+        //     (.note-pending-highlight) để người dùng vẫn thấy rõ mình đang note cho đúng đoạn nào.
+        //     Xác nhận thì lớp tạm này được "chốt" thành in đậm + note đỏ; Huỷ thì gỡ ra, trả nguyên
+        //     trạng đoạn chữ. ---
+        let pendingNoteWrappers = [];
+
+        document.getElementById('annot-note-btn').addEventListener('click', () => {
+            if (!savedRange) return;
+            const wrappers = wrapRangeNodes(savedRange, () => {
+                const span = document.createElement('span');
+                span.className = 'note-pending-highlight';
+                return span;
+            });
+            if (wrappers.length === 0) {
+                alert('Không thể thêm note vào đúng đoạn đã chọn (có thể vùng chọn đè lên định dạng khác). Vui lòng bôi đen lại 1 đoạn chữ khác rồi thử lại.');
+                cleanupAfterAnnotate();
+                return;
+            }
+            pendingNoteWrappers = wrappers;
+            const rect = wrappers[0].getBoundingClientRect();
+            annotToolbar.style.display = 'none';
+            noteInputOpen = true;
+            noteInputField.value = '';
+            positionFloatingBox(noteInputBox, rect);
+            noteInputField.focus();
+        });
+
+        function closeNoteInput(clearSelection) {
+            noteInputBox.style.display = 'none';
+            noteInputOpen = false;
+            if (clearSelection) {
+                window.getSelection().removeAllRanges();
+                savedRange = null;
+            }
+        }
+
+        function confirmNoteInput() {
+            const noteText = noteInputField.value.trim();
+            if (!noteText) { noteInputField.focus(); return; }
+            // "Chốt" từng đoạn highlight tạm thành <b> thật (giữ nguyên text bên trong, chỉ đổi span -> b).
+            const finalWrappers = pendingNoteWrappers.map(span => {
+                const b = document.createElement('b');
+                b.className = 'user-annotation user-note-phrase';
+                while (span.firstChild) b.appendChild(span.firstChild);
+                span.parentNode.replaceChild(b, span);
+                return b;
+            });
+            pendingNoteWrappers = [];
+            const lastWrapper = finalWrappers[finalWrappers.length - 1];
+            // Dùng lại đúng class .reading-note mà công cụ soạn đề dùng cho note giáo viên soạn sẵn lúc
+            // build, nên style giống hệt nhau. Cả phần in đậm lẫn phần note đều mang "user-annotation"
+            // nên nút "🧹 Xóa định dạng" vẫn xoá được, và bấm trực tiếp vào note cũng xoá được riêng nó
+            // (xem trình xử lý click "Xóa note" bên dưới).
+            const noteSpan = document.createElement('span');
+            noteSpan.className = 'user-annotation reading-note';
+            noteSpan.textContent = ` [${noteText}]`;
+            lastWrapper.parentNode.insertBefore(noteSpan, lastWrapper.nextSibling);
+            closeNoteInput(true);
+        }
+
+        function cancelNoteInput() {
+            // Gỡ lớp highlight tạm, trả đoạn chữ về nguyên trạng ban đầu (chưa note gì cả).
+            pendingNoteWrappers.forEach(span => unwrapElement(span));
+            pendingNoteWrappers = [];
+            closeNoteInput(true);
+        }
+
+        document.getElementById('note-input-ok').addEventListener('click', confirmNoteInput);
+        document.getElementById('note-input-cancel').addEventListener('click', cancelNoteInput);
+        noteInputField.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); confirmNoteInput(); }
+            else if (e.key === 'Escape') { e.preventDefault(); cancelNoteInput(); }
+        });
+
+        // --- Xoá 1 note đã thêm: bấm trực tiếp vào note đó (chữ in đậm hoặc phần [note] đỏ ngay sau)
+        //     -> hiện 1 nút nhỏ nổi lên "🗑 Xóa note" ngay phía trên -> bấm để xoá riêng note đó, không
+        //     cần bôi đen lại rồi dùng "🧹 Xóa định dạng" như trước. Áp dụng cho MỌI note đang hiển thị,
+        //     kể cả note giáo viên soạn sẵn lúc build đề (cú pháp {{đoạn chữ|note}}) — vì đây chỉ là xoá
+        //     tạm trên máy người đang xem lúc đó, tải lại trang là note gốc hiện lại bình thường. ---
+        const noteDeleteBox = document.getElementById('note-delete-box');
+        const noteDeleteBtn = document.getElementById('note-delete-btn');
+        noteDeleteBox.addEventListener('mousedown', e => e.preventDefault());
+        let noteDeleteTarget = null;
+
+        function hideNoteDeleteBox() {
+            noteDeleteBox.style.display = 'none';
+            noteDeleteTarget = null;
+        }
+
+        function findNoteAtClick(target) {
+            let noteSpan = target.closest ? target.closest('.reading-note') : null;
+            let bold = target.closest ? target.closest('b') : null;
+            if (bold && !noteSpan) {
+                const next = bold.nextElementSibling;
+                if (next && next.classList && next.classList.contains('reading-note')) noteSpan = next;
+                else bold = null; // <b> này không liền kề note nào -> không phải note, bỏ qua
+            }
+            if (noteSpan && !bold) {
+                const prev = noteSpan.previousElementSibling;
+                if (prev && prev.tagName === 'B') bold = prev;
+            }
+            return noteSpan ? { bold, noteSpan } : null;
+        }
+
+        document.getElementById('main-workspace').addEventListener('click', (e) => {
+            if (annotToolbar.contains(e.target) || noteInputBox.contains(e.target) || transBox.contains(e.target) || noteDeleteBox.contains(e.target)) return;
+            // Đang có vùng bôi đen (vừa kéo chọn chữ) thì ưu tiên luồng thêm định dạng/note mới, không
+            // xử lý theo hướng "xoá note" nữa.
+            const sel = window.getSelection();
+            if (sel && sel.toString().trim().length > 0) { hideNoteDeleteBox(); return; }
+
+            const found = findNoteAtClick(e.target);
+            if (!found) { hideNoteDeleteBox(); return; }
+            noteDeleteTarget = found;
+            const rect = found.noteSpan.getBoundingClientRect();
+            positionFloatingBox(noteDeleteBox, rect);
+        });
+
+        noteDeleteBtn.addEventListener('click', () => {
+            if (!noteDeleteTarget) return;
+            const { bold, noteSpan } = noteDeleteTarget;
+            if (noteSpan && noteSpan.parentNode) noteSpan.parentNode.removeChild(noteSpan);
+            if (bold) unwrapElement(bold);
+            hideNoteDeleteBox();
         });
 
         // --- Translation (real free API: Google Translate unofficial endpoint,
@@ -1134,12 +2340,18 @@
         });
 
         // --- Vocabulary Notebook (saved locally in this browser) ---
+        const VOCAB_LIMIT = 300;
+
         document.getElementById('save-vocab-btn').addEventListener('click', () => {
             if (!selectedTextStr || !currentTranslation) return;
-            saveToVocabBook(selectedTextStr, currentTranslation);
+            const result = saveToVocabBook(selectedTextStr, currentTranslation);
             const btn = document.getElementById('save-vocab-btn');
             const original = btn.innerText;
-            btn.innerText = '✅ Đã lưu!';
+            if (result === 'full') {
+                alert(`Sổ từ vựng đã đầy (tối đa ${VOCAB_LIMIT} từ). Hãy xoá bớt từ cũ trong "My Words" trước khi lưu thêm.`);
+                return;
+            }
+            btn.innerText = result === 'duplicate' ? '✓ Đã có sẵn' : '✅ Đã lưu!';
             setTimeout(() => { btn.innerText = original; }, 1500);
         });
 
@@ -1149,12 +2361,15 @@
             } catch (e) { return []; }
         }
 
+        // Returns 'saved' | 'duplicate' | 'full'
         function saveToVocabBook(en, vi) {
             let book = getVocabBook();
-            if (book.some(item => item.en.toLowerCase() === en.toLowerCase())) return; // avoid duplicates
+            if (book.some(item => item.en.toLowerCase() === en.toLowerCase())) return 'duplicate'; // avoid duplicates
+            if (book.length >= VOCAB_LIMIT) return 'full'; // must delete old words before saving new ones
             book.unshift({ en, vi, date: new Date().toLocaleDateString('vi-VN') });
             localStorage.setItem('ielts_vocab_book', JSON.stringify(book));
             updateVocabCount();
+            return 'saved';
         }
 
         function removeVocab(idx) {
@@ -1167,7 +2382,10 @@
 
         function updateVocabCount() {
             const el = document.getElementById('vocab-count');
-            if (el) el.innerText = getVocabBook().length;
+            if (el) {
+                const n = getVocabBook().length;
+                el.innerText = n >= VOCAB_LIMIT ? `${n}/${VOCAB_LIMIT}` : n;
+            }
         }
 
         function escapeHtml(str) {
@@ -1206,6 +2424,82 @@
 
         updateVocabCount();
 
+    </script>
+
+    <!-- ============ BÁO CÁO KẾT QUẢ VỀ FIRESTORE (chỉ chạy khi bài test này được mở từ 1 bài
+         tập được giao qua "Bài tập" trên trang chủ — tức URL có ?assignmentId=&uid=). Tách riêng
+         thành 1 <script type="module"> độc lập, KHÔNG đụng vào script chính ở trên, để không phải
+         gắn lại hàng loạt hàm lên window. Script này chỉ đọc kết quả grading có sẵn (submitTest())
+         và ghi vào submissions/{assignmentId}_{uid}, không thay đổi hành vi làm bài bình thường. -->
+    <script type="module">
+        (function () {
+            var params = new URLSearchParams(location.search);
+            var assignmentId = params.get('assignmentId');
+            var uid = params.get('uid');
+            var scope = params.get('scope') || 'all';
+            if (!assignmentId || !uid) return; // mở bài test bình thường (không phải bài được giao) -> bỏ qua
+
+            // TODO(night): dán ĐÚNG firebaseConfig của project "b-s-english-house" — PHẢI GIỐNG HỆT
+            // khối config trong index.html / listeningtypegenerator.html, nếu không kết quả sẽ ghi
+            // nhầm sang project khác và giáo viên sẽ không thấy được.
+            var FB_CONFIG = {
+                apiKey: "AIzaSyDuoosjvJe3EoF22h9UJ6M95os5s_boQ-o",
+                authDomain: "b-s-english-house.firebaseapp.com",
+                projectId: "b-s-english-house",
+                storageBucket: "b-s-english-house.firebasestorage.app",
+                messagingSenderId: "946574286636",
+                appId: "1:946574286636:web:44624fb938e6b5dc961689",
+                measurementId: "G-YZR2QFWQGR"
+            };
+
+            Promise.all([
+                import('https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js'),
+                import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js')
+            ]).then(function (mods) {
+                var appMod = mods[0], fsMod = mods[1];
+                var app = appMod.initializeApp(FB_CONFIG, 'bseh-reading-report-' + Date.now());
+                var db = fsMod.getFirestore(app);
+                var subRef = fsMod.doc(db, 'submissions', assignmentId + '_' + uid);
+
+                // Bọc submitTest() gốc: chấm bài vẫn chạy y như cũ, chỉ thêm bước báo kết quả về
+                // Firestore ngay sau đó. submitTest là function khai báo ở top-level của <script>
+                // thường (không phải module) nên tự gắn lên window — an toàn để bọc lại ở đây vì
+                // module này chạy sau khi script chính đã thực thi xong (defer mặc định của module).
+                var origSubmitTest = window.submitTest;
+                window.submitTest = function () {
+                    if (typeof origSubmitTest === 'function') origSubmitTest();
+                    try { reportAssignmentResult(); } catch (e) { console.warn('BSEH: report failed', e); }
+                };
+
+                function reportAssignmentResult() {
+                    // submitTest() ở trên luôn chấm CẢ 3 passage rồi hiện tổng điểm ở #score-correct/#score-total.
+                    var fullCorrectEl = document.getElementById('score-correct');
+                    var fullTotalEl = document.getElementById('score-total');
+                    var reportCorrect = fullCorrectEl ? (parseInt(fullCorrectEl.innerText, 10) || 0) : 0;
+                    var reportTotal = fullTotalEl ? (parseInt(fullTotalEl.innerText, 10) || 0) : 0;
+
+                    // Nếu giáo viên chỉ giao 1 Passage (thường gặp nhất), báo điểm riêng của đúng
+                    // Passage đó thay vì điểm cả đề — chấm lại đúng khoảng câu hỏi của passage này
+                    // (an toàn để gọi lại: gradeQuestionRange ghi đè fbBox chứ không cộng dồn).
+                    if ((scope === '1' || scope === '2' || scope === '3') &&
+                        window.passageRanges && typeof window.gradeQuestionRange === 'function') {
+                        var range = window.passageRanges[parseInt(scope, 10) - 1];
+                        if (range) {
+                            reportCorrect = window.gradeQuestionRange(range[0], range[1]);
+                            reportTotal = range[1] - range[0] + 1;
+                        }
+                    }
+
+                    var percent = reportTotal > 0 ? Math.round(reportCorrect / reportTotal * 100) : 0;
+                    fsMod.setDoc(subRef, {
+                        status: 'done',
+                        percent: percent,
+                        score: reportCorrect + '/' + reportTotal,
+                        completedAt: fsMod.serverTimestamp()
+                    }, { merge: true }).catch(function (e) { console.warn('BSEH: submissions write failed', e); });
+                }
+            }).catch(function (e) { console.warn('BSEH: firebase init failed', e); });
+        })();
     </script>
 </body>
 </html>
