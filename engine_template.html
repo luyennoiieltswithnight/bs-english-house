@@ -427,6 +427,9 @@ function renderPassageTab(pIdx) {
   container.appendChild(el('p', { class: 'hint', style: { marginTop: '-8px' } }, [
     '💡 Muốn thêm note cho học sinh/giáo viên? Không cần làm ở đây — mở bài test đã xuất bản (nút "Tạo bản xem trước" hoặc file đã tải), bôi đen 1 đoạn chữ trong bài đọc lúc đang làm bài, rồi bấm nút "📝 Note" trên thanh công cụ nổi lên. Muốn 1 note có sẵn cho MỌI người ngay từ đầu thì gõ tay {{đoạn chữ|nội dung note}} thẳng vào ô trên.'
   ]));
+  container.appendChild(el('p', { class: 'hint', style: { marginTop: '-8px' } }, [
+    '✍️ Đoạn nào có câu dẫn/subheading ngắn ở đầu (không đi vào chi tiết, chỉ giới thiệu ý sắp nói): gõ tay bao quanh câu đó bằng dấu ngoặc kép thẳng "như thế này" NGAY TRONG cùng khối đoạn văn (không để dòng trống tách ra) — khi xuất bản sẽ tự in nghiêng, bỏ dấu ngoặc kép, và KHÔNG bị tính thành 1 đoạn riêng (tránh làm lệch A/B/C của Matching Headings/Information). Tuỳ đoạn có câu dẫn hay không, không bắt buộc. Lưu ý: chỉ gõ ngoặc kép thẳng ("), KHÔNG áp dụng cho dấu ngoặc kép cong “ ” (trích dẫn thật copy từ sách/PDF gốc) — nhớ xem lại bản xem trước để kiểm tra đúng ý trước khi xuất bản.'
+  ]));
 
   container.appendChild(el('h3', {}, ['Nhóm câu hỏi']));
   container.appendChild(el('p', { class: 'hint' }, [
@@ -940,6 +943,13 @@ function buildTestHTML(state) {
     }
     const htmlParas = paras.map((paraRaw, paraIdx) => {
       let paraEsc = escapeHtml(paraRaw);
+      // Câu dẫn/subheading đầu đoạn (gõ tay, đánh dấu bằng dấu ngoặc kép THẲNG "..." — vd đoạn có
+      // câu dẫn thì gõ: "Rising sea levels threaten coastal cities." Some studies suggest that...) ->
+      // in nghiêng, bỏ luôn dấu ngoặc kép khi hiển thị. Xử lý TRƯỚC {{note}}/loc bên dưới. Chỉ áp dụng
+      // dấu " THẲNG (") gõ từ bàn phím — 1 câu trích dẫn CÓ THẬT copy từ sách/PDF gốc thường dính dấu
+      // ngoặc kép CONG “ ” (smart quotes) nên KHÔNG bị đụng tới, tránh biến trích dẫn thật thành in
+      // nghiêng ngoài ý muốn. Đây là đánh dấu THỦ CÔNG — tuỳ đoạn có câu dẫn hay không, giáo viên tự gõ.
+      paraEsc = paraEsc.replace(/"([^"]+)"/g, (m, lead) => `<em>${lead}</em>`);
       // Note giáo viên thêm (chọn đoạn -> in đậm + note đỏ trong ngoặc [ ] bên phải), cú pháp
       // {{đoạn chữ|nội dung note}} do "📝 Thêm note cho đoạn đã bôi đen" ở tab Passage tạo ra (hoặc
       // gõ tay). Xử lý TRƯỚC khi tìm "loc" bên dưới vì escapeHtml() không đụng tới { } |.
