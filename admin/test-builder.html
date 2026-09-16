@@ -314,6 +314,35 @@ function escapeHtml(str) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+// ============ Nhúng ảnh sơ đồ/chú thích TRỰC TIẾP vào file đề (data URI base64) — cho giáo viên
+// dán/kéo-thả/chọn thẳng file ảnh vào ô "Ảnh sơ đồ/chú thích" thay vì phải tự up lên Drive rồi copy
+// link. KHÔNG dùng Firebase Storage (project đang ở gói Spark miễn phí, Storage cần nâng gói Blaze/
+// gắn thẻ thanh toán mới dùng được) — thay vào đó ảnh được đọc thẳng thành chuỗi base64
+// ("data:image/...;base64,....") và lưu ngay vào group.imageUrl, y hệt như dán 1 link ảnh bình
+// thường, vì renderGroupImage()/toDirectImageUrl() trong bài test coi mọi giá trị không khớp định
+// dạng link Drive là 1 link ảnh dùng thẳng — 1 data URI cũng chạy được, không cần sửa gì ở engine.
+// Không cần mạng, không cần tài khoản/billing nào — hoạt động 100% ngay trong trình duyệt.
+function readImageFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Không đọc được file ảnh — thử lại hoặc dùng ảnh khác.'));
+    reader.readAsDataURL(file);
+  });
+}
+async function embedImageFileAsDataUrl(file) {
+  if (!file || !file.type || !file.type.startsWith('image/')) {
+    throw new Error('File không phải ảnh (chỉ nhận .png/.jpg/.jpeg/.gif/.webp...).');
+  }
+  // Ảnh sẽ được nhúng THẲNG vào file đề (mọi bản tải về đều cõng theo ảnh này) nên cần nhẹ hơn
+  // nhiều so với upload lên cloud — giới hạn 3MB, đủ dùng cho sơ đồ/bản đồ/bảng biểu thông thường.
+  const MAX_BYTES = 3 * 1024 * 1024;
+  if (file.size > MAX_BYTES) {
+    throw new Error(`Ảnh quá lớn (${(file.size / 1024 / 1024).toFixed(1)}MB) — ảnh sẽ được nhúng thẳng vào file đề nên cần nhẹ hơn, vui lòng dùng ảnh dưới 3MB (nén/giảm độ phân giải trước khi dán, hoặc dán link ảnh có sẵn thay thế).`);
+  }
+  return await readImageFileAsDataUrl(file);
+}
+
 function slug(s) {
   return (s || '').toString().trim().toLowerCase()
     .replace(/đ/g, 'd').replace(/Đ/g, 'd')
@@ -435,7 +464,7 @@ function renderPassageTab(pIdx) {
   container.appendChild(el('p', { class: 'hint' }, [
     'Với mỗi nhóm: chọn loại câu hỏi, nhập hướng dẫn (vd "Choose ONE WORD ONLY"). ',
     'Ô "Cụm định vị trong bài" (không bắt buộc) — copy chính xác một cụm từ trong đoạn văn liên quan đến câu hỏi, để bật nút "🔍 Xem vị trí trong bài" khi học sinh làm bài. ',
-    'Ô "Ảnh sơ đồ/chú thích" (không bắt buộc, mọi loại câu hỏi) — dán link ảnh (link chia sẻ Google Drive tự nhận diện được, nhớ để chế độ "Anyone with the link") cho các dạng bài cần nhìn sơ đồ/hình minh hoạ. ',
+    'Ô "Ảnh sơ đồ/chú thích" (không bắt buộc, mọi loại câu hỏi) — cho các dạng bài cần nhìn sơ đồ/hình minh hoạ: dán link ảnh có sẵn (link chia sẻ Google Drive tự nhận diện được, nhớ để chế độ "Anyone with the link"), HOẶC dán/kéo-thả/chọn thẳng file ảnh vào ô (dưới 3MB) — tool sẽ tự nhúng ảnh thẳng vào file đề, không cần up lên đâu cả. ',
     'Các loại "Matching Headings", "Matching Information/Names" (bảng), "Matching người/câu" và "Chọn nhiều đáp án" đều dùng chung 1 "ngân hàng lựa chọn" — nhập danh sách 1 lần, mỗi câu hỏi bên dưới chỉ cần chọn đáp án đúng từ dropdown, không cần kéo-thả (trừ loại "Nối đáp án" cũ giữ lại để tương thích ngược).'
   ]));
 
@@ -526,11 +555,98 @@ function createGroupCard(passage, group, pIdx, gIdx) {
   refField.appendChild(refTextarea);
   card.appendChild(refField);
 
-  const imgField = el('div', { class: 'field' }, [el('label', {}, ['Ảnh sơ đồ / chú thích (tùy chọn — dán link Google Drive hoặc link ảnh bất kỳ)'])]);
-  const imgInput = el('input', { type: 'text', value: group.imageUrl || '', placeholder: 'vd: https://drive.google.com/file/d/XXXXXXXX/view?usp=sharing' });
+  const imgField = el('div', { class: 'field' }, [el('label', {}, ['Ảnh sơ đồ / chú thích (tùy chọn — dán link ảnh có sẵn, hoặc dán/kéo-thả/chọn thẳng file ảnh để tool tự nhúng vào đề)'])]);
+  const imgInput = el('input', { type: 'text', value: group.imageUrl || '', placeholder: 'vd: https://drive.google.com/file/d/XXXXXXXX/view?usp=sharing — hoặc Ctrl+V dán ảnh trực tiếp vào đây' });
   imgInput.oninput = () => { group.imageUrl = imgInput.value; };
   imgField.appendChild(imgInput);
+
+  const imgUploadRow = el('div', { class: 'img-upload-row', style: { display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', flexWrap: 'wrap' } });
+  const imgFileInput = el('input', { type: 'file', accept: 'image/*', style: { display: 'none' } });
+  const imgPickBtn = el('button', { class: 'btn btn-sm', type: 'button' }, ['📁 Chọn file ảnh']);
+  const imgClearBtn = el('button', { class: 'btn btn-sm btn-danger', type: 'button', style: { display: 'none' } }, ['✕ Xoá ảnh đã nhúng']);
+  const imgUploadStatus = el('span', { class: 'hint', style: { margin: '0' } }, ['']);
+  const imgPreview = el('img', { style: { display: 'none', maxWidth: '160px', maxHeight: '100px', borderRadius: '6px', border: '1px solid #ccc', marginTop: '6px', objectFit: 'contain' } });
+  imgUploadRow.appendChild(imgPickBtn);
+  imgUploadRow.appendChild(imgClearBtn);
+  imgUploadRow.appendChild(imgFileInput);
+  imgUploadRow.appendChild(imgUploadStatus);
+  imgField.appendChild(imgUploadRow);
+  imgField.appendChild(imgPreview);
   card.appendChild(imgField);
+
+  // Khi group.imageUrl là 1 data URI (ảnh đã nhúng) — chuỗi base64 dài hàng chục nghìn ký tự, hiện
+  // nguyên văn trong ô text sẽ vô nghĩa/khó nhìn — nên thay bằng dòng tóm tắt (readonly) + hình xem
+  // trước nhỏ + nút xoá riêng. Dán link thường (không phải ảnh nhúng) thì ô vẫn gõ/sửa bình thường.
+  function refreshImgFieldDisplay() {
+    const val = group.imageUrl || '';
+    if (val.startsWith('data:image/')) {
+      const approxKB = Math.round(val.length * 3 / 4 / 1024);
+      imgInput.value = `🖼 [Đã nhúng 1 ảnh trực tiếp vào đề — khoảng ${approxKB}KB]`;
+      imgInput.readOnly = true;
+      imgInput.style.color = '#1b7a1b';
+      imgPreview.src = val;
+      imgPreview.style.display = 'inline-block';
+      imgClearBtn.style.display = '';
+    } else {
+      imgInput.value = val;
+      imgInput.readOnly = false;
+      imgInput.style.color = '';
+      imgPreview.style.display = 'none';
+      imgClearBtn.style.display = 'none';
+    }
+  }
+  refreshImgFieldDisplay();
+
+  async function handleGroupImageFile(file) {
+    if (!file) return;
+    imgPickBtn.disabled = true;
+    imgUploadStatus.style.color = '#8a6d00';
+    imgUploadStatus.textContent = '⏳ Đang xử lý ảnh...';
+    try {
+      const dataUrl = await embedImageFileAsDataUrl(file);
+      group.imageUrl = dataUrl;
+      refreshImgFieldDisplay();
+      imgUploadStatus.style.color = '#1b7a1b';
+      imgUploadStatus.textContent = '✅ Đã nhúng ảnh vào đề — xem lại ở bản xem trước để chắc ảnh hiện đúng.';
+    } catch (e) {
+      imgUploadStatus.style.color = '#c62828';
+      imgUploadStatus.textContent = `❌ ${e.message}`;
+    } finally {
+      imgPickBtn.disabled = false;
+    }
+  }
+
+  imgPickBtn.onclick = () => imgFileInput.click();
+  imgFileInput.onchange = () => {
+    const file = imgFileInput.files && imgFileInput.files[0];
+    handleGroupImageFile(file);
+    imgFileInput.value = '';
+  };
+  imgClearBtn.onclick = () => {
+    group.imageUrl = '';
+    imgUploadStatus.textContent = '';
+    refreshImgFieldDisplay();
+    imgInput.focus();
+  };
+  imgInput.addEventListener('paste', (e) => {
+    const items = (e.clipboardData && e.clipboardData.items) || [];
+    for (const item of items) {
+      if (item.type && item.type.startsWith('image/')) {
+        e.preventDefault();
+        handleGroupImageFile(item.getAsFile());
+        return;
+      }
+    }
+    // Không phải ảnh (vd dán link text bình thường) -> để trình duyệt dán chữ vào ô như cũ.
+  });
+  ['dragover', 'dragenter'].forEach(evt => imgInput.addEventListener(evt, (e) => { e.preventDefault(); }));
+  imgInput.addEventListener('drop', (e) => {
+    const files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length && files[0].type && files[0].type.startsWith('image/')) {
+      e.preventDefault();
+      handleGroupImageFile(files[0]);
+    }
+  });
 
   if (usesSharedBank(group.type)) {
     if (!group.matchOptions) group.matchOptions = group.type === 'multi' ? ['', '', '', '', ''] : ['', '', '', ''];
