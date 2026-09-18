@@ -1,0 +1,2502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading - Cambridge 13 - Test 1</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #729a65;
+            --panel-bg: #f9f5e8;
+            --border-color: #2c3e2d;
+            --text-color: #333;
+            --highlight-color: #ffeb3b;
+            --correct-color: #4caf50;
+            --incorrect-color: #f44336;
+            --primary-button: #e8b93b;
+            --hover-bg: #e0d9c5;
+        }
+
+        /* --- Exam mode ("Thi Thật"): minimal white theme, purple accent only ---
+             Applied by adding class="exam-mode" to <body> in startTest(). Practice
+             mode keeps the original green/parchment look untouched. */
+        body.exam-mode {
+            --bg-color: #ffffff;
+            --panel-bg: #ffffff;
+            --border-color: #6d3fa0;
+            --primary-button: #7c4dab;
+            --hover-bg: #f2ebfa;
+            background-image: none;
+        }
+        body.exam-mode .q-circle.answered { background-color: #e3d2f7; }
+        body.exam-mode .question-group { border-color: #e6dcf2; }
+        body.exam-mode .instruction { background: #faf7fd; }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+            background-size: 20px 20px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* Header Styles */
+        .header {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            background: none;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .part-indicator {
+            background-color: var(--border-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .question-nav {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .q-circle {
+            width: 24px;
+            height: 24px;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            background: white;
+            transition: background-color 0.2s;
+        }
+
+        .q-circle.answered {
+            background-color: #d1cbb8;
+        }
+
+        .timer {
+            border: 2px solid var(--border-color);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 16px;
+            font-weight: bold;
+            background: white;
+        }
+
+        .submit-btn {
+            background-color: var(--primary-button);
+            border: 2px solid var(--border-color);
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, filter 0.2s;
+        }
+
+        .submit-btn:hover { filter: brightness(1.1); }
+        .submit-btn:active { transform: scale(0.98); }
+
+        /* Main Content Area */
+        .main-container {
+            display: flex;
+            gap: 0;
+            flex: 1;
+            min-height: 0;
+            position: relative; /* For translation popup */
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            flex: 1;
+            min-width: 220px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Draggable resizer between the two panels */
+        .panel-resizer {
+            width: 18px;
+            flex-shrink: 0;
+            cursor: col-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+        }
+        .panel-resizer::after {
+            content: '';
+            width: 6px;
+            height: 56px;
+            border-radius: 6px;
+            background: rgba(44, 62, 45, 0.25);
+            transition: background 0.15s, height 0.15s;
+        }
+        .panel-resizer:hover::after,
+        .panel-resizer.dragging::after {
+            background: rgba(44, 62, 45, 0.55);
+            height: 80px;
+        }
+
+        .panel-content {
+            padding: 30px;
+            overflow-y: auto;
+            flex: 1;
+            scroll-behavior: smooth;
+        }
+
+        /* Reading Passage Styles */
+        .passage-text {
+            font-family: 'Source Serif Pro', serif;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .passage-text h2 {
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 30px;
+        }
+
+        .passage-text p {
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        .explanation-highlight {
+            background-color: var(--highlight-color);
+            padding: 2px 4px;
+            border-radius: 3px;
+            transition: background-color 0.5s;
+            border-bottom: 2px solid #e65100;
+        }
+
+        /* Questions Styles */
+        .question-group {
+            margin-bottom: 40px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .instruction {
+            font-style: italic;
+            margin-bottom: 20px;
+            color: #555;
+            background: #f5f5f5;
+            padding: 10px;
+            border-left: 4px solid var(--border-color);
+        }
+
+        .question-item {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            align-items: flex-start;
+            position: relative;
+        }
+        /* Điền từ / notes completion: các dòng gần nhau hơn để cả nhóm nhìn liền mạch như 1 khối
+           ghi chú duy nhất, thay vì từng câu tách xa nhau như thẻ riêng biệt. */
+        .question-item.compact-item { margin-bottom: 14px; }
+
+        .q-num {
+            background-color: white;
+            border: 2px solid var(--border-color);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .options-tf, .mcq-options {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .mcq-options { flex-direction: column; gap: 10px; }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .radio-label:hover { background: #f0f0f0; }
+
+        .text-input {
+            border: 1px solid #ccc;
+            border-bottom: 2px solid var(--border-color);
+            background: transparent;
+            padding: 5px;
+            font-family: inherit;
+            font-size: 16px;
+            width: 200px;
+            outline: none;
+            transition: background 0.2s;
+        }
+        .text-input:focus { background-color: rgba(255,255,255,0.8); }
+
+        /* Complete the summary/table — cả nhóm câu 'inline' chảy thành 1 đoạn văn liên tục, số
+           câu hỏi nằm ngay trong placeholder của ô nhập (không có vòng tròn số riêng). */
+        .inline-summary {
+            line-height: 2.6;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+        .inline-blank-wrap { display: inline-block; }
+        /* "Complete the notes" dạng khối ghi chú/outline (có tiêu đề, gạch đầu dòng, thụt lề...) —
+           giữ nguyên xuống dòng + khoảng trắng gốc y hệt giáo viên đã gõ (xem genNotesFromTemplate()),
+           KHÔNG gộp thành 1 đoạn văn chảy liên tục như .inline-summary thường (dùng cho câu văn thật). */
+        .inline-summary.notes-template {
+            white-space: pre-wrap;
+            line-height: 2.1;
+            font-family: inherit;
+        }
+        .inline-blank {
+            width: 130px;
+            text-align: center;
+            font-weight: 700;
+        }
+        .inline-blank::placeholder { font-weight: 800; color: var(--border-color); opacity: 0.8; }
+
+        /* Review Mode Features */
+        .feedback-box {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #6c757d;
+            border-radius: 0 4px 4px 0;
+            font-size: 14px;
+            animation: fadeIn 0.3s;
+        }
+
+        .feedback-box.correct { border-left-color: var(--correct-color); background: #f1f8e9; }
+        .feedback-box.incorrect { border-left-color: var(--incorrect-color); background: #ffebee; }
+
+        .explanation-text {
+            margin-top: 10px;
+            color: #333;
+            font-style: italic;
+            border-top: 1px dashed #ccc;
+            padding-top: 10px;
+        }
+
+        /* Optional diagram/labeling image, attachable to any question group */
+        .group-image-wrap { margin-bottom: 15px; text-align: center; }
+        .group-image { max-width: 100%; border-radius: 8px; border: 1px solid #ddd; }
+
+        /* --- Matching / Drag-and-drop question type --- */
+        .match-bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            border: 1px dashed #bbb;
+        }
+        .match-chip {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: grab;
+            touch-action: none;
+            user-select: none;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.08);
+            transition: opacity 0.15s;
+        }
+        .match-chip:active { cursor: grabbing; }
+        .match-chip-ghost {
+            opacity: 0.9;
+            box-shadow: 4px 6px 12px rgba(0,0,0,0.25);
+        }
+        .match-row { flex-wrap: wrap; }
+        .match-prompt-text { flex: 1; min-width: 160px; }
+        .match-slot {
+            min-width: 140px;
+            min-height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 14px;
+            border: 2px dashed #aaa;
+            border-radius: 8px;
+            background: #fafafa;
+            color: #999;
+            font-size: 13px;
+            font-weight: 600;
+            touch-action: none;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .match-slot.filled { border-style: solid; border-color: var(--border-color); background: white; color: var(--text-color); }
+        .match-slot.drag-over { background: var(--hover-bg); border-color: var(--primary-button); }
+
+        /* --- Matching Headings / Matching Names-Claims-Sentence Endings (dropdown-based) --- */
+        .match-legend .match-chip-static { cursor: default; }
+        .lettered-select {
+            border: 1px solid #ccc;
+            border-bottom: 2px solid var(--border-color);
+            background: white;
+            padding: 6px 8px;
+            font-family: inherit;
+            font-size: 14px;
+            border-radius: 4px;
+            min-width: 220px;
+            max-width: 100%;
+        }
+
+        /* --- Matching Information / Names / Features (grid/matrix) --- */
+        .grid-scroll-wrap { overflow-x: auto; margin: 10px 0; }
+        table.match-grid {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 13px;
+        }
+        table.match-grid th, table.match-grid td {
+            border: 1px solid #ddd;
+            padding: 8px 10px;
+            text-align: center;
+        }
+        table.match-grid thead th { background: #f5f5f5; font-weight: 800; }
+        table.match-grid td.grid-row-label { text-align: left; font-weight: 600; min-width: 220px; }
+        .grid-q-num {
+            display: inline-flex; width: 22px; height: 22px; font-size: 11px;
+            margin-right: 6px; vertical-align: middle;
+        }
+        table.match-grid input.grid-radio { width: 18px; height: 18px; cursor: pointer; }
+
+        /* --- Table Completion ("Complete the table below") — bảng thật có cột/hàng, khác với
+           "Complete the notes" (khối ghi chú chảy liên tục) vì đề gốc TRÌNH BÀY dạng bảng thật,
+           mất cấu trúc cột/hàng nếu render như 1 đoạn văn — xem genTableGroup() bên dưới. */
+        .data-table-scroll-wrap { overflow-x: auto; margin: 10px 0; }
+        table.data-table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 14px;
+        }
+        table.data-table th, table.data-table td {
+            border: 1px solid #ddd;
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        table.data-table thead th { background: #f5f5f5; font-weight: 800; }
+        table.data-table .inline-blank { width: 110px; }
+
+        /* --- Summary/Sentence completion CÓ danh sách từ cho chọn (word bank) — select gọn nằm
+           giữa dòng chữ, khác .lettered-select thường (dùng cho list_match, rộng 220px cố định) --- */
+        .inline-select {
+            width: auto;
+            min-width: 110px;
+            max-width: 220px;
+            padding: 4px 6px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        /* --- Ghi chú/note giáo viên thêm vào bài đọc (chọn 1 đoạn chữ -> in đậm + note đỏ trong
+           ngoặc [ ] ngay bên phải) — xem cú pháp {{đoạn chữ|nội dung note}} ở công cụ soạn đề. --- */
+        .reading-note { color: var(--incorrect-color); font-weight: 700; font-size: 0.92em; }
+
+        /* --- "Choose N of M" multi-select checkboxes --- */
+        .multi-group .multi-hint {
+            margin: 0 0 10px 0; font-style: italic; font-weight: 600; color: #666;
+            padding: 6px 10px; background: #f5f5f5; border-left: 3px solid var(--border-color); border-radius: 0 4px 4px 0;
+        }
+        .multi-check-label input.multi-check { width: 16px; height: 16px; cursor: pointer; }
+        /* Nhãn "21-22" (gộp nhiều câu vào 1 nhóm) không vừa hình tròn q-num bình thường — đổi
+           sang hình bầu dục/chữ nhật bo góc, rộng vừa đủ chữ, tránh chữ số bị đè/tràn ra ngoài. */
+        .q-num.q-num-range {
+            width: auto; min-width: 40px; height: 24px; border-radius: 12px;
+            padding: 0 10px; font-size: 12px; white-space: nowrap;
+        }
+
+        /* --- Per-part grading bar (Practice mode only) --- */
+        .part-grade-bar { display: none; margin-bottom: 20px; text-align: right; }
+        .part-grade-bar.visible { display: block; }
+        .part-grade-btn {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 7px 16px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .part-grade-btn:hover { background: var(--hover-bg); }
+
+        .show-loc-btn {
+            background: var(--border-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .show-loc-btn:hover { opacity: 0.9; }
+
+        /* Annotation & Translation Toolbar */
+        #annot-toolbar {
+            position: absolute;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            border-radius: 30px;
+            padding: 8px 12px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            z-index: 1000;
+            font-family: 'Inter', sans-serif;
+            border: 1px solid #e5e5e5;
+        }
+
+        .annot-color {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            border: 1px solid rgba(0,0,0,0.15);
+            cursor: pointer;
+            padding: 0;
+            transition: transform 0.15s;
+        }
+        .annot-color:hover { transform: scale(1.12); }
+
+        .annot-divider {
+            width: 1px;
+            height: 22px;
+            background: #ddd;
+            flex-shrink: 0;
+        }
+
+        .annot-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 5px 8px;
+            border-radius: 6px;
+            color: #333;
+            white-space: nowrap;
+        }
+        .annot-btn:hover { background: #f0f0f0; }
+
+        .annot-translate {
+            font-weight: 700;
+            color: #1a73e8;
+        }
+
+        .annot-note-btn { color: var(--incorrect-color); font-weight: 700; }
+
+        .user-annotation.user-highlight {
+            border-radius: 2px;
+            padding: 1px 0;
+        }
+
+        /* Note input popup — hiện thay chỗ #annot-toolbar khi bấm nút "📝 Note" */
+        #note-input-box {
+            position: absolute;
+            display: none;
+            align-items: center;
+            gap: 4px;
+            background: white;
+            border-radius: 30px;
+            padding: 5px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            z-index: 1000;
+            font-family: 'Inter', sans-serif;
+            border: 1px solid #e5e5e5;
+        }
+        #note-input-field {
+            border: none;
+            outline: none;
+            font-size: 13px;
+            padding: 6px 10px;
+            width: 200px;
+            font-family: 'Inter', sans-serif;
+        }
+        #note-input-ok, #note-input-cancel {
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        #note-input-ok { color: #2e7d32; font-weight: 700; }
+        #note-input-cancel { color: var(--incorrect-color); font-weight: 700; }
+        #note-input-ok:hover, #note-input-cancel:hover { background: #f0f0f0; }
+
+        /* Highlight tạm thời trong lúc đang gõ note (giữ cho người dùng vẫn thấy rõ đoạn chữ mình vừa
+           chọn, vì mở ô nhập note sẽ làm trình duyệt tự huỷ vùng bôi đen xanh mặc định) */
+        .note-pending-highlight { background: #fff3b0; border-radius: 2px; padding: 1px 0; }
+
+        /* Nút nổi "🗑 Xóa note" khi bấm trực tiếp vào 1 note đã có sẵn */
+        #note-delete-box {
+            position: absolute;
+            display: none;
+            z-index: 1000;
+        }
+        #note-delete-btn {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 30px;
+            padding: 8px 14px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--incorrect-color);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        #note-delete-btn:hover { background: #fdecea; }
+
+        /* Translation Popup */
+        #trans-box {
+            position: absolute;
+            display: none;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            z-index: 1001;
+            width: 260px;
+            font-family: 'Inter', sans-serif;
+            border: 1px solid #e5e5e5;
+        }
+
+        .trans-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            background: #b4d17e;
+            color: #23331a;
+            padding: 14px 16px;
+        }
+
+        .trans-original-text {
+            font-weight: 700;
+            font-size: 15px;
+            line-height: 1.35;
+            word-break: break-word;
+        }
+
+        .close-trans {
+            cursor: pointer;
+            color: #23331a;
+            font-weight: 700;
+            flex-shrink: 0;
+            opacity: 0.7;
+        }
+        .close-trans:hover { opacity: 1; }
+
+        .trans-body { padding: 14px 16px; }
+
+        .trans-label {
+            font-size: 11px;
+            letter-spacing: 1px;
+            color: #999;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .trans-result { font-size: 16px; font-weight: 600; color: #222; line-height: 1.4; }
+
+        .trans-actions { display: flex; border-top: 1px solid #eee; }
+
+        .trans-action-btn {
+            flex: 1;
+            padding: 12px 8px;
+            border: none;
+            background: white;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+            color: #333;
+        }
+        .trans-action-btn:first-child { border-right: 1px solid #eee; }
+        .trans-action-btn:hover { background: #f5f5f5; }
+        .trans-save-btn { color: #1a73e8; }
+
+        /* Vocabulary Notebook */
+        #vocab-list .vocab-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+        #vocab-list .vocab-en { font-weight: 700; }
+        #vocab-list .vocab-vi { color: #555; font-size: 14px; }
+        #vocab-list .vocab-date { color: #aaa; font-size: 11px; }
+        .vocab-del-btn { background: none; border: none; color: #f44336; cursor: pointer; font-size: 15px; }
+
+        /* Setup & Modal Screens */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal-box {
+            background: var(--panel-bg);
+            padding: 40px;
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .mode-select { display: flex; gap: 20px; margin: 30px 0; justify-content: center; }
+        .mode-btn {
+            padding: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            width: 200px;
+            transition: all 0.2s;
+        }
+        .mode-btn:hover { background: #f0f0f0; transform: translateY(-2px); }
+        .mode-btn.selected { background: var(--primary-button); border-width: 3px; }
+
+        .passage-tabs { display: flex; gap: 5px; margin-right: 15px; }
+        .tab-btn {
+            padding: 5px 15px;
+            border: 2px solid var(--border-color);
+            background: #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .tab-btn.active { background: var(--primary-button); }
+
+        .content-wrapper { display: none; }
+        .content-wrapper.active { display: block; animation: fadeIn 0.4s; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .score-display { font-size: 48px; font-weight: bold; color: var(--border-color); margin: 20px 0; }
+        .band-display { font-size: 24px; color: #d32f2f; font-weight: bold; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <!-- Floating Annotation Toolbar -->
+    <div id="annot-toolbar">
+        <button class="annot-color annot-color-practice" data-color="#aecbfa" style="background:#aecbfa" title="Highlight xanh dương"></button>
+        <button class="annot-color annot-color-practice" data-color="#f8bbd0" style="background:#f8bbd0" title="Highlight hồng"></button>
+        <button class="annot-color annot-color-practice" data-color="#b9f6ca" style="background:#b9f6ca" title="Highlight xanh lá"></button>
+        <button class="annot-color annot-color-practice" data-color="#fff59d" style="background:#fff59d" title="Highlight vàng"></button>
+        <button class="annot-color annot-color-exam" data-color="#7a1a35" data-text-color="#ffffff" style="background:#7a1a35; display:none;" title="Highlight rượu vang"></button>
+        <span class="annot-divider"></span>
+        <button class="annot-btn" id="annot-underline" title="Gạch chân"><u>U</u></button>
+        <button class="annot-btn" id="annot-strike" title="Gạch ngang"><s>abc</s></button>
+        <button class="annot-btn" id="annot-erase" title="Xóa định dạng">🧹</button>
+        <button class="annot-btn annot-note-btn" id="annot-note-btn" title="Thêm note">📝 Note</button>
+        <span class="annot-divider"></span>
+        <button class="annot-btn annot-translate" id="annot-translate-btn" title="Dịch">🌐 Dịch</button>
+    </div>
+
+    <!-- Note input popup (bôi đen chữ -> bấm "📝 Note" trên thanh nổi -> gõ note ở đây -> đoạn đã
+         chọn được IN ĐẬM, note hiện chữ ĐỎ trong ngoặc [ ] ngay bên phải. Chỉ là ghi chú cá nhân của
+         người đang làm bài trên máy/trình duyệt này lúc đó — giống hệt highlight/gạch chân/gạch ngang
+         ở trên, không lưu lại qua lần tải trang sau, không đồng bộ giữa các người dùng khác nhau. -->
+    <div id="note-input-box">
+        <input type="text" id="note-input-field" placeholder="Nhập nội dung note…" maxlength="200" />
+        <button type="button" id="note-input-ok" title="Thêm note">✓</button>
+        <button type="button" id="note-input-cancel" title="Huỷ">✕</button>
+    </div>
+
+    <!-- Bấm trực tiếp vào 1 note đã có (chữ in đậm hoặc phần [note] đỏ) -> nút này nổi lên để xoá riêng
+         note đó, không cần bôi đen lại. -->
+    <div id="note-delete-box">
+        <button type="button" id="note-delete-btn">🗑 Xóa note</button>
+    </div>
+
+    <!-- Translation Popup -->
+    <div id="trans-box">
+        <div class="trans-header">
+            <span id="trans-original" class="trans-original-text"></span>
+            <span class="close-trans" onclick="closeTranslation()">✖</span>
+        </div>
+        <div class="trans-body">
+            <div class="trans-label">TIẾNG VIỆT</div>
+            <div id="trans-result" class="trans-result">Đang dịch...</div>
+        </div>
+        <div class="trans-actions">
+            <button class="trans-action-btn" id="tts-play">🔊 Nghe</button>
+            <button class="trans-action-btn trans-save-btn" id="save-vocab-btn">➕ Lưu vào Sổ</button>
+        </div>
+    </div>
+
+    <!-- Vocabulary Notebook Modal -->
+    <div id="vocab-modal" class="overlay" style="display:none;">
+        <div class="modal-box" style="max-width:480px; text-align:left;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 style="margin:0;">📖 Sổ từ vựng của bạn</h2>
+                <span class="close-trans" onclick="closeVocabBook()" style="font-size:18px;">✖</span>
+            </div>
+            <div id="vocab-list" style="max-height:420px; overflow-y:auto; margin-top:15px;"></div>
+        </div>
+    </div>
+
+    <!-- Setup Screen -->
+    <div id="setup-screen" class="overlay">
+        <div class="modal-box">
+            <h1>IELTS Reading - Cambridge 13 - Test 1</h1>
+            <p>Chọn chế độ làm bài:</p>
+            <div class="mode-select">
+                <button class="mode-btn selected" id="btn-practice" onclick="selectMode('practice')">
+                    <h3>Chế độ Luyện Tập</h3>
+                    <p>Làm từng Passage. Xem điểm & Giải thích chi tiết ngay.</p>
+                </button>
+                <button class="mode-btn" id="btn-exam" onclick="selectMode('exam')">
+                    <h3>Chế độ Thi Thật</h3>
+                    <p>60 phút đếm ngược. Làm full 3 Passages. Trả điểm Band IELTS.</p>
+                </button>
+            </div>
+
+            <div id="passage-selector" style="margin: 20px 0;">
+                <label>Chọn Passage (Luyện tập): </label>
+                <select id="passage-dropdown" style="padding: 8px; border-radius: 4px;"></select>
+            </div>
+
+            <button class="submit-btn" style="font-size: 18px; padding: 12px 30px;" onclick="startTest()">Bắt đầu làm bài</button>
+        </div>
+    </div>
+
+    <!-- Results Modal -->
+    <div id="results-modal" class="overlay" style="display: none;">
+        <div class="modal-box">
+            <h2 id="results-modal-title">Kết quả làm bài</h2>
+            <div id="homework-success-banner" style="display:none; margin-bottom:14px; padding:10px 14px; border-radius:10px; background:#e6f4d9; border:2px solid #4b7a2a; color:#2B4214; font-weight:800;">
+                ✅ Đã nộp homework thành công! Giáo viên sẽ thấy kết quả này.
+            </div>
+            <div class="score-display">
+                <span id="score-correct">0</span> / <span id="score-total">40</span>
+            </div>
+            <div class="band-display" id="band-container" style="display:none;">
+                Estimated Band: <span id="band-score">0.0</span>
+            </div>
+            <p style="margin-bottom: 20px; color: #555;">Bạn có thể xem lại chi tiết đáp án, lời giải thích và vị trí thông tin trong bài đọc.</p>
+            <button class="submit-btn" onclick="closeResultsAndReview()">Xem giải thích chi tiết</button>
+        </div>
+    </div>
+
+    <!-- Main Interface -->
+    <div class="header">
+        <div class="header-left">
+            <button class="nav-btn" onclick="exitTest()">← Thoát</button>
+            <div class="passage-tabs" id="passage-tabs">
+                <button class="tab-btn active" onclick="switchPassage(1)">P1</button>
+                <button class="tab-btn" onclick="switchPassage(2)">P2</button>
+                <button class="tab-btn" onclick="switchPassage(3)">P3</button>
+            </div>
+            <span class="part-indicator" id="current-passage-indicator">PASSAGE 1</span>
+
+            <!-- Navigation Circles -->
+            <div class="question-nav" id="q-nav-p1"></div>
+            <div class="question-nav" id="q-nav-p2" style="display:none;"></div>
+            <div class="question-nav" id="q-nav-p3" style="display:none;"></div>
+        </div>
+        <div class="header-right">
+            <button class="nav-btn" onclick="openVocabBook()">📖 Sổ từ vựng (<span id="vocab-count">0</span>)</button>
+            <div class="timer" id="timer-display" style="display:none;">60:00</div>
+            <button class="submit-btn" id="main-submit-btn" onclick="submitTest()">Nộp bài</button>
+        </div>
+    </div>
+
+    <div class="main-container" id="main-workspace">
+
+        <!-- LEFT PANEL: Reading Passage -->
+        <div class="panel" id="panel-passage">
+            <div class="panel-content passage-text">
+
+                <!-- PASSAGE 1 -->
+                <div id="passage-1-text" class="content-wrapper active" data-title="CASE STUDY: TOURISM NEW ZEALAND WEBSITE">
+                    <p style="color: #666; font-size: 14px;">READING PASSAGE 1</p>
+                    <h2>CASE STUDY: TOURISM NEW ZEALAND WEBSITE</h2>
+                    <p>New Zealand is a small country of four million inhabitants, a long-haul flight from all the major tourist-generating markets of the world. Tourism currently makes up 9% of the country’s gross domestic product, and is the country’s largest export sector. Unlike other export sectors, which make products and then sell them overseas, tourism brings its customers to New Zealand. The product is the country itself - the people, the places and the experiences. In 1999, Tourism New Zealand launched a campaign to communicate a new brand position to the world. The campaign focused on New Zealand’s scenic beauty, exhilarating outdoor activities and authentic Maori culture, and it made New Zealand one of the strongest national brands in the world.</p>
+<p>A key feature of the campaign was the website www.newzealand.com, which provided potential visitors to New Zealand with a single gateway to everything the destination had to offer. The heart of the website was a database of tourism services operators, both those based in New Zealand and those based abroad which offered tourism services to the country. Any tourism-related business could be listed by filling in a simple form. This meant that even the smallest bed and breakfast address or specialist activity provider could gain a web presence with access to an audience of long-haul visitors. In addition, because participating businesses were able to <span id="loc-1">update the details they gave on a regular basis</span>, the information provided remained accurate. And to maintain and improve standards, Tourism New Zealand organised a scheme whereby organisations appearing on the website underwent an independent evaluation against a set of agreed national standards of quality. As part of this, <span id="loc-2">the effect of each business on the environment was considered</span>.</p>
+<p>To communicate the New Zealand experience, the site also carried features relating to famous people and places. One of the most popular was an interview with <span id="loc-3">former New Zealand All Blacks rugby captain Tana Umaga</span>. Another feature that attracted a lot of attention was an interactive journey through a number of the <span id="loc-4">locations chosen for blockbuster films</span> which had made use of New Zealand’s stunning scenery as a backdrop. As the site developed, additional features were added to help independent travellers devise their own customised itineraries. To make it easier to plan motoring holidays, the site catalogued the most popular driving routes in the country, <span id="loc-5">highlighting different routes according to the season</span> and indicating distances and times.</p>
+<p>Later a Travel Planner feature was added, which allowed visitors to click and ‘bookmark’ places or attractions they were interested in, and then view the results on a map. The Travel Planner offered suggested routes and public transport options between the chosen locations. <span id="loc-6">There were also links to accommodation in the area</span>. By registering with the website, users could save their Travel Plan and return to it later, or print it out to take on the visit. The website also had a ‘Your Words’ section where anyone could <span id="loc-7">submit a blog of their New Zealand travels</span> for possible inclusion on the website.</p>
+<p>The Tourism New Zealand website won two Webby awards for online achievement and innovation. More importantly perhaps, the growth of tourism to New Zealand was impressive. Overall tourism expenditure increased by an average of 6.9% per year between 1999 and 2004. From Britain, visits to New Zealand grew at an average annual rate of 13% between 2002 and 2006, compared to a rate of 4% overall for British visits abroad.</p>
+<p>The website was set up to allow both individuals and travel organisations <span id="loc-8">to create itineraries and travel packages to suit their own needs and interests</span>. On the website, <span id="loc-9">visitors can search for activities not solely by geographical location</span>, but also by the particular nature of the activity. This is important as research shows that activities are the key driver of visitor satisfaction, contributing 74% to visitor satisfaction, <span id="loc-10">while transport and accommodation account for the remaining 26%</span>. The more activities that visitors undertake, the more satisfied they will be. It has also been found that <span id="loc-11">visitors enjoy cultural activities most when they are interactive</span>, such as visiting a marae (meeting ground) to learn about traditional Maori life. Many long-haul travellers enjoy such learning experiences, which provide them with stories to take home to their friends and family. In addition, it appears that visitors to New Zealand don’t want to be ‘one of the crowd’ and find activities that involve only a few people more special and meaningful.</p>
+<p>It could be argued that New Zealand is not a typical destination. New Zealand is a small country with a visitor economy composed mainly of small businesses. It is generally perceived as a safe English-speaking country with a reliable transport infrastructure. Because of the long-haul flight, most visitors stay for longer (average 20 days) and want to see as much of the country as possible on <span id="loc-13">what is often seen as a once-in-a-lifetime visit</span>. However, the underlying lessons apply anywhere-the effectiveness of a strong brand, a strategy based on unique experiences and a comprehensive and user-friendly website.</p>
+                </div>
+
+                <!-- PASSAGE 2 -->
+                <div id="passage-2-text" class="content-wrapper" data-title="WHY BEING BORED IS STIMULATING AND USEFUL, TOO">
+                    <p style="color: #666; font-size: 14px;">READING PASSAGE 2</p>
+                    <h2>WHY BEING BORED IS STIMULATING AND USEFUL, TOO</h2>
+                    <p><span class="heading-gap" data-qnum="14" data-group="hg14"></span> We all know how it feels - it’s impossible to keep your mind on anything, time stretches out, and all the things you could do seem equally unlikely to make you feel better. But <span id="loc-14">defining boredom so that it can be studied in the lab has proved difficult</span>. For a start, it can include a lot of other mental states, such as frustration, apathy, depression and indifference. There isn’t even agreement over whether boredom is always a low-energy, flat kind of emotion or whether feeling agitated and restless counts as boredom, too. In his book, Boredom: A Lively History, Peter Toohey at the University of Calgary, Canada, compares it to disgust - an emotion that motivates us to stay away from certain situations. ‘If disgust protects humans from infection, <span id="loc-20">boredom may protect them from “infectious” social situations</span>,’ he suggests.</p>
+<p><span class="heading-gap" data-qnum="15" data-group="hg14"></span> By asking people about their experiences of boredom, Thomas Goetz and his team at the University of Konstanz in Germany have recently identified <span id="loc-15">five distinct types: indifferent, calibrating, searching, reactant and apathetic</span>. These can be plotted on two axes - one running left to right, which measures low to high arousal, and the other from top to bottom, which measures how positive or negative the feeling is. Intriguingly, Goetz has found that while people experience all kinds of boredom, they tend to specialise in one. Of the five types, <span id="loc-21">the most damaging is ‘reactant’ boredom</span> with its explosive combination of high arousal and negative emotion. The most useful is what Goetz calls ‘indifferent’ boredom: someone isn’t engaged in anything satisfying but still feels relaxed and calm. However, it remains to be seen whether there are any character traits that predict the kind of boredom each of us might be prone to.</p>
+<p><span class="heading-gap" data-qnum="16" data-group="hg14"></span> Psychologist Sandi Mann at the University of Central Lancashire, UK, goes further. All emotions are there for a reason, including boredom,’ she says Mann has found that <span id="loc-16">being bored makes us more creative</span>. ‘We’re all afraid of being bored but in actual fact it can lead to all kinds of amazing things,’ she says. In experiments published last year, Mann found that people who had been made to feel bored by copying numbers out of the phone book for 15 minutes came up with more creative ideas about how to use a polystyrene cup than a control group. Mann concluded that a passive, boring activity is best for creativity because it allows the mind to wander. In fact, she goes so far as to suggest that we should seek out more boredom in our lives.</p>
+<p><span class="heading-gap" data-qnum="17" data-group="hg14"></span> Psychologist John Eastwood at York University in Toronto, Canada isn’t convinced. ‘If you are in a state of mind-wandering you are not bored,’ he says. ‘In my view, by definition boredom is an undesirable state.’ That doesn’t necessarily mean that it isn’t adaptive, he adds. ‘Pain is adaptive - if we didn’t have physical pain, bad things would happen to us. Does that mean that we should actively cause pain? No. But even if boredom has evolved to help us survive, <span id="loc-17">it can still be toxic if allowed to fester</span>’. For Eastwood, the central feature of boredom is a failure to put our ‘attention system’ into gear. This causes <span id="loc-24">an inability to focus on anything</span>, which makes time seem to go painfully slowly. What’s more, <span id="loc-22">your efforts to improve the situation can end up making you feel worse</span>. ‘People try to connect with the world and if they are not successful there’s that frustration and irritability,’ he says. Perhaps most worryingly, says Eastwood, repeatedly failing to engage attention can lead to a state where we don’t know what to do any more, and no longer care.</p>
+<p><span class="heading-gap" data-qnum="18" data-group="hg14"></span> Eastwood’s team is now trying to explore why the attention system fails. It’s early days but they think that at least some of it comes down to personality. Boredom proneness has been linked with a variety of traits. <span id="loc-18"><span id="loc-25">People who are motivated by pleasure seem to suffer particularly badly</span></span>. <span id="loc-26">Other personality traits, such as curiosity, are associated with a high boredom threshold</span>. More evidence that boredom has detrimental effects comes from studies of people who are more or less prone to boredom. It seems those who bore easily face poorer prospects in education, their career and even life in general. But of course, boredom itself cannot kill -it’s the things we do to deal with it that may put us in danger. What can we do to alleviate it before it comes to that? Goetz’s group has one suggestion. Working with teenagers, they found that those who ‘approach’ a boring situation - in other words, see that it’s boring and get stuck in anyway - report less boredom than those who try to avoid it by using snacks, TV or social media for distraction.</p>
+<p><span class="heading-gap" data-qnum="19" data-group="hg14"></span> Psychologist Francoise Wemelsfelder speculates that <span id="loc-19"><span id="loc-23">our over-connected lifestyles might even be a new source of boredom</span></span>. ‘In modern human society there is a lot of overstimulation but still a lot of problems finding meaning,’ she says. So instead of seeking yet more mental stimulation, perhaps we should leave our phones alone, and use boredom to motivate us to engage with the world in a more meaningful way.</p>
+                </div>
+
+                <!-- PASSAGE 3 -->
+                <div id="passage-3-text" class="content-wrapper" data-title="ARTIFICIAL ARTISTS">
+                    <p style="color: #666; font-size: 14px;">READING PASSAGE 3</p>
+                    <h2>ARTIFICIAL ARTISTS</h2>
+                    <p>The Painting Fool is one of a growing number of computer programs which, so their makers claim, possess creative talents. Classical music by an artificial composer has had audiences enraptured, and even tricked them into believing a human was behind the score. <span id="loc-27">Artworks painted by a robot have sold for thousands of dollars and been hung in prestigious galleries</span>. And software has been built which creates art that could not have been imagined by the programmer.</p>
+<p>Human beings are the only species to perform sophisticated creative acts regularly. If we can break this process down into computer code, where does that leave human creativity? ‘This is a question at the very core of humanity,’ says Geraint Wiggins, a computational creativity researcher at Goldsmiths, University of London. ‘It scares a lot of people. <span id="loc-28">They are worried that it is taking something special away from what it means to be human.</span></p>
+<p>To some extent, we are all familiar with computerised art. The question is: where does the work of the artist stop and the creativity of the computer begin? Consider one of the oldest machine artists, Aaron, a robot that has had paintings exhibited in London’s Tate Modern and the San Francisco Museum of Modern Art. Aaron can pick up a paintbrush and paint on canvas on its own. Impressive perhaps, but it is still little more than a tool to realise the programmer’s own creative ideas.</p>
+<p>Simon Colton, the designer of the Painting Fool, is keen to make sure his creation doesn’t attract the same criticism. Unlike earlier ‘artists’ such as Aaron, <span id="loc-29">the Painting Fool only needs minimal direction and can come up with its own concepts by going online for material</span>. The software runs its own web searches and trawls through social media sites. It is now beginning to display a kind of imagination too, creating pictures from scratch. One of its original works is a series of fuzzy landscapes, depicting trees and sky. While some might say they have a mechanical look, Colton argues that <span id="loc-30">such reactions arise from people’s double standards towards software-produced and human-produced art</span>. After all, he says, consider that the Painting Fool painted the landscapes without referring to a photo. ‘If a child painted a new scene from its head, you’d say it has a certain level of imagination,’ he points out. The same should be true of a machine.’ Software bugs can also lead to unexpected results. Some of the Painting Fool’s paintings of a chair came out in black and white, thanks to a technical glitch. <span id="loc-31">This gives the work an eerie, ghostlike quality.</span> Human artists like the renowned Ellsworth Kelly are lauded for limiting their colour palette - so why should computers be any different?</p>
+<p>Researchers like Colton don’t believe it is right to measure machine creativity directly to that of <span id="loc-32">humans who have had millennia to develop our skills</span>. Others, though, are fascinated by the prospect that a computer might create something as original and subtle as our best artists. So far, only one has come close. Composer David Cope invented a program called Experiments in Musical Intelligence, or EMI. Not only did EMI create compositions in Cope’s style, but also that of the most revered classical composers, including Bach, Chopin and Mozart. Audiences were moved to tears, and <span id="loc-33">EMI even fooled classical music experts into thinking they were hearing genuine Bach</span>. Not everyone was impressed however. Some, such as Wiggins, have blasted Cope’s work as pseudoscience, and <span id="loc-34">condemned him for his deliberately vague explanation of how the software worked</span>. Meanwhile, Douglas Hofstadter of Indiana University said EMI <span id="loc-35">created replicas which still rely completely on the original artist’s creative impulses</span>. <span id="loc-36">When audiences found out the truth they were often outraged with Cope</span>, and one music lover even tried to punch him. Amid such controversy, Cope destroyed EMI’s vital databases.</p>
+<p>But why did so many people love the music, yet recoil when they discovered how it was composed? <span id="loc-38">A study by computer scientist David Moffat of Glasgow Caledonian University provides a clue.</span> <span id="loc-39">He asked both expert musicians and non-experts to assess six compositions</span>. <span id="loc-37">The participants weren’t told beforehand whether the tunes were composed by humans or computers</span>, but were asked to guess, and then rate how much they liked each one. People who thought the composer was a computer tended to dislike the piece more than those who believed it was human. This was true even among the experts, who might have been expected to be more objective in their analyses.</p>
+<p>Where does this prejudice come from? Paul Bloom of Yale University has a suggestion: he reckons part of the pleasure we get from art stems from the creative process behind the work. This can give it an ‘irresistible essence’, says Bloom. Meanwhile, experiments by Justin Kruger of New York University have shown that <span id="loc-40">people’s enjoyment of an artwork increases if they think more time and effort was needed to create it</span>. Similarly, Colton thinks that when people experience art, they wonder what the artist might have been thinking or what the artist is trying to tell them. It seems obvious, therefore, that with computers producing art, this speculation is cut short - there’s nothing to explore. But as technology becomes increasingly complex, finding those greater depths in computer art could become possible. This is precisely why Colton asks the Painting Fool to tap into online social networks for its inspiration: hopefully this way it will choose themes that will already be meaningful to us.</p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- DRAGGABLE RESIZER -->
+        <div class="panel-resizer" id="panel-resizer"></div>
+
+        <!-- RIGHT PANEL: Questions -->
+        <div class="panel" id="panel-questions">
+            <div class="panel-content" id="questions-container">
+                <!-- JavaScript will inject questions here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Data Structure (generated by the Test Builder tool) ---
+        // questionsData[passageIndex] = array of question groups for that passage
+        const questionsData = [[{"instruction":"Complete the table below.<br>Choose ONE WORD ONLY from the passage for each answer.<br>Write your answers in boxes 1-7 on your answer sheet.","type":"table","reference":"","imageUrl":"","tableColumns":["Section of website","Comments"],"tableRows":[["Database of tourism services","• Easy for tourism-related businesses to get on the list.","• Allowed businesses to _____ information regularly.","• Provided a country-wide evaluation of businesses, including their impact on the _____."],["Special features on local topics","• E.g. an interview with a former sports _____, and an interactive tour of various locations used in _____."],["Information on driving routes","• Varied depending on the _____."],["Travel Planner","• Included a map showing selected places, details of public transport and local _____."],["‘Your Words’","• Travellers could send a link to their _____."]],"questions":[{"text":"","answer":"update","exp":"Đáp án “update” nằm ở đoạn B: “because participating businesses were able to update the details they gave on a regular basis, the information provided remained accurate.” Trong bảng, “allowed businesses to _____ information regularly” tương ứng trực tiếp với việc các doanh nghiệp được phép “update” thông tin thường xuyên. Vì câu yêu cầu ONE WORD ONLY và cần một động từ sau “to”, “update” là đáp án chính xác.","loc":"loc-1"},{"text":"","answer":"environment","exp":"Đáp án “environment” được lấy từ đoạn B: “the effect of each business on the environment was considered.” Bảng diễn đạt lại ý này thành “including their impact on the _____”, nên từ cần điền là “environment”. Cấu trúc “impact on the environment” hoàn toàn phù hợp với thông tin trong bài.","loc":"loc-2"},{"text":"","answer":"captain","exp":"Đoạn C nói: “One of the most popular was an interview with former New Zealand All Blacks rugby captain Tana Umaga.” Bảng chuyển thành “an interview with a former sports _____”. Người được phỏng vấn là một “rugby captain”, vì vậy từ cần điền là “captain”.","loc":"loc-3"},{"text":"","answer":"films","exp":"Đoạn C mô tả một tính năng khác: “Another feature that attracted a lot of attention was an interactive journey through a number of the locations chosen for blockbuster films”. Vì bảng hỏi “locations used in _____”, danh từ thích hợp và xuất hiện nguyên văn trong bài là “films”.","loc":"loc-4"},{"text":"","answer":"season","exp":"Đoạn C cho biết website liệt kê các tuyến đường lái xe và “highlighting different routes according to the season”. Bảng diễn đạt lại thành “Varied depending on the _____”, nên từ cần điền là “season”.","loc":"loc-5"},{"text":"","answer":"accommodation","exp":"Trong đoạn D, sau khi nói Travel Planner cung cấp tuyến đường và phương tiện giao thông công cộng, bài viết tiếp tục: “There were also links to accommodation in the area.” Vì bảng yêu cầu “details of public transport and local _____”, đáp án là “accommodation”.","loc":"loc-6"},{"text":"","answer":"blog","exp":"Đoạn D nói: “The website also had a ‘Your Words’ section where anyone could submit a blog of their New Zealand travels for possible inclusion on the website.” Bảng hỏi khách du lịch có thể gửi một đường dẫn đến “their _____”, nên từ xuất hiện chính xác trong bài là “blog”.","loc":"loc-7"}]},{"instruction":"Do the following statements agree with the information given in Reading Passage 1?<br>In boxes 8-13 on your answer sheet, write<br>TRUE if the statement agrees with the information<br>FALSE if the statement contradicts the information<br>NOT GIVEN if there is no information on this","type":"tfng","reference":"","imageUrl":"","labels":["TRUE","FALSE","NOT GIVEN"],"questions":[{"text":"The website www.newzealand.com aimed to provide ready-made itineraries and packages for travel companies and individual tourists.","answer":"FALSE","exp":"Đáp án FALSE vì đoạn F nói website cho phép “both individuals and travel organisations to create itineraries and travel packages to suit their own needs and interests.” Nghĩa là người dùng tự tạo lịch trình và gói du lịch phù hợp với nhu cầu của mình, chứ website không nhằm cung cấp các lịch trình và gói “ready-made” có sẵn. Vì vậy thông tin trong câu hỏi trái với bài. “Ready-made” là điểm sai chính; bài nhấn mạnh việc “create” và “suit their own needs and interests”.","loc":"loc-8"},{"text":"It was found that most visitors started searching on the website by geographical location.","answer":"NOT GIVEN","exp":"Đáp án NOT GIVEN. Đoạn F chỉ nói: “On the website, visitors can search for activities not solely by geographical location, but also by the particular nature of the activity.” Bài xác nhận địa lý là một trong những cách tìm kiếm, nhưng không nói “most visitors” bắt đầu tìm kiếm bằng vị trí địa lý. Vì vậy không thể kết luận câu hỏi là TRUE hay FALSE. Thông tin về “most visitors” không được cung cấp.","loc":"loc-9"},{"text":"According to research, 26% of visitor satisfaction is related to their accommodation.","answer":"FALSE","exp":"Đáp án FALSE vì bài nói rõ: “activities are the key driver of visitor satisfaction, contributing 74% to visitor satisfaction, while transport and accommodation account for the remaining 26%.” 26% là phần của cả “transport and accommodation”, không phải chỉ “accommodation”. Vì câu hỏi quy toàn bộ 26% cho accommodation nên nó mâu thuẫn với thông tin trong bài.","loc":"loc-10"},{"text":"Visitors to New Zealand like to become involved in the local culture.","answer":"TRUE","exp":"Đáp án TRUE. Đoạn F nói: “It has also been found that visitors enjoy cultural activities most when they are interactive, such as visiting a marae (meeting ground) to learn about traditional Maori life.” Việc tham gia các hoạt động văn hóa tương tác để tìm hiểu cuộc sống truyền thống Maori cho thấy du khách thích tham gia và hòa mình vào văn hóa địa phương. Không có thông tin nào phủ định điều này.","loc":"loc-11"},{"text":"Visitors like staying in small hotels in New Zealand rather than in larger ones.","answer":"NOT GIVEN","exp":"Đáp án NOT GIVEN vì toàn bộ bài không đưa ra sự so sánh về sở thích của du khách giữa khách sạn nhỏ và khách sạn lớn. Bài có đề cập “small businesses” ở đoạn G và đề cập đến accommodation ở đoạn D và F, nhưng không nói du khách thích ở khách sạn nhỏ hơn khách sạn lớn. Vì vậy không thể suy ra TRUE hoặc FALSE.","loc":""},{"text":"Many visitors feel it is unlikely that they will return to New Zealand after their visit.","answer":"TRUE","exp":"Đáp án TRUE dựa vào đoạn G: “Because of the long-haul flight, most visitors stay for longer (average 20 days) and want to see as much of the country as possible on what is often seen as a once-in-a-lifetime visit.” “Once-in-a-lifetime visit” cho thấy chuyến đi thường được xem là một trải nghiệm chỉ xảy ra một lần trong đời, phù hợp với ý rằng nhiều du khách không kỳ vọng sẽ quay lại. Đây là cách diễn đạt gián tiếp của ý trong câu hỏi.","loc":"loc-13"}]}],[{"instruction":"Reading Passage 2 has six paragraphs, A-F.<br>Choose the correct heading for each paragraph from the list of headings below.<br>Write the correct number, i-viii, in boxes 14-19 on your answer sheet.","type":"heading","reference":"","imageUrl":"","options":["i. The productive outcomes that may result from boredom","ii. What teachers can do to prevent boredom","iii. A new explanation and a new cure for boredom","iv. Problems with a scientific approach to boredom","v. A potential danger arising from boredom","vi. Creating a system of classification for feelings of boredom","vii. Age groups most affected by boredom","viii. Identifying those most affected by boredom"],"questions":[{"text":"Paragraph A","answer":"iv","exp":"Đáp án iv “Problems with a scientific approach to boredom”. Đoạn A tập trung vào khó khăn trong việc định nghĩa và nghiên cứu boredom một cách khoa học: “defining boredom so that it can be studied in the lab has proved difficult.” Đoạn còn cho thấy không có sự thống nhất về bản chất của boredom. Các heading khác không phù hợp: i nói về kết quả tích cực, nhưng A chủ yếu nói về khó khăn nghiên cứu; ii nói về giáo viên, không xuất hiện; iii nói về cách giải thích và chữa trị mới, chưa phải trọng tâm; v nói về nguy hiểm, nhưng A chỉ đề cập định nghĩa; vi nói về hệ thống phân loại, thuộc đoạn B; vii nói về nhóm tuổi, không được bàn đến; viii nói về những người bị ảnh hưởng nhiều nhất, thuộc đoạn E.","loc":"loc-14"},{"text":"Paragraph B","answer":"vi","exp":"Đáp án vi “Creating a system of classification for feelings of boredom”. Đoạn B xây dựng hệ thống phân loại với “five distinct types” và còn đặt chúng trên “two axes”. Các heading khác không phù hợp: i thuộc đoạn C vì nói về tính sáng tạo; ii không có thông tin về giáo viên; iii thuộc đoạn F; iv thuộc đoạn A; v thuộc đoạn D; vii không nói về độ tuổi; viii thuộc đoạn E vì nói về những người dễ bị boredom ảnh hưởng.","loc":"loc-15"},{"text":"Paragraph C","answer":"i","exp":"Đáp án i “The productive outcomes that may result from boredom”. Đoạn C đưa ra kết quả tích cực rõ ràng: “Mann has found that being bored makes us more creative.” Thí nghiệm cũng cho thấy nhóm bị làm cho buồn chán tạo ra nhiều ý tưởng sáng tạo hơn nhóm kiểm soát. Các heading ii, vii không xuất hiện trong đoạn; iii thuộc đoạn F; iv thuộc A; v thuộc D; vi thuộc B; viii thuộc E. Vì vậy i phản ánh đúng nội dung chính nhất.","loc":"loc-16"},{"text":"Paragraph D","answer":"v","exp":"Đáp án v “A potential danger arising from boredom”. Đoạn D nhấn mạnh mặt tiêu cực và nguy hiểm của boredom. Eastwood nói: “it can still be toxic if allowed to fester”, sau đó giải thích rằng việc không thể tập trung và liên tục thất bại trong việc kết nối với thế giới có thể dẫn tới frustration, irritability và cuối cùng là không biết phải làm gì hoặc không còn quan tâm. Các heading i, vi mô tả nội dung của C và B; iii thuộc F; iv thuộc A; viii thuộc E; ii và vii không được đề cập.","loc":"loc-17"},{"text":"Paragraph E","answer":"viii","exp":"Đáp án viii “Identifying those most affected by boredom”. Đoạn E xem xét những đặc điểm tính cách liên quan đến mức độ chịu ảnh hưởng bởi boredom, chẳng hạn “People who are motivated by pleasure seem to suffer particularly badly” và “curiosity” liên quan đến “a high boredom threshold”. Các heading i, v và vi tương ứng với những đoạn khác; iii thuộc F; iv thuộc A; ii và vii không được đề cập. Vì trọng tâm là xác định những người dễ bị ảnh hưởng hơn, viii là phù hợp.","loc":"loc-18"},{"text":"Paragraph F","answer":"iii","exp":"Đáp án iii “A new explanation and a new cure for boredom”. Đoạn F đưa ra nguyên nhân mới: “our over-connected lifestyles might even be a new source of boredom”, đồng thời đưa ra cách tiếp cận: “leave our phones alone, and use boredom to motivate us to engage with the world in a more meaningful way.” Vì vậy đoạn vừa đưa ra explanation vừa đưa ra cure. Các heading còn lại đều tập trung vào những nội dung đã xuất hiện ở A-E hoặc không được đề cập.","loc":"loc-19"}]},{"instruction":"Questions 20-23<br>Look at the following people (Questions 20-23) and the list of ideas below.<br>Match each person with the correct idea, A-E.<br>Choose the correct letter, A-E, in boxes 20-23 on your answer sheet.","type":"list_match","reference":"","imageUrl":"","options":["A. The way we live today may encourage boredom.","B. One sort of boredom is worse than all the others.","C. Regular boredom can be useful.","D. Trying to cope with boredom can increase its negative effects.","E. Boredom may encourage us to avoid an unpleasant experience."],"questions":[{"text":"Peter Toohey","answer":"E","exp":"Đáp án E “Boredom may encourage us to avoid an unpleasant experience.” Peter Toohey so sánh boredom với disgust và nói: “If disgust protects humans from infection, boredom may protect them from ‘infectious’ social situations.” Ý chính là boredom có thể khiến con người tránh xa những tình huống xã hội không mong muốn. A thuộc Francoise Wemelsfelder; B thuộc Thomas Goetz; D thuộc John Eastwood; C không được gắn với Peter Toohey.","loc":"loc-20"},{"text":"Thomas Goetz","answer":"B","exp":"Đáp án B “One sort of boredom is worse than all the others.” Đoạn B nói rõ: “Of the five types, the most damaging is ‘reactant’ boredom”. Như vậy Goetz xác định một loại boredom nguy hại hơn các loại còn lại. A nói về lối sống hiện đại và thuộc Wemelsfelder; D thuộc Eastwood; E thuộc Toohey; C không phải ý được gắn với Goetz trong câu hỏi này.","loc":"loc-21"},{"text":"John Eastwood","answer":"D","exp":"Đáp án D “Trying to cope with boredom can increase its negative effects.” Eastwood nói: “What’s more, your efforts to improve the situation can end up making you feel worse.” Đây chính xác là ý rằng cố gắng xử lý boredom đôi khi lại khiến tình trạng tiêu cực hơn. A thuộc Wemelsfelder; B thuộc Goetz; E thuộc Toohey; C không phải ý chính được gắn với Eastwood.","loc":"loc-22"},{"text":"Francoise Wemelsfelder","answer":"A","exp":"Đáp án A “The way we live today may encourage boredom.” Wemelsfelder cho rằng “our over-connected lifestyles might even be a new source of boredom.” Lối sống hiện đại quá kết nối và quá nhiều kích thích có thể trở thành nguồn gây boredom. B thuộc Goetz, D thuộc Eastwood và E thuộc Toohey; C không phải ý được gắn với Wemelsfelder.","loc":"loc-23"}]},{"instruction":"Complete the summary below.<br>Choose ONE WORD ONLY from the passage for each answer.<br>Write your answers in boxes 24-26 on your answer sheet.","type":"text","reference":"","imageUrl":"","notesTemplate":"For John Eastwood, the central feature of boredom is that people cannot _____, due to a failure in what he calls the ‘attention system’, and as a result they become frustrated and irritable.\n\nHis team suggests that those for whom _____ is an important aim in life may have problems in coping with boredom, whereas those who have the characteristic of _____ can generally cope with it.","questions":[{"text":"","answer":"focus","exp":"Đáp án “focus”. Đoạn D nói: “For Eastwood, the central feature of boredom is a failure to put our ‘attention system’ into gear. This causes an inability to focus on anything”. Vì câu hỏi diễn đạt “people cannot _____”, động từ nguyên mẫu phù hợp là “focus”. “Frustration and irritability” cũng xuất hiện ngay sau đó trong bài, củng cố đúng vị trí thông tin.","loc":"loc-24"},{"text":"","answer":"pleasure","exp":"Đáp án “pleasure”. Đoạn E nói: “People who are motivated by pleasure seem to suffer particularly badly.” Câu hỏi chuyển ý này thành những người mà “pleasure is an important aim in life” có thể gặp vấn đề khi đối phó với boredom. Vì vậy từ cần lấy nguyên văn từ bài là “pleasure”.","loc":"loc-25"},{"text":"","answer":"curiosity","exp":"Đáp án “curiosity”. Ngay sau thông tin về pleasure, bài nói: “Other personality traits, such as curiosity, are associated with a high boredom threshold.” Một “high boredom threshold” cho thấy khả năng chịu đựng boredom tốt hơn, đúng với phần “can generally cope with it” trong câu hỏi. Vì vậy đáp án là “curiosity”.","loc":"loc-26"}]}],[{"instruction":"Questions 27-31<br>Choose the correct letter, A, B, C or D.<br>Write the correct letter in boxes 27-31 on your answer sheet.","type":"mcq","reference":"","imageUrl":"","questions":[{"text":"What is the writer suggesting about computer-produced works in the first paragraph?","options":["A. People’s acceptance of them can vary considerably.","B. A great deal of progress has already been attained in this field.","C. They have had more success in some artistic genres than in others.","D. The advances are not as significant as the public believes them to be."],"answer":"B","exp":"Đáp án B đúng. Đoạn đầu đưa ra nhiều bằng chứng về thành tựu của nghệ thuật do máy tính/robot tạo ra: “Classical music by an artificial composer has had audiences enraptured”, “Artworks painted by a robot have sold for thousands of dollars and been hung in prestigious galleries”, và phần mềm còn tạo ra nghệ thuật “that could not have been imagined by the programmer.” Những ví dụ này cho thấy lĩnh vực này đã đạt được tiến bộ đáng kể. A sai vì đoạn không nói mức độ chấp nhận thay đổi đáng kể; C sai vì không hề so sánh thành công giữa các thể loại nghệ thuật; D sai vì tác giả thực tế đang nhấn mạnh các thành tựu đáng kể chứ không hạ thấp chúng.","loc":"loc-27"},{"text":"According to Geraint Wiggins, why are many people worried by computer art?","options":["A. It is aesthetically inferior to human art.","B. It may ultimately supersede human art.","C. It undermines a fundamental human quality.","D. It will lead to a deterioration in human ability."],"answer":"C","exp":"Đáp án C đúng vì Wiggins nói: “They are worried that it is taking something special away from what it means to be human.” Điều này tương ứng với việc nghệ thuật máy tính có thể làm suy giảm một phẩm chất đặc biệt/cốt lõi của con người. A không được đề cập vì bài không nói computer art kém về mặt thẩm mỹ; B không nói rằng máy sẽ thay thế hoàn toàn nghệ thuật con người; D cũng không có thông tin rằng khả năng của con người sẽ suy giảm.","loc":"loc-28"},{"text":"What is a key difference between Aaron and the Painting Fool?","options":["A. its programmer’s background","B. public response to its work","C. the source of its subject matter","D. the technical standard of its output"],"answer":"C","exp":"Đáp án C đúng. Đoạn D đối chiếu hai hệ thống: Aaron “is still little more than a tool to realise the programmer’s own creative ideas”, trong khi Painting Fool “can come up with its own concepts by going online for material.” Vì vậy khác biệt nằm ở nguồn hình thành nội dung/chủ đề. A không được đề cập đến nền tảng của lập trình viên; B không nói phản ứng công chúng là điểm khác biệt chính; D không nói tiêu chuẩn kỹ thuật của đầu ra là điểm khác biệt.","loc":"loc-29"},{"text":"What point does Simon Colton make in the fourth paragraph?","options":["A. Software-produced art is often dismissed as childish and simplistic.","B. The same concepts of creativity should not be applied to all forms of art.","C. It is unreasonable to expect a machine to be as imaginative as a human being.","D. People tend to judge computer art and human art according to different criteria."],"answer":"D","exp":"Đáp án D đúng vì Colton cho rằng những phản ứng tiêu cực xuất phát từ “people’s double standards towards software-produced and human-produced art.” “Double standards” nghĩa là con người đánh giá nghệ thuật máy tính và nghệ thuật do con người tạo ra theo những tiêu chuẩn khác nhau. A không được đoạn văn khẳng định; B không phải quan điểm được Colton nêu; C trái với lập luận của ông khi ông cho rằng máy cũng có thể có một mức độ tưởng tượng nhất định.","loc":"loc-30"},{"text":"The writer refers to the paintings of a chair as an example of computer art which","options":["A. achieves a particularly striking effect.","B. exhibits a certain level of genuine artistic skill.","C. closely resembles that of a well-known artist.","D. highlights the technical limitations of the software."],"answer":"A","exp":"Đáp án A đúng. Bài nói: “Some of the Painting Fool’s paintings of a chair came out in black and white, thanks to a technical glitch. This gives the work an eerie, ghostlike quality.” Một lỗi kỹ thuật vô tình tạo ra hiệu ứng ma mị đặc biệt, nên bức tranh “achieves a particularly striking effect”. B sai vì không có kết luận rằng tác phẩm thể hiện kỹ năng nghệ thuật thực sự của máy; C sai vì không nói bức tranh giống một nghệ sĩ nổi tiếng; D sai vì tác giả dùng lỗi kỹ thuật như một ví dụ cho kết quả bất ngờ, chứ không nhằm nhấn mạnh hạn chế kỹ thuật.","loc":"loc-31"}]},{"instruction":"Questions 32-37<br>Complete each sentence with the correct ending, A-G below.<br>Write the correct letter, A-G, in boxes 32-37 on your answer sheet.","type":"list_match","reference":"","imageUrl":"","options":["A. generating work that was virtually indistinguishable from that of humans.","B. knowing whether it was the work of humans or software.","C. producing work entirely dependent on the imagination of its creator.","D. comparing the artistic achievements of humans and computers.","E. revealing the technical details of his program.","F. persuading the public to appreciate computer art.","G. discovering that it was the product of a computer program"],"questions":[{"text":"Simon Colton says it is important to consider the long-term view when","answer":"D","exp":"Đáp án D “comparing the artistic achievements of humans and computers.” Đoạn E nói Colton không cho rằng việc “measure machine creativity directly to that of humans who have had millennia to develop our skills” là đúng. Vì con người đã có hàng thiên niên kỷ để phát triển kỹ năng, cần xét đến khoảng thời gian phát triển trước khi so sánh thành tựu nghệ thuật của người và máy. A nói về việc EMI tạo ra tác phẩm giống con người, không liên quan; B nói về điều kiện của nghiên cứu Moffat; C mô tả nhận xét của Hofstadter; E nói về Wiggins và Cope; F không được bài đề cập; G nói về phản ứng của khán giả.","loc":"loc-32"},{"text":"David Cope’s EMI software surprised people by","answer":"A","exp":"Đáp án A “generating work that was virtually indistinguishable from that of humans.” EMI tạo ra các tác phẩm theo phong cách của Cope và cả Bach, Chopin, Mozart; quan trọng hơn, “EMI even fooled classical music experts into thinking they were hearing genuine Bach.” Điều đó cho thấy sản phẩm của EMI gần như không thể phân biệt với tác phẩm do con người tạo ra. B thuộc nghiên cứu Moffat; C thuộc nhận xét của Hofstadter; D thuộc Colton; E thuộc Wiggins; F không được đề cập; G nói về việc khán giả phát hiện nguồn gốc máy tính sau đó.","loc":"loc-33"},{"text":"Geraint Wiggins criticized Cope for not","answer":"E","exp":"Đáp án E “revealing the technical details of his program.” Đoạn E nói Wiggins “condemned him for his deliberately vague explanation of how the software worked.” Nghĩa là Cope bị chỉ trích vì không giải thích rõ cách phần mềm hoạt động. A nói về khả năng tạo tác phẩm của EMI; B về nghiên cứu Moffat; C về Hofstadter; D về Colton; F không được đề cập; G thuộc phản ứng của khán giả sau khi biết sự thật.","loc":"loc-34"},{"text":"Douglas Hofstadter claimed that EMI was","answer":"C","exp":"Đáp án C “producing work entirely dependent on the imagination of its creator.” Hofstadter nói EMI “created replicas which still rely completely on the original artist’s creative impulses.” Vì vậy ông xem sản phẩm của EMI vẫn phụ thuộc hoàn toàn vào sáng tạo ban đầu của nghệ sĩ. A nói về việc tác phẩm giống con người; B thuộc nghiên cứu Moffat; D thuộc Colton; E thuộc Wiggins; F không có trong bài; G nói về việc khán giả biết nguồn gốc của chương trình.","loc":"loc-35"},{"text":"Audiences who had listened to EMI’s music became angry after","answer":"G","exp":"Đáp án G “discovering that it was the product of a computer program.” Đoạn E nói: “When audiences found out the truth they were often outraged with Cope”. “The truth” ở đây là họ phát hiện âm nhạc được tạo bởi EMI, tức chương trình máy tính. A nói về khả năng tạo tác phẩm; B thuộc Moffat; C thuộc Hofstadter; D thuộc Colton; E thuộc Wiggins; F không được đề cập.","loc":"loc-36"},{"text":"The participants in David Moffat’s study had to assess music without","answer":"B","exp":"Đáp án B “knowing whether it was the work of humans or software.” Đoạn F nói rõ những người tham gia “weren’t told beforehand whether the tunes were composed by humans or computers”, sau đó họ phải đoán và đánh giá mức độ yêu thích. A nói về EMI; C về Hofstadter; D về việc so sánh thành tựu nghệ thuật; E về lời giải thích kỹ thuật của Cope; F không được đề cập; G là phản ứng của khán giả với EMI.","loc":"loc-37"}]},{"instruction":"Questions 38-40<br>Do the following statements agree with the claims of the writer in Reading Passage 3?<br>In boxes 38-40 on your answer sheet, write<br>YES if the statement agrees with the claims of the writer<br>NO if the statement contradicts the claims of the writer<br>NOT GIVEN if it is impossible to say what the writer thinks about this","type":"tfng","reference":"","imageUrl":"","labels":["YES","NO","NOT GIVEN"],"questions":[{"text":"Moffat’s research may help explain people’s reactions to EMI.","answer":"YES","exp":"Đáp án YES. Đoạn F mở đầu bằng câu: “A study by computer scientist David Moffat of Glasgow Caledonian University provides a clue.” Sau đó nghiên cứu cho thấy những người nghĩ nhà soạn nhạc là máy tính “tended to dislike the piece more” so với những người nghĩ đó là tác phẩm của con người. Vì vậy nghiên cứu của Moffat cung cấp manh mối để giải thích phản ứng tiêu cực của con người đối với EMI. Câu hỏi nói “may help explain”, hoàn toàn phù hợp với “provides a clue”.","loc":"loc-38"},{"text":"The non-experts in Moffat’s study all responded in a predictable way.","answer":"NOT GIVEN","exp":"Đáp án NOT GIVEN. Bài chỉ cho biết Moffat yêu cầu “both expert musicians and non-experts” đánh giá sáu tác phẩm, sau đó nói những người nghĩ nhà soạn nhạc là máy tính có xu hướng không thích tác phẩm hơn. Tuy nhiên, bài không nói tất cả những người không chuyên đều phản ứng theo một cách có thể dự đoán được. Từ “all” và “predictable way” không được xác nhận trong bài, nên không thể chọn YES hoặc NO.","loc":"loc-39"},{"text":"Justin Kruger’s findings cast doubt on Paul Bloom’s theory about people’s prejudice towards computer art.","answer":"NO","exp":"Đáp án NO. Paul Bloom cho rằng một phần sự thích thú với nghệ thuật đến từ “the creative process behind the work”, tạo cho tác phẩm một “irresistible essence”. Sau đó nghiên cứu của Justin Kruger cho thấy “people’s enjoyment of an artwork increases if they think more time and effort was needed to create it.” Kết quả của Kruger hỗ trợ và bổ sung cho ý tưởng của Bloom về vai trò của quá trình sáng tạo, chứ không phủ nhận hay “cast doubt on” nó. Vì vậy câu hỏi trái với cách tác giả trình bày mối quan hệ giữa hai quan điểm.","loc":"loc-40"}]}]];
+
+        // --- Chế độ "làm bài tập được giao" ---
+        // Khi trang này được mở từ nút "Bài tập" bên trang chủ (index.html), URL sẽ có kèm
+        // assignmentId+uid (và scope = 'all'/'1'/'2'/'3'). Lúc đó đây KHÔNG phải luyện tập tự do
+        // mà là một bài homework cụ thể — giao diện + nút "Nộp bài" cần rõ ràng theo đúng phạm vi
+        // (1 Passage hay cả bài) mà giáo viên đã giao, thay vì luôn mở full 3 Passage mập mờ.
+        const __assignParams = new URLSearchParams(location.search);
+        const ASSIGN_ID = __assignParams.get('assignmentId') || '';
+        const ASSIGN_SCOPE = __assignParams.get('scope') || 'all'; // 'all' | '1' | '2' | '3'
+        const IS_ASSIGNMENT_MODE = !!ASSIGN_ID;
+        function assignmentScopeLabel() {
+            return (ASSIGN_SCOPE === '1' || ASSIGN_SCOPE === '2' || ASSIGN_SCOPE === '3')
+                ? `Passage ${ASSIGN_SCOPE}` : 'Cả bài (3 Passage)';
+        }
+
+        const testData = {};
+        const passageRanges = [];
+        let qCounter = 0;
+        questionsData.forEach(groups => {
+            const start = qCounter + 1;
+            groups.forEach(g => {
+                g.questions.forEach(q => {
+                    qCounter++;
+                    q.qNum = qCounter;
+                    testData[qCounter] = {
+                        type: (g.type === 'mcq' || g.type === 'tfng') ? 'radio' : 'text',
+                        answer: q.answer,
+                        loc: q.loc || "",
+                        exp: q.exp || ""
+                    };
+                });
+            });
+            passageRanges.push([start, qCounter]);
+        });
+        const TOTAL_QUESTIONS = qCounter;
+        // passageRanges/TOTAL_QUESTIONS được khai báo bằng const nên KHÔNG tự gắn lên window
+        // (khác với "var"/function ở top-level của script thường) — gắn tay ở đây để đoạn
+        // <script type="module"> báo kết quả về Firestore ở cuối trang đọc được khoảng câu hỏi
+        // của từng Passage khi cần chấm riêng 1 Passage.
+        window.passageRanges = passageRanges;
+
+        // Populate the practice-mode passage dropdown from passage titles
+        (function initDropdown() {
+            const dd = document.getElementById('passage-dropdown');
+            const opts = [1, 2, 3].map(i => {
+                const el = document.getElementById(`passage-${i}-text`);
+                const title = el ? el.dataset.title : `Passage ${i}`;
+                return `<option value="${i}">Passage ${i}: ${title}</option>`;
+            });
+            dd.innerHTML = opts.join('');
+        })();
+
+        // Khi đang làm 1 bài tập được giao (IS_ASSIGNMENT_MODE): ẩn phần chọn chế độ Luyện
+        // tập/Thi thật (không liên quan tới homework), thay bằng 1 dòng thông báo rõ ràng giáo
+        // viên đã giao đúng phạm vi nào, tự chọn sẵn đúng Passage đó trong dropdown (ẩn), và đổi
+        // chữ trên nút nộp bài chính (header) thành "Nộp homework (...)" để không còn mập mờ.
+        (function initAssignmentMode() {
+            if (!IS_ASSIGNMENT_MODE) return;
+
+            const modeSelectEl = document.querySelector('#setup-screen .mode-select');
+            const passageSelectorEl = document.getElementById('passage-selector');
+            const setupIntro = document.querySelector('#setup-screen .modal-box > p');
+            if (modeSelectEl) modeSelectEl.style.display = 'none';
+            if (passageSelectorEl) passageSelectorEl.style.display = 'none';
+            if (setupIntro) {
+                setupIntro.innerHTML = `📩 Bạn đang làm <strong>BÀI TẬP được giao</strong>: <strong>${assignmentScopeLabel()}</strong>. Làm xong nhớ bấm nút <strong>"Nộp homework"</strong> ở góc trên bên phải để nộp bài nhé!`;
+            }
+
+            const dd = document.getElementById('passage-dropdown');
+            if (dd && (ASSIGN_SCOPE === '1' || ASSIGN_SCOPE === '2' || ASSIGN_SCOPE === '3')) {
+                dd.value = ASSIGN_SCOPE;
+            }
+
+            const mainSubmitBtn = document.getElementById('main-submit-btn');
+            if (mainSubmitBtn) mainSubmitBtn.textContent = `📩 Nộp homework (${assignmentScopeLabel()})`;
+        })();
+
+        // --- HTML Question Templates Generation ---
+        function generateQuestionsHTML() {
+            let html = '';
+            let groupCounter = 0;
+            questionsData.forEach((groups, pIdx) => {
+                html += `<div id="questions-p${pIdx + 1}" class="content-wrapper${pIdx === 0 ? ' active' : ''}">`;
+                html += `<div class="part-grade-bar" id="part-grade-bar-${pIdx + 1}">
+                            <button class="part-grade-btn" type="button" onclick="gradePart(${pIdx + 1})">✅ Chấm riêng Part ${pIdx + 1}</button>
+                          </div>`;
+                groups.forEach(g => {
+                    groupCounter++;
+                    const nums = g.questions.map(q => q.qNum);
+                    const rangeLabel = nums.length > 1 ? `Questions ${nums[0]}-${nums[nums.length - 1]}` : `Question ${nums[0]}`;
+                    html += `<div class="question-group"><h3>${rangeLabel}</h3><p class="instruction">${g.instruction || ''}</p>`;
+                    if (g.imageUrl) {
+                        html += renderGroupImage(g.imageUrl);
+                    }
+                    if (g.reference) {
+                        html += `<div style="border:1px solid #ccc; padding:15px; margin-bottom:15px; background:#fff;">${g.reference}</div>`;
+                    }
+                    if (g.type === 'matching') {
+                        html += genMatching(groupCounter, g.options || [], g.questions);
+                    } else if (g.type === 'heading') {
+                        // Matching Headings: kéo-thả heading (i, ii, iii...) từ ngân hàng ở panel câu
+                        // hỏi thẳng vào "khe" đã đặt sẵn ở ĐẦU mỗi đoạn văn tương ứng bên panel bài đọc
+                        // (xem initHeadingGapsInPassage() + span.heading-gap do test-builder chèn sẵn).
+                        html += genHeadingDrag('hg' + g.questions[0].qNum, g.options || [], g.questions);
+                    } else if (g.type === 'list_match') {
+                        // Matching Names-Claims-Sentence Endings: 1 bảng chú thích (legend) các lựa
+                        // chọn A/B/C... + mỗi câu hỏi có 1 dropdown chọn đáp án đúng (không kéo thả,
+                        // vì các mục ở đây không nằm trong bài đọc để mà "thả vào" như headings).
+                        html += genLettered(groupCounter, g.options || [], g.questions);
+                    } else if (g.type === 'grid') {
+                        // Matching Information / Matching Names / Matching Features dạng bảng: mỗi
+                        // dòng là 1 câu, mỗi cột là 1 chữ cái — click radio ở đúng ô giao nhau.
+                        html += genGrid(groupCounter, g.options || [], g.questions);
+                    } else if (g.type === 'multi') {
+                        // "Choose TWO/THREE correct answers": checkbox dùng chung cho cả nhóm câu.
+                        html += genMulti(groupCounter, g.options || [], g.questions, g.pickCount || g.questions.length);
+                    } else if (g.type === 'inline') {
+                        // Complete the summary/table: gộp CẢ NHÓM câu hỏi thành 1 đoạn văn chảy liên
+                        // tục (giống summary thật), không tách mỗi câu ra 1 dòng riêng có số tròn to.
+                        html += genInlineGroup(g.questions);
+                    } else if (g.type === 'text') {
+                        // Complete the notes: 2 kiểu nội dung khác nhau, KHÔNG dùng chung 1 cách render —
+                        // xem genNotesFromTemplate()/genNotesGroup() bên dưới để biết vì sao phải phân biệt.
+                        // - Có g.notesTemplate (giáo viên dán nguyên khối ghi chú/outline, có tiêu đề, gạch
+                        //   đầu dòng...): giữ NGUYÊN 100% chữ gốc, chỉ thay mỗi dấu "_____" bằng 1 ô nhập.
+                        // - Không có (nhóm chỉ là 1 đoạn văn liền mạch, câu nào cũng có blank riêng): dùng
+                        //   cách cũ — tự ghép pre/post của từng câu lại thành 1 khối chảy liên tục.
+                        html += (g.notesTemplate && g.notesTemplate.trim())
+                            ? genNotesFromTemplate(g.notesTemplate, g.questions)
+                            : genNotesGroup(g.questions);
+                    } else if (g.type === 'table') {
+                        // Complete the table below: đề gốc là 1 BẢNG THẬT có cột/hàng (vd Stepwells |
+                        // Date | Features | Other notes) — khác "Complete the notes" (khối ghi chú chảy
+                        // liên tục), nên render đúng thành <table> giữ nguyên cột/hàng, xem genTableGroup().
+                        html += genTableGroup(g.tableColumns || [], g.tableRows || [], g.questions);
+                    } else if (g.type === 'wordbank') {
+                        // Summary/Sentence completion CÓ SẴN danh sách từ (word list/box) — khác "text"
+                        // (điền từ tự gõ, lấy nguyên văn từ bài đọc): ở đây học sinh CHỌN đúng từ trong
+                        // 1 ngân hàng cho sẵn (thường NHIỀU từ hơn số chỗ trống), không được gõ tự do.
+                        // Vẫn là 1 đoạn văn chảy liên tục (dùng g.notesTemplate y hệt "text" (b)), chỉ
+                        // khác chỗ mỗi blank là 1 <select> thay vì <input> tự gõ — xem genWordBankGroup().
+                        html += genWordBankGroup(g.notesTemplate || '', g.options || [], g.questions);
+                    } else {
+                        g.questions.forEach(q => {
+                            if (g.type === 'tfng') {
+                                html += genRadio(q.qNum, q.text, g.labels || ['TRUE', 'FALSE', 'NOT GIVEN']);
+                            } else if (g.type === 'mcq') {
+                                html += genRadio(q.qNum, q.text, q.options || []);
+                            } else {
+                                html += genText(q.qNum, q.text || '');
+                            }
+                        });
+                    }
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            });
+            document.getElementById('questions-container').innerHTML = html;
+        }
+
+        // Converts a typical Google Drive "share" link into a directly-viewable
+        // image URL; passes any other URL (Imgur, direct image host, etc.) through untouched.
+        function toDirectImageUrl(url) {
+            if (!url) return '';
+            url = url.trim();
+            const m = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || (url.includes('drive.google.com') && url.match(/[?&]id=([a-zA-Z0-9_-]+)/));
+            if (m && m[1]) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+            return url;
+        }
+
+        function renderGroupImage(url) {
+            const src = toDirectImageUrl(url);
+            return `<div class="group-image-wrap"><img src="${src}" alt="Sơ đồ minh hoạ" class="group-image" loading="lazy"
+                        onerror="this.parentElement.innerHTML='&lt;p style=&quot;color:#c62828;font-size:13px;&quot;&gt;⚠️ Không tải được ảnh — kiểm tra lại link (cần bật chia sẻ &quot;Anyone with the link&quot;).&lt;/p&gt;'"></div>`;
+        }
+
+        function genRadio(qNum, text, options) {
+            let optsHtml = options.map(opt => `<label class="radio-label"><input type="radio" name="q${qNum}" value="${opt.split('.')[0].trim()}"> ${opt}</label>`).join('');
+            return `<div class="question-item" id="q-container-${qNum}">
+                        <div class="q-num">${qNum}</div>
+                        <div style="flex:1;">
+                            <p style="margin:0 0 10px 0;">${text}</p>
+                            <div class="${options.length > 3 ? 'mcq-options' : 'options-tf'}">${optsHtml}</div>
+                            <div class="feedback-box" id="fb-${qNum}"></div>
+                        </div>
+                    </div>`;
+        }
+        // Fallback đơn lẻ (chỉ dùng khi type không xác định được) — 1 câu/1 dòng, KHÔNG dùng cho
+        // 'text' hay 'inline' nữa (2 loại đó giờ render theo nhóm, xem genNotesGroup/genInlineGroup
+        // + renderFlowingBlanks() bên dưới, để cả nhóm chảy liền mạch thành 1 khối ghi chú/đoạn văn
+        // thay vì mỗi câu là 1 thẻ tách rời có vòng tròn số to).
+        function genText(qNum, text) {
+            return `<div class="question-item compact-item" id="q-container-${qNum}" style="align-items:center;">
+                        <div class="q-num" style="width:24px;height:24px;font-size:12px;">${qNum}</div>
+                        <div style="flex:1; display:flex; align-items:center; flex-wrap:wrap; gap:10px;">
+                            <span>${text}</span>
+                            <input type="text" class="text-input" name="q${qNum}" placeholder="Your answer..." style="width:160px;">
+                            <div class="feedback-box" id="fb-${qNum}" style="width:100%; margin-top:5px;"></div>
+                        </div>
+                    </div>`;
+        }
+
+        // Tìm dấu chỗ trống trong 1 câu văn (___, ....., …) để tách ra phần TRƯỚC/SAU chỗ trống đó
+        // — dùng cho "Complete the notes" (type 'text') khi giáo viên gõ nguyên câu kèm gạch chân
+        // (vd "Trees may be falling down because of _____ from nearby fields") thay vì tách sẵn
+        // pre/post như 'inline'. Không tìm thấy dấu nào thì coi cả câu là phần TRƯỚC, chỗ trống tự
+        // nối ngay sau (ô nhập nằm ở cuối câu).
+        function splitBlankMarker(text) {
+            const t = text || '';
+            const m = t.match(/_{2,}|\.{4,}|…+/);
+            if (!m) return { pre: t.trim(), post: '' };
+            return { pre: t.slice(0, m.index).trim(), post: t.slice(m.index + m[0].length).trim() };
+        }
+
+        // Render CHUNG cho cả 'inline' (Complete the summary/table) lẫn 'text' (Complete the
+        // notes) — nhận vào 1 mảng {qNum, pre, post}, gộp CẢ NHÓM thành 1 khối văn bản chảy liên
+        // tục (pre câu 1 -> ô trống 1 -> post câu 1 -> pre câu 2 -> ...) thay vì tách mỗi câu ra 1
+        // dòng riêng với vòng tròn số to — số câu hỏi nằm NGAY TRONG ô nhập liệu (placeholder), gõ
+        // chữ vào là số tự biến mất, đúng như 1 chỗ trống thật trong bài.
+        function renderFlowingBlanks(items) {
+            const spansHtml = items.map(it => `<span>${it.pre || ''}</span><span class="inline-blank-wrap" id="q-container-${it.qNum}"><input type="text" class="text-input inline-blank" name="q${it.qNum}" placeholder="${it.qNum}"></span><span>${it.post || ''}</span>`).join(' ');
+            const feedbackHtml = items.map(it =>
+                `<div class="feedback-box" id="fb-${it.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `<div class="inline-summary">${spansHtml}</div>${feedbackHtml}`;
+        }
+        function genInlineGroup(questions) {
+            return renderFlowingBlanks(questions.map(q => ({ qNum: q.qNum, pre: q.pre || '', post: q.post || '' })));
+        }
+        function genNotesGroup(questions) {
+            return renderFlowingBlanks(questions.map(q => {
+                const { pre, post } = splitBlankMarker(q.text || '');
+                return { qNum: q.qNum, pre, post };
+            }));
+        }
+
+        // "Complete the notes" khi đề KHÔNG phải 1 đoạn văn liền mạch mà là 1 khối ghi chú/outline có
+        // tiêu đề, gạch đầu dòng, các dòng con thụt lề... (vd lịch sử cuộc đời theo từng mốc thời gian).
+        // Ghép từng câu riêng lẻ như genNotesGroup() sẽ làm MẤT toàn bộ cấu trúc đó (tiêu đề, những dòng
+        // không có chỗ trống...). Ở đây ngược lại: giáo viên dán NGUYÊN VĂN cả khối ghi chú vào 1 ô duy
+        // nhất (template, giữ nguyên xuống dòng), đánh dấu mỗi chỗ trống bằng ___/..../… theo ĐÚNG thứ tự
+        // câu hỏi trong nhóm — hàm này CHỈ thay từng dấu đó bằng 1 ô nhập, còn lại giữ y nguyên 100% (kể
+        // cả tiêu đề, gạch đầu dòng, những dòng không có chỗ trống nào) nhờ escapeHtml() + white-space:
+        // pre-wrap (xem CSS .notes-template) để xuống dòng/khoảng trắng gốc hiển thị đúng như đã gõ.
+        function genNotesFromTemplate(template, questions) {
+            const re = /_{2,}|\.{4,}|…+/g;
+            const segments = [];
+            let lastIndex = 0, qi = 0, m;
+            while (qi < questions.length && (m = re.exec(template)) !== null) {
+                segments.push({ text: template.slice(lastIndex, m.index) });
+                segments.push({ q: questions[qi] });
+                lastIndex = m.index + m[0].length;
+                qi++;
+            }
+            segments.push({ text: template.slice(lastIndex) });
+            // Nếu template có ÍT dấu chỗ trống hơn số câu trong nhóm (giáo viên gõ thiếu ___), vẫn
+            // thêm ô nhập cho các câu còn lại vào cuối cùng để không mất câu hỏi nào.
+            for (; qi < questions.length; qi++) segments.push({ q: questions[qi] });
+
+            const bodyHtml = segments.map(seg => {
+                if (seg.q) {
+                    return `<span class="inline-blank-wrap" id="q-container-${seg.q.qNum}"><input type="text" class="text-input inline-blank" name="q${seg.q.qNum}" placeholder="${seg.q.qNum}"></span>`;
+                }
+                return escapeHtml(seg.text);
+            }).join('');
+            const feedbackHtml = questions.map(q => `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `<div class="inline-summary notes-template">${bodyHtml}</div>${feedbackHtml}`;
+        }
+
+        // Thay lần lượt từng dấu chỗ trống (___/..../…) trong 1 đoạn text bằng 1 ô nhập, bắt đầu từ
+        // questions[startQi] — dùng CHUNG logic với genNotesFromTemplate() nhưng nhận thêm "con trỏ"
+        // startQi vì genTableGroup() cần đánh số blank xuyên suốt NHIỀU Ô của bảng theo đúng thứ tự
+        // đọc trái-qua-phải, trên-xuống-dưới (không reset lại mỗi ô như genNotesFromTemplate làm với
+        // mỗi khối text riêng biệt). Trả về {html, qi} để caller biết đã dùng tới câu hỏi thứ mấy.
+        function fillBlanksInText(text, questions, startQi) {
+            const re = /_{2,}|\.{4,}|…+/g;
+            let qi = startQi, lastIndex = 0, m;
+            let out = '';
+            while (qi < questions.length && (m = re.exec(text)) !== null) {
+                out += escapeHtml(text.slice(lastIndex, m.index));
+                const q = questions[qi];
+                out += `<span class="inline-blank-wrap" id="q-container-${q.qNum}"><input type="text" class="text-input inline-blank" name="q${q.qNum}" placeholder="${q.qNum}"></span>`;
+                lastIndex = m.index + m[0].length;
+                qi++;
+            }
+            out += escapeHtml(text.slice(lastIndex));
+            return { html: out, qi };
+        }
+
+        // "Complete the table below": đề gốc là 1 bảng THẬT có cột/hàng (test-builder đã tách sẵn
+        // thành columns[] + rows[][] khi xuất bản — xem currentTestPaths()/buildTestHTML() phía tool
+        // soạn đề). Ô nào KHÔNG có chỗ trống thì hiện nguyên văn; ô nào có 1+ dấu ___ thì thay bằng ô
+        // nhập, đánh số blank LIÊN TỤC theo thứ tự đọc bảng (trái→phải, trên→dưới) khớp đúng thứ tự
+        // các câu hỏi trong nhóm — giữ được cấu trúc cột/hàng thật thay vì dồn hết thành 1 đoạn văn
+        // chảy liên tục như "Complete the notes" (xem genNotesFromTemplate).
+        function genTableGroup(columns, rows, questions) {
+            let qi = 0;
+            const theadHtml = (columns && columns.length)
+                ? `<thead><tr>${columns.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr></thead>`
+                : '';
+            const tbodyHtml = (rows || []).map(row => {
+                const cellsHtml = (row || []).map(cellText => {
+                    const filled = fillBlanksInText(cellText || '', questions, qi);
+                    qi = filled.qi;
+                    return `<td>${filled.html}</td>`;
+                }).join('');
+                return `<tr>${cellsHtml}</tr>`;
+            }).join('');
+            // Nếu bảng có ÍT chỗ trống hơn số câu trong nhóm, vẫn thêm ô nhập cho các câu còn lại
+            // (không mất câu hỏi nào) — dồn vào cuối dòng cuối bảng dưới dạng 1 hàng phụ.
+            let extraRowHtml = '';
+            if (qi < questions.length) {
+                const remaining = questions.slice(qi);
+                const spans = remaining.map(q => `<span class="inline-blank-wrap" id="q-container-${q.qNum}"><input type="text" class="text-input inline-blank" name="q${q.qNum}" placeholder="${q.qNum}"></span>`).join(' ');
+                extraRowHtml = `<tr><td colspan="${Math.max(1, (columns || []).length)}">${spans}</td></tr>`;
+            }
+            const feedbackHtml = questions.map(q => `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `<div class="data-table-scroll-wrap"><table class="data-table">${theadHtml}<tbody>${tbodyHtml}${extraRowHtml}</tbody></table></div>${feedbackHtml}`;
+        }
+
+        // Summary/Sentence completion CÓ SẴN danh sách từ (word list/box) — khác genNotesFromTemplate
+        // (điền tự gõ): ở đây mỗi chỗ trống là 1 <select> chọn từ ngân hàng chung "options" (thường
+        // NHIỀU lựa chọn hơn số chỗ trống, đúng chuẩn IELTS thật — học sinh phải loại trừ bớt). Ngân
+        // hàng hiện 1 lần dạng "chip" phía trên (giống genLettered), select mặc định hiện SỐ THỨ TỰ
+        // câu hỏi (option value="") để học sinh biết đang ở câu mấy trước khi chọn — cùng quy ước với
+        // mọi loại "điền chỗ trống" khác trong bài (xem fillBlanksInText/genNotesFromTemplate).
+        function genWordBankGroup(template, options, questions) {
+            const legendHtml = `<div class="match-bank match-legend">${options.map(opt =>
+                `<div class="match-chip match-chip-static">${opt}</div>`).join('')}</div>`;
+
+            const re = /_{2,}|\.{4,}|…+/g;
+            const segments = [];
+            let lastIndex = 0, qi = 0, m;
+            while (qi < questions.length && (m = re.exec(template)) !== null) {
+                segments.push({ text: template.slice(lastIndex, m.index) });
+                segments.push({ q: questions[qi] });
+                lastIndex = m.index + m[0].length;
+                qi++;
+            }
+            segments.push({ text: template.slice(lastIndex) });
+            for (; qi < questions.length; qi++) segments.push({ q: questions[qi] });
+
+            const bodyHtml = segments.map(seg => {
+                if (seg.q) {
+                    const optHtml = options.map(opt => {
+                        const letter = (opt.split('.')[0] || '').trim();
+                        return `<option value="${letter}">${opt}</option>`;
+                    }).join('');
+                    return `<span class="inline-blank-wrap" id="q-container-${seg.q.qNum}"><select name="q${seg.q.qNum}" class="lettered-select inline-select"><option value="">${seg.q.qNum}</option>${optHtml}</select></span>`;
+                }
+                return escapeHtml(seg.text);
+            }).join('');
+            const feedbackHtml = questions.map(q => `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `${legendHtml}<div class="inline-summary notes-template">${bodyHtml}</div>${feedbackHtml}`;
+        }
+
+        // Matching / drag-drop question type: a bank of draggable option chips
+        // (A, B, C...) that get dragged into a slot next to each prompt. Answers
+        // are mirrored into a hidden <input name="qN"> so all the existing grading /
+        // "answered" nav-circle logic works unchanged, with no special-casing needed.
+        function genMatching(groupId, options, questions) {
+            const bankHtml = options.map(opt => {
+                const letter = (opt.split('.')[0] || '').trim();
+                return `<div class="match-chip" data-letter="${letter}" data-group="${groupId}" id="chip-${groupId}-${letter}">${opt}</div>`;
+            }).join('');
+
+            const rowsHtml = questions.map(q => `
+                <div class="question-item match-row" id="q-container-${q.qNum}">
+                    <div class="q-num">${q.qNum}</div>
+                    <span class="match-prompt-text">${q.text}</span>
+                    <div class="match-slot" id="slot-${q.qNum}" data-group="${groupId}" data-qnum="${q.qNum}" data-letter="">Kéo đáp án vào đây</div>
+                    <input type="hidden" name="q${q.qNum}" id="input-q${q.qNum}" value="">
+                    <div class="feedback-box" id="fb-${q.qNum}" style="width:100%; margin-top:5px;"></div>
+                </div>
+            `).join('');
+
+            return `<div class="match-bank" id="bank-${groupId}">${bankHtml}</div>${rowsHtml}`;
+        }
+
+        // Matching Headings: kéo-thả trực tiếp vào bài đọc. Panel câu hỏi (bên phải) chỉ hiện
+        // NGÂN HÀNG heading (i, ii, iii...) để kéo, cộng với 1 hộp feedback nhỏ/câu (hiện sau khi
+        // nộp bài) — vị trí thả (slot) thật sự nằm ngay ĐẦU mỗi đoạn văn tương ứng bên panel bài
+        // đọc (trái), do test-builder.html chèn sẵn 1 <span class="heading-gap"> tĩnh vào đúng
+        // đoạn văn khớp thứ tự câu hỏi, rồi initHeadingGapsInPassage() (gọi trong startTest()) sẽ
+        // "nâng cấp" span đó thành 1 match-slot thật để dùng chung bộ máy kéo-thả Pointer Events
+        // đã có sẵn của genMatching() (chip + slot cùng data-group) — không cần viết lại logic kéo
+        // thả riêng, không cần các dropdown cồng kềnh.
+        function genHeadingDrag(groupId, options, questions) {
+            const bankHtml = options.map(opt => {
+                const letter = (opt.split('.')[0] || '').trim();
+                return `<div class="match-chip" data-letter="${letter}" data-group="${groupId}" id="chip-${groupId}-${letter}">${opt}</div>`;
+            }).join('');
+
+            const feedbackHtml = questions.map(q =>
+                `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+
+            return `<div class="match-bank" id="bank-${groupId}">${bankHtml}</div>
+                    <p class="hint" style="margin:0 0 10px 0;">👆 Kéo heading phía trên vào đúng vị trí đầu mỗi đoạn văn bên bài đọc (panel trái).</p>
+                    ${feedbackHtml}`;
+        }
+
+        // Matching Names-Claims-Sentence Endings (nối người/mệnh đề với đáp án đúng, A-G...): một
+        // bảng chú thích tĩnh (legend) liệt kê hết các lựa chọn, và mỗi câu hỏi có 1 dropdown
+        // <select> để chọn đáp án đúng — không kéo-thả vì các mục ở đây (tên người, mệnh đề...)
+        // không nằm sẵn trong bài đọc để "thả vào" như Matching Headings.
+        function genLettered(groupId, options, questions) {
+            const legendHtml = `<div class="match-bank match-legend" id="bank-${groupId}">${options.map(opt =>
+                `<div class="match-chip match-chip-static">${opt}</div>`).join('')}</div>`;
+
+            const rowsHtml = questions.map(q => {
+                const optHtml = options.map(opt => {
+                    const letter = (opt.split('.')[0] || '').trim();
+                    return `<option value="${letter}">${opt}</option>`;
+                }).join('');
+                return `<div class="question-item match-row" id="q-container-${q.qNum}">
+                            <div class="q-num">${q.qNum}</div>
+                            <span class="match-prompt-text">${q.text}</span>
+                            <select name="q${q.qNum}" class="lettered-select">
+                                <option value="">-- Chọn đáp án --</option>${optHtml}
+                            </select>
+                            <div class="feedback-box" id="fb-${q.qNum}" style="width:100%; margin-top:5px;"></div>
+                        </div>`;
+            }).join('');
+
+            return `${legendHtml}${rowsHtml}`;
+        }
+
+        // Matching Information / Matching Names / Matching Features dạng LƯỚI (grid/matrix): mỗi
+        // dòng là 1 câu (đoạn văn/thông tin cần tìm), mỗi cột là 1 chữ cái (A-I, A-F...) — bấm
+        // radio ở đúng ô giao giữa dòng và cột. Cho phép dùng lại cùng 1 chữ cái cho nhiều dòng
+        // (mỗi dòng có input name="qN" RIÊNG nên các radio ở các dòng khác nhau không loại trừ
+        // lẫn nhau — chỉ những ô CÙNG dòng mới loại trừ nhau, đúng chuẩn "may use any letter more
+        // than once").
+        function genGrid(groupId, options, questions) {
+            const letters = options.map(opt => (opt.split('.')[0] || opt).trim());
+            const hasLegend = options.some(opt => opt.includes('.'));
+            const legendHtml = hasLegend
+                ? `<div class="match-bank match-legend" id="bank-${groupId}">${options.map(opt =>
+                    `<div class="match-chip match-chip-static">${opt}</div>`).join('')}</div>`
+                : '';
+
+            const headerCells = letters.map(l => `<th>${l}</th>`).join('');
+            const rowsHtml = questions.map(q => {
+                const cells = letters.map(l =>
+                    `<td><input type="radio" name="q${q.qNum}" value="${l}" class="grid-radio"></td>`).join('');
+                return `<tr id="q-container-${q.qNum}"><td class="grid-row-label"><span class="q-num grid-q-num">${q.qNum}</span> ${q.text}</td>${cells}</tr>`;
+            }).join('');
+            const feedbackHtml = questions.map(q =>
+                `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+
+            return `${legendHtml}
+                <div class="grid-scroll-wrap">
+                    <table class="match-grid"><thead><tr><th></th>${headerCells}</tr></thead><tbody>${rowsHtml}</tbody></table>
+                </div>
+                ${feedbackHtml}`;
+        }
+
+        // "Choose TWO/THREE correct answers" (chọn N trong M đáp án bằng checkbox, dùng chung 1
+        // danh sách lựa chọn cho cả nhóm câu). Mỗi checkbox KHÔNG gắn trực tiếp vào 1 câu — thay
+        // vào đó, mỗi lần tick/bỏ tick sẽ đồng bộ danh sách chữ cái đang được chọn xuống các
+        // <input type="hidden" name="qN"> riêng của từng câu trong nhóm (xem initMultiSelect() bên
+        // dưới): nếu chữ cái đúng của câu N nằm trong tập đang chọn thì input đó = đáp án đúng
+        // (chấm ĐÚNG), ngược lại = danh sách học sinh đã chọn (chấm SAI, vẫn hiển thị rõ học sinh
+        // đã chọn gì) — nhờ vậy gradeQuestionRange() ở dưới chấm điểm y hệt các dạng câu khác mà
+        // không cần thêm logic riêng.
+        function genMulti(groupId, options, questions, pickCount) {
+            const optsHtml = options.map(opt => {
+                const letter = (opt.split('.')[0] || '').trim();
+                return `<label class="radio-label multi-check-label">
+                            <input type="checkbox" class="multi-check" value="${letter}"> ${opt}
+                        </label>`;
+            }).join('');
+
+            const qNums = questions.map(q => q.qNum);
+            const firstQ = qNums[0], lastQ = qNums[qNums.length - 1];
+            const isRange = firstQ !== lastQ;
+            const qLabel = isRange ? `${firstQ}-${lastQ}` : String(firstQ);
+
+            // KHÔNG hiện lại số câu (21, 22...) riêng lẻ ở đây nữa — con số đó đã hiện ở "viên
+            // thuốc" q-num phía trên rồi, lặp lại bên dưới gây rối mắt. Vẫn giữ input ẩn + hộp
+            // feedback riêng cho từng câu (bắt buộc để gradeQuestionRange() chấm đúng từng câu).
+            const perQFeedback = qNums.map(n => `
+                <div id="q-container-${n}" style="margin-top:6px;">
+                    <input type="hidden" name="q${n}" id="input-q${n}" value="">
+                    <div class="feedback-box" id="fb-${n}" style="width:100%; margin-top:0;"></div>
+                </div>`).join('');
+
+            return `<div class="question-item multi-group" data-multi-group="${groupId}" data-pick-count="${pickCount}">
+                        <div class="q-num${isRange ? ' q-num-range' : ''}">${qLabel}</div>
+                        <div style="flex:1;">
+                            <p class="multi-hint">Chọn đúng <strong>${pickCount}</strong> đáp án.</p>
+                            <div class="mcq-options">${optsHtml}</div>
+                            ${perQFeedback}
+                        </div>
+                    </div>`;
+        }
+
+        // Đồng bộ checkbox "Choose N of M" -> các input hidden qN riêng của từng câu trong nhóm
+        // (xem giải thích ở genMulti() phía trên). Giới hạn tối đa đúng pickCount checkbox được
+        // tick cùng lúc để học sinh không "ăn gian" bằng cách tick hết.
+        (function initMultiSelect() {
+            document.addEventListener('change', e => {
+                if (!e.target.classList || !e.target.classList.contains('multi-check')) return;
+                const container = e.target.closest('.multi-group');
+                if (!container) return;
+                const pickCount = parseInt(container.dataset.pickCount, 10) || 1;
+                const allChecks = container.querySelectorAll('.multi-check');
+                const checked = Array.from(allChecks).filter(c => c.checked);
+
+                if (checked.length > pickCount) {
+                    e.target.checked = false;
+                    return;
+                }
+
+                const checkedLetters = checked.map(c => c.value.toUpperCase());
+                container.querySelectorAll('input[type="hidden"]').forEach(hidden => {
+                    const qNum = hidden.name.substring(1);
+                    const info = testData[qNum];
+                    if (!info) return;
+                    const correctLetter = (info.answer || '').toUpperCase();
+                    const isRight = checkedLetters.includes(correctLetter);
+                    hidden.value = isRight ? info.answer : checkedLetters.join(', ');
+                    hidden.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+            });
+        })();
+
+        // --- Matching drag-and-drop engine (Pointer Events, so it works the same
+        //     with mouse, touch and pen — unlike the native HTML5 DnD API, which
+        //     iOS Safari does not support at all). Delegated at document level so
+        //     it works for every matching group generated above. ---
+        (function initMatchingDnD() {
+            const DEFAULT_SLOT_TEXT = 'Kéo đáp án vào đây';
+            let dragSource = null; // { letter, label, group, sourceSlot }
+            let dragGhost = null;
+
+            function showBankChip(group, letter) {
+                const chip = document.getElementById(`chip-${group}-${letter}`);
+                if (chip) chip.style.display = '';
+            }
+            function hideBankChip(group, letter) {
+                const chip = document.getElementById(`chip-${group}-${letter}`);
+                if (chip) chip.style.display = 'none';
+            }
+            function setSlotInput(slotEl) {
+                const input = document.getElementById('input-q' + slotEl.dataset.qnum);
+                if (!input) return;
+                input.value = slotEl.dataset.letter || '';
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            function clearSlot(slotEl) {
+                if (!slotEl.dataset.letter) return;
+                showBankChip(slotEl.dataset.group, slotEl.dataset.letter);
+                slotEl.dataset.letter = '';
+                slotEl.textContent = DEFAULT_SLOT_TEXT;
+                slotEl.classList.remove('filled');
+                setSlotInput(slotEl);
+            }
+            function fillSlot(slotEl, letter, label) {
+                if (slotEl.dataset.letter && slotEl.dataset.letter !== letter) {
+                    showBankChip(slotEl.dataset.group, slotEl.dataset.letter);
+                }
+                slotEl.dataset.letter = letter;
+                slotEl.textContent = label;
+                slotEl.classList.add('filled');
+                hideBankChip(slotEl.dataset.group, letter);
+                setSlotInput(slotEl);
+            }
+            function makeGhost(sourceEl, text) {
+                const ghost = document.createElement('div');
+                ghost.className = 'match-chip match-chip-ghost';
+                ghost.textContent = text;
+                ghost.style.position = 'fixed';
+                ghost.style.pointerEvents = 'none';
+                ghost.style.zIndex = 3000;
+                ghost.style.width = sourceEl.offsetWidth + 'px';
+                document.body.appendChild(ghost);
+                return ghost;
+            }
+            function moveGhost(x, y) {
+                if (!dragGhost) return;
+                dragGhost.style.left = (x - dragGhost.offsetWidth / 2) + 'px';
+                dragGhost.style.top = (y - dragGhost.offsetHeight / 2) + 'px';
+            }
+            function clearDragOverStyles() {
+                document.querySelectorAll('.match-slot.drag-over').forEach(s => s.classList.remove('drag-over'));
+            }
+            function cleanup() {
+                if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+                clearDragOverStyles();
+                dragSource = null;
+            }
+
+            document.addEventListener('pointerdown', e => {
+                const chip = e.target.closest('.match-chip');
+                const slot = e.target.closest('.match-slot');
+                if (chip && chip.style.display !== 'none') {
+                    dragSource = { letter: chip.dataset.letter, label: chip.textContent, group: chip.dataset.group, sourceSlot: null };
+                    dragGhost = makeGhost(chip, chip.textContent);
+                    moveGhost(e.clientX, e.clientY);
+                    e.preventDefault();
+                } else if (slot && slot.classList.contains('filled')) {
+                    dragSource = { letter: slot.dataset.letter, label: slot.textContent, group: slot.dataset.group, sourceSlot: slot };
+                    dragGhost = makeGhost(slot, slot.textContent);
+                    moveGhost(e.clientX, e.clientY);
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            document.addEventListener('pointermove', e => {
+                if (!dragSource) return;
+                moveGhost(e.clientX, e.clientY);
+                clearDragOverStyles();
+                if (dragGhost) dragGhost.style.display = 'none';
+                const target = document.elementFromPoint(e.clientX, e.clientY);
+                if (dragGhost) dragGhost.style.display = '';
+                const slotUnder = target && target.closest && target.closest('.match-slot');
+                if (slotUnder && slotUnder.dataset.group === dragSource.group) slotUnder.classList.add('drag-over');
+            }, { passive: true });
+
+            document.addEventListener('pointerup', e => {
+                if (!dragSource) return;
+                if (dragGhost) dragGhost.style.display = 'none';
+                const target = document.elementFromPoint(e.clientX, e.clientY);
+                if (dragGhost) dragGhost.style.display = '';
+                const slotUnder = target && target.closest && target.closest('.match-slot');
+
+                if (slotUnder && slotUnder.dataset.group === dragSource.group && slotUnder !== dragSource.sourceSlot) {
+                    if (dragSource.sourceSlot) clearSlot(dragSource.sourceSlot);
+                    fillSlot(slotUnder, dragSource.letter, dragSource.label);
+                } else if (!slotUnder && dragSource.sourceSlot) {
+                    // dropped outside any slot -> send the chip back to the bank
+                    clearSlot(dragSource.sourceSlot);
+                }
+                // dropped back on its own slot, or a bank chip dropped nowhere valid: no-op
+
+                cleanup();
+            });
+
+            document.addEventListener('pointercancel', cleanup);
+        })();
+
+        function gradePart(pNum) {
+            const [startQ, endQ] = passageRanges[pNum - 1];
+            const score = gradeQuestionRange(startQ, endQ);
+            const total = endQ - startQ + 1;
+            const btn = document.querySelector(`#part-grade-bar-${pNum} .part-grade-btn`);
+            if (btn) {
+                const original = btn.dataset.original || btn.innerText;
+                btn.dataset.original = original;
+                btn.innerText = `✅ Part ${pNum}: đúng ${score}/${total} câu`;
+                clearTimeout(btn._resetTimer);
+                btn._resetTimer = setTimeout(() => { btn.innerText = original; }, 5000);
+            }
+        }
+
+        // --- Application Logic ---
+        let appMode = 'practice'; // 'practice' or 'exam'
+        let currentPassage = 1;
+        let timerInterval;
+
+        // Nút "← Thoát": đóng hẳn tab/cửa sổ này luôn (giống bấm nút ✕ của trình duyệt) thay vì
+        // reload lại trang như trước. window.close() chỉ được trình duyệt cho phép khi tab này do
+        // 1 script khác mở ra (vd window.open() từ trang chủ khi bấm "Bài tập", hoặc mở từ Test
+        // Builder) — đúng với cách hầu hết học sinh mở trang này. Nếu trình duyệt CHẶN việc đóng
+        // (tab được gõ thẳng URL / mở từ dấu 3 chấm... không phải do script mở), fallback về lại
+        // trang trước đó (hoặc trang chủ nếu không có trang trước) để vẫn "thoát" ra được thay vì
+        // đứng yên không phản hồi gì.
+        function exitTest() {
+            if (timerInterval) clearInterval(timerInterval);
+            window.close();
+            setTimeout(function () {
+                if (!window.closed) {
+                    if (window.history.length > 1) window.history.back();
+                    else window.location.href = 'index.html';
+                }
+            }, 250);
+        }
+
+        function initNavCircles() {
+            for (let p = 1; p <= 3; p++) {
+                const [startQ, endQ] = passageRanges[p - 1];
+                let html = '';
+                for (let i = startQ; i <= endQ; i++) {
+                    html += `<div class="q-circle" id="nav-q${i}" onclick="scrollToQ(${i})">${i}</div>`;
+                }
+                document.getElementById(`q-nav-p${p}`).innerHTML = html;
+            }
+        }
+
+        function selectMode(mode) {
+            appMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById(`btn-${mode}`).classList.add('selected');
+            document.getElementById('passage-selector').style.display = mode === 'practice' ? 'block' : 'none';
+        }
+
+        // "Nâng cấp" các <span class="heading-gap"> tĩnh (do test-builder.html chèn sẵn ở đầu mỗi
+        // đoạn văn liên quan tới câu hỏi Matching Headings) thành match-slot thật — có thể kéo-thả
+        // được — rồi thêm input ẩn để gradeQuestionRange() chấm điểm y như mọi loại câu khác.
+        function initHeadingGapsInPassage() {
+            document.querySelectorAll('.heading-gap').forEach(gapEl => {
+                const qNum = gapEl.dataset.qnum;
+                const groupId = gapEl.dataset.group;
+                if (!qNum || !groupId) return;
+                gapEl.classList.add('match-slot');
+                gapEl.dataset.qnum = qNum;
+                gapEl.dataset.group = groupId;
+                gapEl.dataset.letter = '';
+                gapEl.id = 'slot-' + qNum;
+                gapEl.textContent = 'Kéo heading vào đây';
+                if (!document.getElementById('input-q' + qNum)) {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'q' + qNum;
+                    hidden.id = 'input-q' + qNum;
+                    hidden.value = '';
+                    gapEl.insertAdjacentElement('afterend', hidden);
+                }
+            });
+        }
+
+        function startTest() {
+            document.getElementById('setup-screen').style.display = 'none';
+            generateQuestionsHTML();
+            initHeadingGapsInPassage();
+            initNavCircles();
+            setupInputListeners();
+
+            // Exam mode: minimal white theme + single purple highlight colour, no
+            // per-part "chấm riêng" buttons (real exam only submits once at the end).
+            // Practice mode: original theme, full 4-colour highlight palette, and a
+            // per-part grade button on top of the shared "Nộp bài" button.
+            const isExam = appMode === 'exam';
+            document.body.classList.toggle('exam-mode', isExam);
+            document.querySelectorAll('.annot-color-practice').forEach(btn => btn.style.display = isExam ? 'none' : '');
+            document.querySelectorAll('.annot-color-exam').forEach(btn => btn.style.display = isExam ? '' : 'none');
+            document.querySelectorAll('.part-grade-bar').forEach(bar => bar.classList.toggle('visible', !isExam));
+
+            if (appMode === 'practice') {
+                let p = parseInt(document.getElementById('passage-dropdown').value);
+                document.getElementById('passage-tabs').style.display = 'flex';
+                switchPassage(p);
+            } else {
+                document.getElementById('passage-tabs').style.display = 'flex'; // allow manual nav in exam
+                switchPassage(1);
+                document.getElementById('timer-display').style.display = 'block';
+                startTimer(60 * 60); // Reading section is 60 minutes in the real IELTS exam
+            }
+        }
+
+        function switchPassage(pNum) {
+            currentPassage = pNum;
+            document.querySelectorAll('.tab-btn').forEach((btn, idx) => btn.classList.toggle('active', idx + 1 === pNum));
+            document.getElementById('current-passage-indicator').innerText = `PASSAGE ${pNum}`;
+
+            for(let i=1; i<=3; i++) {
+                document.getElementById(`q-nav-p${i}`).style.display = (i === pNum) ? 'flex' : 'none';
+                document.getElementById(`passage-${i}-text`).classList.toggle('active', i === pNum);
+                document.getElementById(`questions-p${i}`).classList.toggle('active', i === pNum);
+            }
+            document.querySelectorAll('.panel-content').forEach(p => p.scrollTop = 0);
+        }
+
+        function scrollToQ(qNum) {
+            const qEl = document.getElementById(`q-container-${qNum}`);
+            if(qEl) qEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // --- Draggable resizer between the passage panel and questions panel ---
+        (function initPanelResizer() {
+            const resizer = document.getElementById('panel-resizer');
+            const leftPanel = document.getElementById('panel-passage');
+            const container = document.getElementById('main-workspace');
+            if (!resizer || !leftPanel || !container) return;
+
+            let dragging = false;
+
+            function startDrag() {
+                dragging = true;
+                resizer.classList.add('dragging');
+                document.body.style.userSelect = 'none';
+            }
+            function doDrag(clientX) {
+                if (!dragging) return;
+                const rect = container.getBoundingClientRect();
+                let leftWidth = clientX - rect.left;
+                const min = 220;
+                const max = rect.width - 220 - resizer.offsetWidth;
+                leftWidth = Math.max(min, Math.min(max, leftWidth));
+                leftPanel.style.flex = 'none';
+                leftPanel.style.width = leftWidth + 'px';
+            }
+            function endDrag() {
+                dragging = false;
+                resizer.classList.remove('dragging');
+                document.body.style.userSelect = '';
+            }
+
+            resizer.addEventListener('mousedown', e => { startDrag(); e.preventDefault(); });
+            document.addEventListener('mousemove', e => doDrag(e.clientX));
+            document.addEventListener('mouseup', endDrag);
+
+            resizer.addEventListener('touchstart', () => { startDrag(); }, { passive: true });
+            document.addEventListener('touchmove', e => {
+                if (dragging) { doDrag(e.touches[0].clientX); e.preventDefault(); }
+            }, { passive: false });
+            document.addEventListener('touchend', endDrag);
+        })();
+
+        function setupInputListeners() {
+            document.addEventListener('input', e => {
+                if (e.target.name && e.target.name.startsWith('q')) {
+                    const qNum = e.target.name.substring(1);
+                    const circle = document.getElementById(`nav-q${qNum}`);
+                    if (!circle) return;
+
+                    let isAnswered = false;
+                    if (e.target.type === 'text') isAnswered = e.target.value.trim() !== '';
+                    if (e.target.type === 'radio') isAnswered = e.target.checked;
+                    // 'hidden' = ô đồng bộ của nhóm "Choose N of M" (genMulti); 'select-one' = dropdown
+                    // của Matching Headings / Matching Names-Claims (genLettered).
+                    if (e.target.type === 'hidden' || e.target.type === 'select-one') isAnswered = e.target.value.trim() !== '';
+
+                    circle.classList.toggle('answered', isAnswered);
+                }
+            });
+            // <select> chỉ tự bắn ra sự kiện 'change', không phải 'input' trên mọi trình duyệt —
+            // lắng thêm 'change' và tái dùng lại đúng logic ở trên cho chắc chắn nút tròn số câu
+            // hỏi luôn sáng lên khi học sinh đã chọn xong dropdown.
+            document.addEventListener('change', e => {
+                if (e.target.tagName === 'SELECT' && e.target.name && e.target.name.startsWith('q')) {
+                    const qNum = e.target.name.substring(1);
+                    const circle = document.getElementById(`nav-q${qNum}`);
+                    if (circle) circle.classList.toggle('answered', e.target.value.trim() !== '');
+                }
+            });
+        }
+
+        function startTimer(duration) {
+            let timer = duration;
+            const display = document.getElementById('timer-display');
+            timerInterval = setInterval(() => {
+                let m = parseInt(timer / 60, 10);
+                let s = parseInt(timer % 60, 10);
+                display.textContent = (m < 10 ? "0"+m : m) + ":" + (s < 10 ? "0"+s : s);
+                if (--timer < 0) { clearInterval(timerInterval); submitTest(); }
+            }, 1000);
+        }
+
+        // Grades questions [startQ, endQ] inclusive, writing feedback into each
+        // question's #fb-N box, and returns the number correct. Shared by the
+        // full "Nộp bài" submit and the per-part "Chấm riêng Part N" buttons.
+        function gradeQuestionRange(startQ, endQ) {
+            let score = 0;
+            for (let i = startQ; i <= endQ; i++) {
+                let uAns = "";
+                const inputs = document.getElementsByName(`q${i}`);
+                if (inputs.length > 0) {
+                    if (inputs[0].type === 'radio') {
+                        inputs.forEach(r => { if(r.checked) uAns = r.value; });
+                    } else {
+                        uAns = inputs[0].value.trim().toUpperCase();
+                    }
+                }
+
+                const cAns = (testData[i].answer || '').toUpperCase();
+                const fbBox = document.getElementById(`fb-${i}`);
+
+                if (fbBox) {
+                    fbBox.style.display = 'block';
+                    fbBox.className = 'feedback-box'; // reset
+
+                    let isCorrect = (uAns === cAns);
+
+                    if (isCorrect) {
+                        score++;
+                        fbBox.classList.add('correct');
+                        fbBox.innerHTML = `<strong>Đúng!</strong> Đáp án: ${testData[i].answer}`;
+                    } else {
+                        fbBox.classList.add('incorrect');
+                        fbBox.innerHTML = `<strong>Sai.</strong> Bạn chọn: <s style="color:#aaa">${uAns||'Trống'}</s> | Đáp án đúng: <strong style="color:var(--text-color)">${testData[i].answer}</strong>`;
+                    }
+
+                    // Add explanation and locate button
+                    fbBox.innerHTML += `<div class="explanation-text">${testData[i].exp}</div>`;
+                    if (testData[i].loc !== "") {
+                        fbBox.innerHTML += `<button class="show-loc-btn" onclick="highlightPassage('${testData[i].loc}')">🔍 Xem vị trí trong bài</button>`;
+                    }
+                }
+            }
+            return score;
+        }
+
+        function submitTest() {
+            if(timerInterval) clearInterval(timerInterval);
+
+            // Mặc định: chấm cả 3 passage/part cùng lúc (luyện tập tự do / thi thử), không chỉ
+            // passage tab đang mở. NHƯNG nếu đây là 1 bài tập được giao (IS_ASSIGNMENT_MODE) chỉ
+            // cho ĐÚNG 1 Passage, thì CHỈ chấm đúng Passage đó — để điểm hiển thị khớp với chính
+            // xác phần bài giáo viên đã giao, tránh gây hiểu nhầm "làm 1 đoạn nhưng điểm tính cả bài".
+            let startQ = 1, endQ = TOTAL_QUESTIONS;
+            if (IS_ASSIGNMENT_MODE && (ASSIGN_SCOPE === '1' || ASSIGN_SCOPE === '2' || ASSIGN_SCOPE === '3')) {
+                const range = passageRanges[parseInt(ASSIGN_SCOPE, 10) - 1];
+                if (range) { startQ = range[0]; endQ = range[1]; }
+            }
+            const total = endQ - startQ + 1;
+            const score = gradeQuestionRange(startQ, endQ);
+
+            // Show results
+            document.getElementById('score-correct').innerText = score;
+            document.getElementById('score-total').innerText = total;
+
+            // Show the estimated band score in both modes now that grading always
+            // covers all 3 passages.
+            document.getElementById('band-container').style.display = 'block';
+            const band = calculateBand(score);
+            document.getElementById('band-score').innerText = band;
+
+            saveProgressRecord(score, total, band);
+
+            // Khi đang nộp 1 bài tập được giao: hiện rõ banner "Đã nộp homework thành công" +
+            // đổi tiêu đề modal, để học sinh biết chắc chắn bài đã được ghi nhận (không chỉ là
+            // "xem điểm luyện tập" như bình thường).
+            const successBanner = document.getElementById('homework-success-banner');
+            const resultsTitle = document.getElementById('results-modal-title');
+            if (IS_ASSIGNMENT_MODE) {
+                if (successBanner) successBanner.style.display = 'block';
+                if (resultsTitle) resultsTitle.innerText = `Đã nộp homework thành công! (${assignmentScopeLabel()})`;
+            } else {
+                if (successBanner) successBanner.style.display = 'none';
+                if (resultsTitle) resultsTitle.innerText = 'Kết quả làm bài';
+            }
+
+            document.getElementById('results-modal').style.display = 'flex';
+        }
+
+        function calculateBand(s) {
+            const scaled = TOTAL_QUESTIONS > 0 ? Math.round(s * 40 / TOTAL_QUESTIONS) : s;
+            if (scaled>=39) return "9.0"; if (scaled>=37) return "8.5"; if (scaled>=35) return "8.0";
+            if (scaled>=33) return "7.5"; if (scaled>=30) return "7.0"; if (scaled>=27) return "6.5";
+            if (scaled>=23) return "6.0"; if (scaled>=19) return "5.5"; if (scaled>=15) return "5.0";
+            if (scaled>=13) return "4.5"; if (scaled>=10) return "4.0"; return "< 4.0";
+        }
+
+        // --- Shared progress/history log (read by the site's index page) ---
+        // Kept deliberately tiny per attempt and capped in count so it never
+        // eats meaningful localStorage space.
+        const PROGRESS_HISTORY_KEY = 'bseh_progress_history';
+        const PROGRESS_HISTORY_LIMIT = 40;
+
+        function saveProgressRecord(score, total, band) {
+            try {
+                let history = JSON.parse(localStorage.getItem(PROGRESS_HISTORY_KEY) || '[]');
+                history.unshift({
+                    t: document.title,                // test title
+                    u: location.pathname.split('/').pop(), // filename, so index.html can link back
+                    s: score,
+                    n: total,
+                    b: band,
+                    m: appMode,
+                    d: new Date().toLocaleDateString('vi-VN')
+                });
+                if (history.length > PROGRESS_HISTORY_LIMIT) history = history.slice(0, PROGRESS_HISTORY_LIMIT);
+                localStorage.setItem(PROGRESS_HISTORY_KEY, JSON.stringify(history));
+            } catch (e) { /* localStorage unavailable or full - fail silently, non-critical */ }
+        }
+
+        function closeResultsAndReview() {
+            document.getElementById('results-modal').style.display = 'none';
+            document.getElementById('main-submit-btn').style.display = 'none';
+        }
+
+        let currentHighlight = null;
+        function highlightPassage(locId) {
+            if(currentHighlight) currentHighlight.classList.remove('explanation-highlight');
+
+            const span = document.getElementById(locId);
+            if (span) {
+                span.classList.add('explanation-highlight');
+                currentHighlight = span;
+
+                // Determine which passage this belongs to based on DOM hierarchy
+                let pWrapper = span.closest('.content-wrapper');
+                if (pWrapper) {
+                    let pId = pWrapper.id;
+                    if(pId.includes('1') && currentPassage !== 1) switchPassage(1);
+                    if(pId.includes('2') && currentPassage !== 2) switchPassage(2);
+                    if(pId.includes('3') && currentPassage !== 3) switchPassage(3);
+                }
+
+                span.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // --- Annotation Toolbar (highlight / underline / strikethrough / eraser / note) ---
+        const annotToolbar = document.getElementById('annot-toolbar');
+        const transBox = document.getElementById('trans-box');
+        const noteInputBox = document.getElementById('note-input-box');
+        const noteInputField = document.getElementById('note-input-field');
+        let selectedTextStr = "";
+        let savedRange = null;
+        let currentTranslation = null;
+        let noteInputOpen = false;
+
+        // Keep text selection alive while clicking toolbar buttons
+        annotToolbar.addEventListener('mousedown', e => e.preventDefault());
+        noteInputBox.addEventListener('mousedown', e => e.preventDefault());
+
+        const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+
+        function positionFloatingBox(boxEl, rect) {
+            // On touch devices (iPad etc.) place the box BELOW the selection so it
+            // doesn't collide/overlap with the OS's own native selection toolbar (which
+            // pops up above the selection).
+            boxEl.style.visibility = 'hidden';
+            boxEl.style.display = 'flex';
+            const tbWidth = boxEl.offsetWidth || 220;
+            const top = isCoarsePointer
+                ? (rect.bottom + window.scrollY + 14)
+                : (rect.top + window.scrollY - 48);
+            let left = rect.left + window.scrollX + (rect.width / 2) - (tbWidth / 2);
+            left = Math.max(10, Math.min(left, window.scrollX + window.innerWidth - tbWidth - 10));
+            boxEl.style.top = top + 'px';
+            boxEl.style.left = left + 'px';
+            boxEl.style.visibility = 'visible';
+        }
+
+        function positionToolbar(rect) { positionFloatingBox(annotToolbar, rect); }
+
+        function handleSelectionUI(e) {
+            // Don't trigger if clicking inside the toolbar, note-input popup, or translation box itself
+            if (e && (transBox.contains(e.target) || annotToolbar.contains(e.target) || noteInputBox.contains(e.target))) return;
+            if (noteInputOpen) return; // đang gõ dở note thì không xử lý lại theo selection nữa
+
+            const selection = window.getSelection();
+            const text = selection.toString().trim();
+
+            if (text.length > 0 && selection.rangeCount > 0 && text.split(/\s+/).length < 50) {
+                const anchorNode = selection.anchorNode;
+                const anchorEl = anchorNode && (anchorNode.nodeType === 3 ? anchorNode.parentNode : anchorNode);
+                const workspace = document.getElementById('main-workspace');
+                if (!anchorEl || !workspace.contains(anchorEl)) return;
+
+                savedRange = selection.getRangeAt(0).cloneRange();
+                selectedTextStr = text;
+
+                const rect = savedRange.getBoundingClientRect();
+                if (rect.width === 0 && rect.height === 0) return; // selection geometry not painted yet
+                positionToolbar(rect);
+                annotToolbar.style.display = 'flex';
+                transBox.style.display = 'none'; // hide translation box if making a new selection
+                noteInputBox.style.display = 'none'; noteInputOpen = false; // hide note popup too
+            } else {
+                annotToolbar.style.display = 'none';
+                if (!(e && transBox.contains(e.target))) transBox.style.display = 'none';
+            }
+        }
+
+        document.getElementById('main-workspace').addEventListener('mouseup', handleSelectionUI);
+
+        // iOS/iPad (and other touch/stylus devices) frequently don't fire a usable
+        // 'mouseup' after a native text-selection gesture, so 'selectionchange'
+        // (debounced) is used as a more reliable, cross-platform fallback.
+        let selectionDebounceTimer = null;
+        document.addEventListener('selectionchange', function() {
+            clearTimeout(selectionDebounceTimer);
+            selectionDebounceTimer = setTimeout(() => handleSelectionUI(null), 220);
+        });
+
+        // Touch: dismiss the toolbar when tapping empty space with no active selection
+        document.addEventListener('touchstart', function(e) {
+            if (!annotToolbar.contains(e.target) && !transBox.contains(e.target) && !noteInputBox.contains(e.target) && !noteDeleteBox.contains(e.target)) {
+                const sel = window.getSelection();
+                if (!sel || sel.toString().trim() === '') {
+                    annotToolbar.style.display = 'none';
+                    if (!noteInputOpen) noteInputBox.style.display = 'none';
+                    if (!findNoteAtClick(e.target)) hideNoteDeleteBox();
+                }
+            }
+        }, { passive: true });
+
+        // --- Robust multi-node wrap/erase so annotations survive selections that
+        //     span multiple paragraphs or existing <span id="loc-..."> markers ---
+        // Trả về mảng các phần tử wrapper vừa tạo (theo đúng thứ tự trong văn bản) — dùng để, vd, chèn
+        // thêm 1 note ngay sau phần tử CUỐI CÙNG khi vùng chọn note trải dài qua nhiều đoạn/node.
+        function wrapRangeNodes(range, makeWrapper) {
+            if (!range || range.collapsed) return [];
+            const root = range.commonAncestorContainer;
+            const walker = document.createTreeWalker(
+                root.nodeType === 3 ? root.parentNode : root,
+                NodeFilter.SHOW_TEXT,
+                null
+            );
+            const nodes = [];
+            let node;
+            while (node = walker.nextNode()) {
+                if (range.intersectsNode(node) && node.nodeValue.trim() !== '') nodes.push(node);
+            }
+            const wrappers = [];
+            nodes.forEach(textNode => {
+                const nodeRange = document.createRange();
+                nodeRange.selectNodeContents(textNode);
+                if (textNode === range.startContainer) nodeRange.setStart(textNode, range.startOffset);
+                if (textNode === range.endContainer) nodeRange.setEnd(textNode, range.endOffset);
+                if (nodeRange.collapsed) return;
+                try {
+                    const wrapper = makeWrapper();
+                    nodeRange.surroundContents(wrapper);
+                    wrappers.push(wrapper);
+                } catch (err) { /* skip nodes that can't be safely wrapped */ }
+            });
+            return wrappers;
+        }
+
+        function applyHighlight(range, color, textColor) {
+            wrapRangeNodes(range, () => {
+                const span = document.createElement('span');
+                span.className = 'user-annotation user-highlight';
+                span.style.backgroundColor = color;
+                // Dark highlight colors (e.g. exam mode's maroon/wine) need white text
+                // on top to stay readable; pastel practice colors leave text untouched.
+                if (textColor) span.style.color = textColor;
+                return span;
+            });
+        }
+
+        function applyUnderline(range) {
+            wrapRangeNodes(range, () => {
+                const span = document.createElement('span');
+                span.className = 'user-annotation';
+                span.style.textDecoration = 'underline';
+                span.style.textDecorationColor = '#1a73e8';
+                span.style.textDecorationThickness = '2px';
+                return span;
+            });
+        }
+
+        function applyStrike(range) {
+            wrapRangeNodes(range, () => {
+                const span = document.createElement('span');
+                span.className = 'user-annotation';
+                span.style.textDecoration = 'line-through';
+                span.style.textDecorationColor = '#f44336';
+                return span;
+            });
+        }
+
+        function eraseAnnotations(range) {
+            if (!range) return;
+            document.querySelectorAll('.user-annotation').forEach(el => {
+                if (range.intersectsNode(el)) unwrapElement(el);
+            });
+        }
+
+        function unwrapElement(el) {
+            const parent = el.parentNode;
+            if (!parent) return;
+            while (el.firstChild) parent.insertBefore(el.firstChild, el);
+            parent.removeChild(el);
+            parent.normalize();
+        }
+
+        function cleanupAfterAnnotate() {
+            annotToolbar.style.display = 'none';
+            window.getSelection().removeAllRanges();
+            savedRange = null;
+        }
+
+        document.querySelectorAll('.annot-color').forEach(btn => {
+            btn.addEventListener('click', () => {
+                applyHighlight(savedRange, btn.dataset.color, btn.dataset.textColor || null);
+                cleanupAfterAnnotate();
+            });
+        });
+        document.getElementById('annot-underline').addEventListener('click', () => {
+            applyUnderline(savedRange);
+            cleanupAfterAnnotate();
+        });
+        document.getElementById('annot-strike').addEventListener('click', () => {
+            applyStrike(savedRange);
+            cleanupAfterAnnotate();
+        });
+        document.getElementById('annot-erase').addEventListener('click', () => {
+            eraseAnnotations(savedRange);
+            cleanupAfterAnnotate();
+        });
+
+        // --- Note popup: bấm "📝 Note" trên thanh nổi -> ẩn thanh nổi, hiện ô nhập note ngay tại
+        //     đúng vị trí đó -> Enter/nút ✓ để xác nhận, Esc/nút ✕ để huỷ.
+        //     QUAN TRỌNG: bấm vào ô nhập (input) sẽ làm trình duyệt tự huỷ vùng bôi đen xanh mặc định,
+        //     nên NGAY khi mở ô nhập, đoạn chữ vừa chọn được bọc tạm trong 1 lớp highlight vàng
+        //     (.note-pending-highlight) để người dùng vẫn thấy rõ mình đang note cho đúng đoạn nào.
+        //     Xác nhận thì lớp tạm này được "chốt" thành in đậm + note đỏ; Huỷ thì gỡ ra, trả nguyên
+        //     trạng đoạn chữ. ---
+        let pendingNoteWrappers = [];
+
+        document.getElementById('annot-note-btn').addEventListener('click', () => {
+            if (!savedRange) return;
+            const wrappers = wrapRangeNodes(savedRange, () => {
+                const span = document.createElement('span');
+                span.className = 'note-pending-highlight';
+                return span;
+            });
+            if (wrappers.length === 0) {
+                alert('Không thể thêm note vào đúng đoạn đã chọn (có thể vùng chọn đè lên định dạng khác). Vui lòng bôi đen lại 1 đoạn chữ khác rồi thử lại.');
+                cleanupAfterAnnotate();
+                return;
+            }
+            pendingNoteWrappers = wrappers;
+            const rect = wrappers[0].getBoundingClientRect();
+            annotToolbar.style.display = 'none';
+            noteInputOpen = true;
+            noteInputField.value = '';
+            positionFloatingBox(noteInputBox, rect);
+            noteInputField.focus();
+        });
+
+        function closeNoteInput(clearSelection) {
+            noteInputBox.style.display = 'none';
+            noteInputOpen = false;
+            if (clearSelection) {
+                window.getSelection().removeAllRanges();
+                savedRange = null;
+            }
+        }
+
+        function confirmNoteInput() {
+            const noteText = noteInputField.value.trim();
+            if (!noteText) { noteInputField.focus(); return; }
+            // "Chốt" từng đoạn highlight tạm thành <b> thật (giữ nguyên text bên trong, chỉ đổi span -> b).
+            const finalWrappers = pendingNoteWrappers.map(span => {
+                const b = document.createElement('b');
+                b.className = 'user-annotation user-note-phrase';
+                while (span.firstChild) b.appendChild(span.firstChild);
+                span.parentNode.replaceChild(b, span);
+                return b;
+            });
+            pendingNoteWrappers = [];
+            const lastWrapper = finalWrappers[finalWrappers.length - 1];
+            // Dùng lại đúng class .reading-note mà công cụ soạn đề dùng cho note giáo viên soạn sẵn lúc
+            // build, nên style giống hệt nhau. Cả phần in đậm lẫn phần note đều mang "user-annotation"
+            // nên nút "🧹 Xóa định dạng" vẫn xoá được, và bấm trực tiếp vào note cũng xoá được riêng nó
+            // (xem trình xử lý click "Xóa note" bên dưới).
+            const noteSpan = document.createElement('span');
+            noteSpan.className = 'user-annotation reading-note';
+            noteSpan.textContent = ` [${noteText}]`;
+            lastWrapper.parentNode.insertBefore(noteSpan, lastWrapper.nextSibling);
+            closeNoteInput(true);
+        }
+
+        function cancelNoteInput() {
+            // Gỡ lớp highlight tạm, trả đoạn chữ về nguyên trạng ban đầu (chưa note gì cả).
+            pendingNoteWrappers.forEach(span => unwrapElement(span));
+            pendingNoteWrappers = [];
+            closeNoteInput(true);
+        }
+
+        document.getElementById('note-input-ok').addEventListener('click', confirmNoteInput);
+        document.getElementById('note-input-cancel').addEventListener('click', cancelNoteInput);
+        noteInputField.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); confirmNoteInput(); }
+            else if (e.key === 'Escape') { e.preventDefault(); cancelNoteInput(); }
+        });
+
+        // --- Xoá 1 note đã thêm: bấm trực tiếp vào note đó (chữ in đậm hoặc phần [note] đỏ ngay sau)
+        //     -> hiện 1 nút nhỏ nổi lên "🗑 Xóa note" ngay phía trên -> bấm để xoá riêng note đó, không
+        //     cần bôi đen lại rồi dùng "🧹 Xóa định dạng" như trước. Áp dụng cho MỌI note đang hiển thị,
+        //     kể cả note giáo viên soạn sẵn lúc build đề (cú pháp {{đoạn chữ|note}}) — vì đây chỉ là xoá
+        //     tạm trên máy người đang xem lúc đó, tải lại trang là note gốc hiện lại bình thường. ---
+        const noteDeleteBox = document.getElementById('note-delete-box');
+        const noteDeleteBtn = document.getElementById('note-delete-btn');
+        noteDeleteBox.addEventListener('mousedown', e => e.preventDefault());
+        let noteDeleteTarget = null;
+
+        function hideNoteDeleteBox() {
+            noteDeleteBox.style.display = 'none';
+            noteDeleteTarget = null;
+        }
+
+        function findNoteAtClick(target) {
+            let noteSpan = target.closest ? target.closest('.reading-note') : null;
+            let bold = target.closest ? target.closest('b') : null;
+            if (bold && !noteSpan) {
+                const next = bold.nextElementSibling;
+                if (next && next.classList && next.classList.contains('reading-note')) noteSpan = next;
+                else bold = null; // <b> này không liền kề note nào -> không phải note, bỏ qua
+            }
+            if (noteSpan && !bold) {
+                const prev = noteSpan.previousElementSibling;
+                if (prev && prev.tagName === 'B') bold = prev;
+            }
+            return noteSpan ? { bold, noteSpan } : null;
+        }
+
+        document.getElementById('main-workspace').addEventListener('click', (e) => {
+            if (annotToolbar.contains(e.target) || noteInputBox.contains(e.target) || transBox.contains(e.target) || noteDeleteBox.contains(e.target)) return;
+            // Đang có vùng bôi đen (vừa kéo chọn chữ) thì ưu tiên luồng thêm định dạng/note mới, không
+            // xử lý theo hướng "xoá note" nữa.
+            const sel = window.getSelection();
+            if (sel && sel.toString().trim().length > 0) { hideNoteDeleteBox(); return; }
+
+            const found = findNoteAtClick(e.target);
+            if (!found) { hideNoteDeleteBox(); return; }
+            noteDeleteTarget = found;
+            const rect = found.noteSpan.getBoundingClientRect();
+            positionFloatingBox(noteDeleteBox, rect);
+        });
+
+        noteDeleteBtn.addEventListener('click', () => {
+            if (!noteDeleteTarget) return;
+            const { bold, noteSpan } = noteDeleteTarget;
+            if (noteSpan && noteSpan.parentNode) noteSpan.parentNode.removeChild(noteSpan);
+            if (bold) unwrapElement(bold);
+            hideNoteDeleteBox();
+        });
+
+        // --- Translation (real free API: Google Translate unofficial endpoint,
+        //     falling back to MyMemory if the first one fails/blocked) ---
+        document.getElementById('annot-translate-btn').addEventListener('click', () => {
+            if (!savedRange) return;
+            const rect = savedRange.getBoundingClientRect();
+            annotToolbar.style.display = 'none';
+            showTranslationBox(selectedTextStr, rect);
+        });
+
+        async function fetchTranslation(text) {
+            try {
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=vi&dt=t&q=${encodeURIComponent(text)}`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Google Translate request failed');
+                const data = await res.json();
+                const translated = data[0].map(chunk => chunk[0]).join('');
+                if (translated) return translated;
+                throw new Error('Empty result');
+            } catch (err) {
+                console.warn('Google Translate lỗi, thử MyMemory...', err);
+            }
+            try {
+                const url2 = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|vi`;
+                const res2 = await fetch(url2);
+                const data2 = await res2.json();
+                if (data2 && data2.responseData && data2.responseData.translatedText) {
+                    return data2.responseData.translatedText;
+                }
+                throw new Error('MyMemory trả về rỗng');
+            } catch (err2) {
+                console.error('Tất cả API dịch đều lỗi', err2);
+                return null;
+            }
+        }
+
+        async function showTranslationBox(text, rect) {
+            document.getElementById('trans-original').innerText = text;
+            const resultEl = document.getElementById('trans-result');
+            resultEl.innerText = 'Đang dịch...';
+            resultEl.style.opacity = '0.6';
+            currentTranslation = null;
+
+            transBox.style.top = (rect.bottom + window.scrollY + 10) + 'px';
+            transBox.style.left = (rect.left + window.scrollX) + 'px';
+            transBox.style.display = 'block';
+
+            requestAnimationFrame(() => {
+                const boxRect = transBox.getBoundingClientRect();
+                if (boxRect.right > window.innerWidth) {
+                    transBox.style.left = Math.max(10, window.innerWidth - boxRect.width - 20 + window.scrollX) + 'px';
+                }
+            });
+
+            const translated = await fetchTranslation(text);
+            resultEl.style.opacity = '1';
+            if (translated) {
+                resultEl.innerText = translated;
+                currentTranslation = translated;
+            } else {
+                resultEl.innerHTML = 'Không thể dịch lúc này.<br><span style="font-size:12px;color:#999;">(Kiểm tra kết nối mạng)</span>';
+            }
+        }
+
+        function closeTranslation() {
+            transBox.style.display = 'none';
+            window.getSelection().removeAllRanges();
+            savedRange = null;
+        }
+
+        // Text-to-Speech
+        document.getElementById('tts-play').addEventListener('click', function() {
+            if ('speechSynthesis' in window && selectedTextStr) {
+                window.speechSynthesis.cancel(); // stop current
+                let msg = new SpeechSynthesisUtterance(selectedTextStr);
+                msg.lang = 'en-US';
+                window.speechSynthesis.speak(msg);
+            } else {
+                alert("Trình duyệt không hỗ trợ đọc Text-to-Speech.");
+            }
+        });
+
+        // --- Vocabulary Notebook (saved locally in this browser) ---
+        const VOCAB_LIMIT = 300;
+
+        document.getElementById('save-vocab-btn').addEventListener('click', () => {
+            if (!selectedTextStr || !currentTranslation) return;
+            const result = saveToVocabBook(selectedTextStr, currentTranslation);
+            const btn = document.getElementById('save-vocab-btn');
+            const original = btn.innerText;
+            if (result === 'full') {
+                alert(`Sổ từ vựng đã đầy (tối đa ${VOCAB_LIMIT} từ). Hãy xoá bớt từ cũ trong "My Words" trước khi lưu thêm.`);
+                return;
+            }
+            btn.innerText = result === 'duplicate' ? '✓ Đã có sẵn' : '✅ Đã lưu!';
+            setTimeout(() => { btn.innerText = original; }, 1500);
+        });
+
+        function getVocabBook() {
+            try {
+                return JSON.parse(localStorage.getItem('ielts_vocab_book') || '[]');
+            } catch (e) { return []; }
+        }
+
+        // Returns 'saved' | 'duplicate' | 'full'
+        function saveToVocabBook(en, vi) {
+            let book = getVocabBook();
+            if (book.some(item => item.en.toLowerCase() === en.toLowerCase())) return 'duplicate'; // avoid duplicates
+            if (book.length >= VOCAB_LIMIT) return 'full'; // must delete old words before saving new ones
+            book.unshift({ en, vi, date: new Date().toLocaleDateString('vi-VN') });
+            localStorage.setItem('ielts_vocab_book', JSON.stringify(book));
+            updateVocabCount();
+            return 'saved';
+        }
+
+        function removeVocab(idx) {
+            let book = getVocabBook();
+            book.splice(idx, 1);
+            localStorage.setItem('ielts_vocab_book', JSON.stringify(book));
+            updateVocabCount();
+            renderVocabList();
+        }
+
+        function updateVocabCount() {
+            const el = document.getElementById('vocab-count');
+            if (el) {
+                const n = getVocabBook().length;
+                el.innerText = n >= VOCAB_LIMIT ? `${n}/${VOCAB_LIMIT}` : n;
+            }
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function renderVocabList() {
+            const book = getVocabBook();
+            const listEl = document.getElementById('vocab-list');
+            if (book.length === 0) {
+                listEl.innerHTML = '<p style="color:#888;">Chưa có từ nào được lưu. Hãy bôi đen một từ trong bài đọc, bấm 🌐 Dịch rồi Lưu vào Sổ!</p>';
+                return;
+            }
+            listEl.innerHTML = book.map((item, idx) => `
+                <div class="vocab-item">
+                    <div>
+                        <div class="vocab-en">${escapeHtml(item.en)}</div>
+                        <div class="vocab-vi">${escapeHtml(item.vi)}</div>
+                        <div class="vocab-date">${escapeHtml(item.date)}</div>
+                    </div>
+                    <button class="vocab-del-btn" onclick="removeVocab(${idx})" title="Xóa">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        function openVocabBook() {
+            renderVocabList();
+            document.getElementById('vocab-modal').style.display = 'flex';
+        }
+
+        function closeVocabBook() {
+            document.getElementById('vocab-modal').style.display = 'none';
+        }
+
+        updateVocabCount();
+
+    </script>
+
+    <!-- ============ BÁO CÁO KẾT QUẢ VỀ FIRESTORE (chỉ chạy khi bài test này được mở từ 1 bài
+         tập được giao qua "Bài tập" trên trang chủ — tức URL có ?assignmentId=). Tách riêng thành
+         1 <script type="module"> độc lập, KHÔNG đụng vào script chính ở trên, để không phải gắn
+         lại hàng loạt hàm lên window. Script này chỉ đọc kết quả grading có sẵn (submitTest()) rồi
+         cập nhật THẲNG vào đúng document assignments/{assignmentId} — CÙNG 1 collection mà trang
+         chủ (index.html) dùng để hiện "Bài Tập Được Giao" và mục Tiến Độ Học Sinh cho giáo viên,
+         thay vì 1 collection "submissions" riêng mà trang chủ không biết đọc. -->
+    <script type="module">
+        (function () {
+            var params = new URLSearchParams(location.search);
+            var assignmentId = params.get('assignmentId');
+            var scope = params.get('scope') || 'all';
+            if (!assignmentId) return; // mở bài test bình thường (không phải bài được giao) -> bỏ qua
+
+            // PHẢI giống hệt khối firebaseConfig trong index.html / các công cụ khác của Night
+            // IELTS (project "night-ielts-land") — nếu không kết quả sẽ ghi nhầm project, giáo
+            // viên sẽ không bao giờ thấy được.
+            var FB_CONFIG = {
+                apiKey: "AIzaSyCmeN49M4oI78ZPWDhMlbisDOLaMJp2mb8",
+                authDomain: "night-ielts-land.firebaseapp.com",
+                databaseURL: "https://night-ielts-land-default-rtdb.firebaseio.com",
+                projectId: "night-ielts-land",
+                storageBucket: "night-ielts-land.firebasestorage.app",
+                messagingSenderId: "408519436407",
+                appId: "1:408519436407:web:a9f0b9ba23368b54427e72",
+                measurementId: "G-H3P14NJR76"
+            };
+
+            Promise.all([
+                import('https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js'),
+                import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js')
+            ]).then(function (mods) {
+                var appMod = mods[0], fsMod = mods[1];
+                var app = appMod.initializeApp(FB_CONFIG, 'night-ielts-reading-report-' + Date.now());
+                var db = fsMod.getFirestore(app);
+                var assignmentRef = fsMod.doc(db, 'assignments', assignmentId);
+
+                // Bọc submitTest() gốc: chấm bài vẫn chạy y như cũ, chỉ thêm bước báo kết quả về
+                // Firestore ngay sau đó. submitTest là function khai báo ở top-level của <script>
+                // thường (không phải module) nên tự gắn lên window — an toàn để bọc lại ở đây vì
+                // module này chạy sau khi script chính đã thực thi xong (defer mặc định của module).
+                var origSubmitTest = window.submitTest;
+                window.submitTest = function () {
+                    if (typeof origSubmitTest === 'function') origSubmitTest();
+                    try { reportAssignmentResult(); } catch (e) { console.warn('Night IELTS: report failed', e); }
+                };
+
+                function reportAssignmentResult() {
+                    // submitTest() ở trên luôn chấm CẢ 3 passage rồi hiện tổng điểm ở #score-correct/#score-total.
+                    var fullCorrectEl = document.getElementById('score-correct');
+                    var fullTotalEl = document.getElementById('score-total');
+                    var reportCorrect = fullCorrectEl ? (parseInt(fullCorrectEl.innerText, 10) || 0) : 0;
+                    var reportTotal = fullTotalEl ? (parseInt(fullTotalEl.innerText, 10) || 0) : 0;
+
+                    // Nếu giáo viên chỉ giao 1 Passage (thường gặp nhất), báo điểm riêng của đúng
+                    // Passage đó thay vì điểm cả đề — chấm lại đúng khoảng câu hỏi của passage này
+                    // (an toàn để gọi lại: gradeQuestionRange ghi đè fbBox chứ không cộng dồn).
+                    if ((scope === '1' || scope === '2' || scope === '3') &&
+                        window.passageRanges && typeof window.gradeQuestionRange === 'function') {
+                        var range = window.passageRanges[parseInt(scope, 10) - 1];
+                        if (range) {
+                            reportCorrect = window.gradeQuestionRange(range[0], range[1]);
+                            reportTotal = range[1] - range[0] + 1;
+                        }
+                    }
+
+                    var percent = reportTotal > 0 ? Math.round(reportCorrect / reportTotal * 100) : 0;
+                    fsMod.updateDoc(assignmentRef, {
+                        percent: percent,
+                        completed: true,
+                        scoreText: reportCorrect + '/' + reportTotal,
+                        lastPlayedAt: Date.now()
+                    }).catch(function (e) { console.warn('Night IELTS: cập nhật assignments thất bại', e); });
+                }
+            }).catch(function (e) { console.warn('Night IELTS: không tải được hệ thống báo cáo', e); });
+        })();
+    </script>
+</body>
+</html>
