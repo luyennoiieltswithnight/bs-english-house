@@ -945,8 +945,9 @@
         // (1 Passage hay cả bài) mà giáo viên đã giao, thay vì luôn mở full 3 Passage mập mờ.
         const __assignParams = new URLSearchParams(location.search);
         const ASSIGN_ID = __assignParams.get('assignmentId') || '';
+        const ASSIGN_UID = __assignParams.get('uid') || '';
         const ASSIGN_SCOPE = __assignParams.get('scope') || 'all'; // 'all' | '1' | '2' | '3'
-        const IS_ASSIGNMENT_MODE = !!ASSIGN_ID;
+        const IS_ASSIGNMENT_MODE = !!(ASSIGN_ID && ASSIGN_UID);
         function assignmentScopeLabel() {
             return (ASSIGN_SCOPE === '1' || ASSIGN_SCOPE === '2' || ASSIGN_SCOPE === '3')
                 ? `Passage ${ASSIGN_SCOPE}` : 'Cả bài (3 Passage)';
@@ -2422,31 +2423,29 @@
     </script>
 
     <!-- ============ BÁO CÁO KẾT QUẢ VỀ FIRESTORE (chỉ chạy khi bài test này được mở từ 1 bài
-         tập được giao qua "Bài tập" trên trang chủ — tức URL có ?assignmentId=). Tách riêng thành
-         1 <script type="module"> độc lập, KHÔNG đụng vào script chính ở trên, để không phải gắn
-         lại hàng loạt hàm lên window. Script này chỉ đọc kết quả grading có sẵn (submitTest()) rồi
-         cập nhật THẲNG vào đúng document assignments/{assignmentId} — CÙNG 1 collection mà trang
-         chủ (index.html) dùng để hiện "Bài Tập Được Giao" và mục Tiến Độ Học Sinh cho giáo viên,
-         thay vì 1 collection "submissions" riêng mà trang chủ không biết đọc. -->
+         tập được giao qua "Bài tập" trên trang chủ — tức URL có ?assignmentId=&uid=). Tách riêng
+         thành 1 <script type="module"> độc lập, KHÔNG đụng vào script chính ở trên, để không phải
+         gắn lại hàng loạt hàm lên window. Script này chỉ đọc kết quả grading có sẵn (submitTest())
+         và ghi vào submissions/{assignmentId}_{uid}, không thay đổi hành vi làm bài bình thường. -->
     <script type="module">
         (function () {
             var params = new URLSearchParams(location.search);
             var assignmentId = params.get('assignmentId');
+            var uid = params.get('uid');
             var scope = params.get('scope') || 'all';
-            if (!assignmentId) return; // mở bài test bình thường (không phải bài được giao) -> bỏ qua
+            if (!assignmentId || !uid) return; // mở bài test bình thường (không phải bài được giao) -> bỏ qua
 
-            // PHẢI giống hệt khối firebaseConfig trong index.html / các công cụ khác của Night
-            // IELTS (project "night-ielts-land") — nếu không kết quả sẽ ghi nhầm project, giáo
-            // viên sẽ không bao giờ thấy được.
+            // TODO(night): dán ĐÚNG firebaseConfig của project "b-s-english-house" — PHẢI GIỐNG HỆT
+            // khối config trong index.html / listeningtypegenerator.html, nếu không kết quả sẽ ghi
+            // nhầm sang project khác và giáo viên sẽ không thấy được.
             var FB_CONFIG = {
-                apiKey: "AIzaSyCmeN49M4oI78ZPWDhMlbisDOLaMJp2mb8",
-                authDomain: "night-ielts-land.firebaseapp.com",
-                databaseURL: "https://night-ielts-land-default-rtdb.firebaseio.com",
-                projectId: "night-ielts-land",
-                storageBucket: "night-ielts-land.firebasestorage.app",
-                messagingSenderId: "408519436407",
-                appId: "1:408519436407:web:a9f0b9ba23368b54427e72",
-                measurementId: "G-H3P14NJR76"
+                apiKey: "AIzaSyDuoosjvJe3EoF22h9UJ6M95os5s_boQ-o",
+                authDomain: "b-s-english-house.firebaseapp.com",
+                projectId: "b-s-english-house",
+                storageBucket: "b-s-english-house.firebasestorage.app",
+                messagingSenderId: "946574286636",
+                appId: "1:946574286636:web:44624fb938e6b5dc961689",
+                measurementId: "G-YZR2QFWQGR"
             };
 
             Promise.all([
@@ -2454,9 +2453,9 @@
                 import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js')
             ]).then(function (mods) {
                 var appMod = mods[0], fsMod = mods[1];
-                var app = appMod.initializeApp(FB_CONFIG, 'night-ielts-reading-report-' + Date.now());
+                var app = appMod.initializeApp(FB_CONFIG, 'bseh-reading-report-' + Date.now());
                 var db = fsMod.getFirestore(app);
-                var assignmentRef = fsMod.doc(db, 'assignments', assignmentId);
+                var subRef = fsMod.doc(db, 'submissions', assignmentId + '_' + uid);
 
                 // Bọc submitTest() gốc: chấm bài vẫn chạy y như cũ, chỉ thêm bước báo kết quả về
                 // Firestore ngay sau đó. submitTest là function khai báo ở top-level của <script>
@@ -2465,7 +2464,7 @@
                 var origSubmitTest = window.submitTest;
                 window.submitTest = function () {
                     if (typeof origSubmitTest === 'function') origSubmitTest();
-                    try { reportAssignmentResult(); } catch (e) { console.warn('Night IELTS: report failed', e); }
+                    try { reportAssignmentResult(); } catch (e) { console.warn('BSEH: report failed', e); }
                 };
 
                 function reportAssignmentResult() {
@@ -2488,14 +2487,14 @@
                     }
 
                     var percent = reportTotal > 0 ? Math.round(reportCorrect / reportTotal * 100) : 0;
-                    fsMod.updateDoc(assignmentRef, {
+                    fsMod.setDoc(subRef, {
+                        status: 'done',
                         percent: percent,
-                        completed: true,
-                        scoreText: reportCorrect + '/' + reportTotal,
-                        lastPlayedAt: Date.now()
-                    }).catch(function (e) { console.warn('Night IELTS: cập nhật assignments thất bại', e); });
+                        score: reportCorrect + '/' + reportTotal,
+                        completedAt: fsMod.serverTimestamp()
+                    }, { merge: true }).catch(function (e) { console.warn('BSEH: submissions write failed', e); });
                 }
-            }).catch(function (e) { console.warn('Night IELTS: không tải được hệ thống báo cáo', e); });
+            }).catch(function (e) { console.warn('BSEH: firebase init failed', e); });
         })();
     </script>
 </body>
