@@ -1,0 +1,2500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading - Cambridge 13 - Test 2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #729a65;
+            --panel-bg: #f9f5e8;
+            --border-color: #2c3e2d;
+            --text-color: #333;
+            --highlight-color: #ffeb3b;
+            --correct-color: #4caf50;
+            --incorrect-color: #f44336;
+            --primary-button: #e8b93b;
+            --hover-bg: #e0d9c5;
+        }
+
+        /* --- Exam mode ("Thi Thật"): minimal white theme, purple accent only ---
+             Applied by adding class="exam-mode" to <body> in startTest(). Practice
+             mode keeps the original green/parchment look untouched. */
+        body.exam-mode {
+            --bg-color: #ffffff;
+            --panel-bg: #ffffff;
+            --border-color: #6d3fa0;
+            --primary-button: #7c4dab;
+            --hover-bg: #f2ebfa;
+            background-image: none;
+        }
+        body.exam-mode .q-circle.answered { background-color: #e3d2f7; }
+        body.exam-mode .question-group { border-color: #e6dcf2; }
+        body.exam-mode .instruction { background: #faf7fd; }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
+            background-size: 20px 20px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* Header Styles */
+        .header {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            background: none;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .part-indicator {
+            background-color: var(--border-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .question-nav {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .q-circle {
+            width: 24px;
+            height: 24px;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            background: white;
+            transition: background-color 0.2s;
+        }
+
+        .q-circle.answered {
+            background-color: #d1cbb8;
+        }
+
+        .timer {
+            border: 2px solid var(--border-color);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 16px;
+            font-weight: bold;
+            background: white;
+        }
+
+        .submit-btn {
+            background-color: var(--primary-button);
+            border: 2px solid var(--border-color);
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, filter 0.2s;
+        }
+
+        .submit-btn:hover { filter: brightness(1.1); }
+        .submit-btn:active { transform: scale(0.98); }
+
+        /* Main Content Area */
+        .main-container {
+            display: flex;
+            gap: 0;
+            flex: 1;
+            min-height: 0;
+            position: relative; /* For translation popup */
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            flex: 1;
+            min-width: 220px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Draggable resizer between the two panels */
+        .panel-resizer {
+            width: 18px;
+            flex-shrink: 0;
+            cursor: col-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+        }
+        .panel-resizer::after {
+            content: '';
+            width: 6px;
+            height: 56px;
+            border-radius: 6px;
+            background: rgba(44, 62, 45, 0.25);
+            transition: background 0.15s, height 0.15s;
+        }
+        .panel-resizer:hover::after,
+        .panel-resizer.dragging::after {
+            background: rgba(44, 62, 45, 0.55);
+            height: 80px;
+        }
+
+        .panel-content {
+            padding: 30px;
+            overflow-y: auto;
+            flex: 1;
+            scroll-behavior: smooth;
+        }
+
+        /* Reading Passage Styles */
+        .passage-text {
+            font-family: 'Source Serif Pro', serif;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .passage-text h2 {
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 30px;
+        }
+
+        .passage-text p {
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        .explanation-highlight {
+            background-color: var(--highlight-color);
+            padding: 2px 4px;
+            border-radius: 3px;
+            transition: background-color 0.5s;
+            border-bottom: 2px solid #e65100;
+        }
+
+        /* Questions Styles */
+        .question-group {
+            margin-bottom: 40px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .instruction {
+            font-style: italic;
+            margin-bottom: 20px;
+            color: #555;
+            background: #f5f5f5;
+            padding: 10px;
+            border-left: 4px solid var(--border-color);
+        }
+
+        .question-item {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            align-items: flex-start;
+            position: relative;
+        }
+        /* Điền từ / notes completion: các dòng gần nhau hơn để cả nhóm nhìn liền mạch như 1 khối
+           ghi chú duy nhất, thay vì từng câu tách xa nhau như thẻ riêng biệt. */
+        .question-item.compact-item { margin-bottom: 14px; }
+
+        .q-num {
+            background-color: white;
+            border: 2px solid var(--border-color);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .options-tf, .mcq-options {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .mcq-options { flex-direction: column; gap: 10px; }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .radio-label:hover { background: #f0f0f0; }
+
+        .text-input {
+            border: 1px solid #ccc;
+            border-bottom: 2px solid var(--border-color);
+            background: transparent;
+            padding: 5px;
+            font-family: inherit;
+            font-size: 16px;
+            width: 200px;
+            outline: none;
+            transition: background 0.2s;
+        }
+        .text-input:focus { background-color: rgba(255,255,255,0.8); }
+
+        /* Complete the summary/table — cả nhóm câu 'inline' chảy thành 1 đoạn văn liên tục, số
+           câu hỏi nằm ngay trong placeholder của ô nhập (không có vòng tròn số riêng). */
+        .inline-summary {
+            line-height: 2.6;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+        .inline-blank-wrap { display: inline-block; }
+        /* "Complete the notes" dạng khối ghi chú/outline (có tiêu đề, gạch đầu dòng, thụt lề...) —
+           giữ nguyên xuống dòng + khoảng trắng gốc y hệt giáo viên đã gõ (xem genNotesFromTemplate()),
+           KHÔNG gộp thành 1 đoạn văn chảy liên tục như .inline-summary thường (dùng cho câu văn thật). */
+        .inline-summary.notes-template {
+            white-space: pre-wrap;
+            line-height: 2.1;
+            font-family: inherit;
+        }
+        .inline-blank {
+            width: 130px;
+            text-align: center;
+            font-weight: 700;
+        }
+        .inline-blank::placeholder { font-weight: 800; color: var(--border-color); opacity: 0.8; }
+
+        /* Review Mode Features */
+        .feedback-box {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #6c757d;
+            border-radius: 0 4px 4px 0;
+            font-size: 14px;
+            animation: fadeIn 0.3s;
+        }
+
+        .feedback-box.correct { border-left-color: var(--correct-color); background: #f1f8e9; }
+        .feedback-box.incorrect { border-left-color: var(--incorrect-color); background: #ffebee; }
+
+        .explanation-text {
+            margin-top: 10px;
+            color: #333;
+            font-style: italic;
+            border-top: 1px dashed #ccc;
+            padding-top: 10px;
+        }
+
+        /* Optional diagram/labeling image, attachable to any question group */
+        .group-image-wrap { margin-bottom: 15px; text-align: center; }
+        .group-image { max-width: 100%; border-radius: 8px; border: 1px solid #ddd; }
+
+        /* --- Matching / Drag-and-drop question type --- */
+        .match-bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            border: 1px dashed #bbb;
+        }
+        .match-chip {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: grab;
+            touch-action: none;
+            user-select: none;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.08);
+            transition: opacity 0.15s;
+        }
+        .match-chip:active { cursor: grabbing; }
+        .match-chip-ghost {
+            opacity: 0.9;
+            box-shadow: 4px 6px 12px rgba(0,0,0,0.25);
+        }
+        .match-row { flex-wrap: wrap; }
+        .match-prompt-text { flex: 1; min-width: 160px; }
+        .match-slot {
+            min-width: 140px;
+            min-height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 14px;
+            border: 2px dashed #aaa;
+            border-radius: 8px;
+            background: #fafafa;
+            color: #999;
+            font-size: 13px;
+            font-weight: 600;
+            touch-action: none;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .match-slot.filled { border-style: solid; border-color: var(--border-color); background: white; color: var(--text-color); }
+        .match-slot.drag-over { background: var(--hover-bg); border-color: var(--primary-button); }
+
+        /* --- Matching Headings / Matching Names-Claims-Sentence Endings (dropdown-based) --- */
+        .match-legend .match-chip-static { cursor: default; }
+        .lettered-select {
+            border: 1px solid #ccc;
+            border-bottom: 2px solid var(--border-color);
+            background: white;
+            padding: 6px 8px;
+            font-family: inherit;
+            font-size: 14px;
+            border-radius: 4px;
+            min-width: 220px;
+            max-width: 100%;
+        }
+
+        /* --- Matching Information / Names / Features (grid/matrix) --- */
+        .grid-scroll-wrap { overflow-x: auto; margin: 10px 0; }
+        table.match-grid {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 13px;
+        }
+        table.match-grid th, table.match-grid td {
+            border: 1px solid #ddd;
+            padding: 8px 10px;
+            text-align: center;
+        }
+        table.match-grid thead th { background: #f5f5f5; font-weight: 800; }
+        table.match-grid td.grid-row-label { text-align: left; font-weight: 600; min-width: 220px; }
+        .grid-q-num {
+            display: inline-flex; width: 22px; height: 22px; font-size: 11px;
+            margin-right: 6px; vertical-align: middle;
+        }
+        table.match-grid input.grid-radio { width: 18px; height: 18px; cursor: pointer; }
+
+        /* --- Table Completion ("Complete the table below") — bảng thật có cột/hàng, khác với
+           "Complete the notes" (khối ghi chú chảy liên tục) vì đề gốc TRÌNH BÀY dạng bảng thật,
+           mất cấu trúc cột/hàng nếu render như 1 đoạn văn — xem genTableGroup() bên dưới. */
+        .data-table-scroll-wrap { overflow-x: auto; margin: 10px 0; }
+        table.data-table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 14px;
+        }
+        table.data-table th, table.data-table td {
+            border: 1px solid #ddd;
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        table.data-table thead th { background: #f5f5f5; font-weight: 800; }
+        table.data-table .inline-blank { width: 110px; }
+
+        /* --- Summary/Sentence completion CÓ danh sách từ cho chọn (word bank) — select gọn nằm
+           giữa dòng chữ, khác .lettered-select thường (dùng cho list_match, rộng 220px cố định) --- */
+        .inline-select {
+            width: auto;
+            min-width: 110px;
+            max-width: 220px;
+            padding: 4px 6px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        /* --- Ghi chú/note giáo viên thêm vào bài đọc (chọn 1 đoạn chữ -> in đậm + note đỏ trong
+           ngoặc [ ] ngay bên phải) — xem cú pháp {{đoạn chữ|nội dung note}} ở công cụ soạn đề. --- */
+        .reading-note { color: var(--incorrect-color); font-weight: 700; font-size: 0.92em; }
+
+        /* --- "Choose N of M" multi-select checkboxes --- */
+        .multi-group .multi-hint {
+            margin: 0 0 10px 0; font-style: italic; font-weight: 600; color: #666;
+            padding: 6px 10px; background: #f5f5f5; border-left: 3px solid var(--border-color); border-radius: 0 4px 4px 0;
+        }
+        .multi-check-label input.multi-check { width: 16px; height: 16px; cursor: pointer; }
+        /* Nhãn "21-22" (gộp nhiều câu vào 1 nhóm) không vừa hình tròn q-num bình thường — đổi
+           sang hình bầu dục/chữ nhật bo góc, rộng vừa đủ chữ, tránh chữ số bị đè/tràn ra ngoài. */
+        .q-num.q-num-range {
+            width: auto; min-width: 40px; height: 24px; border-radius: 12px;
+            padding: 0 10px; font-size: 12px; white-space: nowrap;
+        }
+
+        /* --- Per-part grading bar (Practice mode only) --- */
+        .part-grade-bar { display: none; margin-bottom: 20px; text-align: right; }
+        .part-grade-bar.visible { display: block; }
+        .part-grade-btn {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 7px 16px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .part-grade-btn:hover { background: var(--hover-bg); }
+
+        .show-loc-btn {
+            background: var(--border-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .show-loc-btn:hover { opacity: 0.9; }
+
+        /* Annotation & Translation Toolbar */
+        #annot-toolbar {
+            position: absolute;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            border-radius: 30px;
+            padding: 8px 12px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            z-index: 1000;
+            font-family: 'Inter', sans-serif;
+            border: 1px solid #e5e5e5;
+        }
+
+        .annot-color {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            border: 1px solid rgba(0,0,0,0.15);
+            cursor: pointer;
+            padding: 0;
+            transition: transform 0.15s;
+        }
+        .annot-color:hover { transform: scale(1.12); }
+
+        .annot-divider {
+            width: 1px;
+            height: 22px;
+            background: #ddd;
+            flex-shrink: 0;
+        }
+
+        .annot-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 5px 8px;
+            border-radius: 6px;
+            color: #333;
+            white-space: nowrap;
+        }
+        .annot-btn:hover { background: #f0f0f0; }
+
+        .annot-translate {
+            font-weight: 700;
+            color: #1a73e8;
+        }
+
+        .annot-note-btn { color: var(--incorrect-color); font-weight: 700; }
+
+        .user-annotation.user-highlight {
+            border-radius: 2px;
+            padding: 1px 0;
+        }
+
+        /* Note input popup — hiện thay chỗ #annot-toolbar khi bấm nút "📝 Note" */
+        #note-input-box {
+            position: absolute;
+            display: none;
+            align-items: center;
+            gap: 4px;
+            background: white;
+            border-radius: 30px;
+            padding: 5px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            z-index: 1000;
+            font-family: 'Inter', sans-serif;
+            border: 1px solid #e5e5e5;
+        }
+        #note-input-field {
+            border: none;
+            outline: none;
+            font-size: 13px;
+            padding: 6px 10px;
+            width: 200px;
+            font-family: 'Inter', sans-serif;
+        }
+        #note-input-ok, #note-input-cancel {
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        #note-input-ok { color: #2e7d32; font-weight: 700; }
+        #note-input-cancel { color: var(--incorrect-color); font-weight: 700; }
+        #note-input-ok:hover, #note-input-cancel:hover { background: #f0f0f0; }
+
+        /* Highlight tạm thời trong lúc đang gõ note (giữ cho người dùng vẫn thấy rõ đoạn chữ mình vừa
+           chọn, vì mở ô nhập note sẽ làm trình duyệt tự huỷ vùng bôi đen xanh mặc định) */
+        .note-pending-highlight { background: #fff3b0; border-radius: 2px; padding: 1px 0; }
+
+        /* Nút nổi "🗑 Xóa note" khi bấm trực tiếp vào 1 note đã có sẵn */
+        #note-delete-box {
+            position: absolute;
+            display: none;
+            z-index: 1000;
+        }
+        #note-delete-btn {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 30px;
+            padding: 8px 14px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--incorrect-color);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        #note-delete-btn:hover { background: #fdecea; }
+
+        /* Translation Popup */
+        #trans-box {
+            position: absolute;
+            display: none;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            z-index: 1001;
+            width: 260px;
+            font-family: 'Inter', sans-serif;
+            border: 1px solid #e5e5e5;
+        }
+
+        .trans-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            background: #b4d17e;
+            color: #23331a;
+            padding: 14px 16px;
+        }
+
+        .trans-original-text {
+            font-weight: 700;
+            font-size: 15px;
+            line-height: 1.35;
+            word-break: break-word;
+        }
+
+        .close-trans {
+            cursor: pointer;
+            color: #23331a;
+            font-weight: 700;
+            flex-shrink: 0;
+            opacity: 0.7;
+        }
+        .close-trans:hover { opacity: 1; }
+
+        .trans-body { padding: 14px 16px; }
+
+        .trans-label {
+            font-size: 11px;
+            letter-spacing: 1px;
+            color: #999;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .trans-result { font-size: 16px; font-weight: 600; color: #222; line-height: 1.4; }
+
+        .trans-actions { display: flex; border-top: 1px solid #eee; }
+
+        .trans-action-btn {
+            flex: 1;
+            padding: 12px 8px;
+            border: none;
+            background: white;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+            color: #333;
+        }
+        .trans-action-btn:first-child { border-right: 1px solid #eee; }
+        .trans-action-btn:hover { background: #f5f5f5; }
+        .trans-save-btn { color: #1a73e8; }
+
+        /* Vocabulary Notebook */
+        #vocab-list .vocab-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+        #vocab-list .vocab-en { font-weight: 700; }
+        #vocab-list .vocab-vi { color: #555; font-size: 14px; }
+        #vocab-list .vocab-date { color: #aaa; font-size: 11px; }
+        .vocab-del-btn { background: none; border: none; color: #f44336; cursor: pointer; font-size: 15px; }
+
+        /* Setup & Modal Screens */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal-box {
+            background: var(--panel-bg);
+            padding: 40px;
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .mode-select { display: flex; gap: 20px; margin: 30px 0; justify-content: center; }
+        .mode-btn {
+            padding: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            width: 200px;
+            transition: all 0.2s;
+        }
+        .mode-btn:hover { background: #f0f0f0; transform: translateY(-2px); }
+        .mode-btn.selected { background: var(--primary-button); border-width: 3px; }
+
+        .passage-tabs { display: flex; gap: 5px; margin-right: 15px; }
+        .tab-btn {
+            padding: 5px 15px;
+            border: 2px solid var(--border-color);
+            background: #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .tab-btn.active { background: var(--primary-button); }
+
+        .content-wrapper { display: none; }
+        .content-wrapper.active { display: block; animation: fadeIn 0.4s; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .score-display { font-size: 48px; font-weight: bold; color: var(--border-color); margin: 20px 0; }
+        .band-display { font-size: 24px; color: #d32f2f; font-weight: bold; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <!-- Floating Annotation Toolbar -->
+    <div id="annot-toolbar">
+        <button class="annot-color annot-color-practice" data-color="#aecbfa" style="background:#aecbfa" title="Highlight xanh dương"></button>
+        <button class="annot-color annot-color-practice" data-color="#f8bbd0" style="background:#f8bbd0" title="Highlight hồng"></button>
+        <button class="annot-color annot-color-practice" data-color="#b9f6ca" style="background:#b9f6ca" title="Highlight xanh lá"></button>
+        <button class="annot-color annot-color-practice" data-color="#fff59d" style="background:#fff59d" title="Highlight vàng"></button>
+        <button class="annot-color annot-color-exam" data-color="#7a1a35" data-text-color="#ffffff" style="background:#7a1a35; display:none;" title="Highlight rượu vang"></button>
+        <span class="annot-divider"></span>
+        <button class="annot-btn" id="annot-underline" title="Gạch chân"><u>U</u></button>
+        <button class="annot-btn" id="annot-strike" title="Gạch ngang"><s>abc</s></button>
+        <button class="annot-btn" id="annot-erase" title="Xóa định dạng">🧹</button>
+        <button class="annot-btn annot-note-btn" id="annot-note-btn" title="Thêm note">📝 Note</button>
+        <span class="annot-divider"></span>
+        <button class="annot-btn annot-translate" id="annot-translate-btn" title="Dịch">🌐 Dịch</button>
+    </div>
+
+    <!-- Note input popup (bôi đen chữ -> bấm "📝 Note" trên thanh nổi -> gõ note ở đây -> đoạn đã
+         chọn được IN ĐẬM, note hiện chữ ĐỎ trong ngoặc [ ] ngay bên phải. Chỉ là ghi chú cá nhân của
+         người đang làm bài trên máy/trình duyệt này lúc đó — giống hệt highlight/gạch chân/gạch ngang
+         ở trên, không lưu lại qua lần tải trang sau, không đồng bộ giữa các người dùng khác nhau. -->
+    <div id="note-input-box">
+        <input type="text" id="note-input-field" placeholder="Nhập nội dung note…" maxlength="200" />
+        <button type="button" id="note-input-ok" title="Thêm note">✓</button>
+        <button type="button" id="note-input-cancel" title="Huỷ">✕</button>
+    </div>
+
+    <!-- Bấm trực tiếp vào 1 note đã có (chữ in đậm hoặc phần [note] đỏ) -> nút này nổi lên để xoá riêng
+         note đó, không cần bôi đen lại. -->
+    <div id="note-delete-box">
+        <button type="button" id="note-delete-btn">🗑 Xóa note</button>
+    </div>
+
+    <!-- Translation Popup -->
+    <div id="trans-box">
+        <div class="trans-header">
+            <span id="trans-original" class="trans-original-text"></span>
+            <span class="close-trans" onclick="closeTranslation()">✖</span>
+        </div>
+        <div class="trans-body">
+            <div class="trans-label">TIẾNG VIỆT</div>
+            <div id="trans-result" class="trans-result">Đang dịch...</div>
+        </div>
+        <div class="trans-actions">
+            <button class="trans-action-btn" id="tts-play">🔊 Nghe</button>
+            <button class="trans-action-btn trans-save-btn" id="save-vocab-btn">➕ Lưu vào Sổ</button>
+        </div>
+    </div>
+
+    <!-- Vocabulary Notebook Modal -->
+    <div id="vocab-modal" class="overlay" style="display:none;">
+        <div class="modal-box" style="max-width:480px; text-align:left;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 style="margin:0;">📖 Sổ từ vựng của bạn</h2>
+                <span class="close-trans" onclick="closeVocabBook()" style="font-size:18px;">✖</span>
+            </div>
+            <div id="vocab-list" style="max-height:420px; overflow-y:auto; margin-top:15px;"></div>
+        </div>
+    </div>
+
+    <!-- Setup Screen -->
+    <div id="setup-screen" class="overlay">
+        <div class="modal-box">
+            <h1>IELTS Reading - Cambridge 13 - Test 2</h1>
+            <p>Chọn chế độ làm bài:</p>
+            <div class="mode-select">
+                <button class="mode-btn selected" id="btn-practice" onclick="selectMode('practice')">
+                    <h3>Chế độ Luyện Tập</h3>
+                    <p>Làm từng Passage. Xem điểm & Giải thích chi tiết ngay.</p>
+                </button>
+                <button class="mode-btn" id="btn-exam" onclick="selectMode('exam')">
+                    <h3>Chế độ Thi Thật</h3>
+                    <p>60 phút đếm ngược. Làm full 3 Passages. Trả điểm Band IELTS.</p>
+                </button>
+            </div>
+
+            <div id="passage-selector" style="margin: 20px 0;">
+                <label>Chọn Passage (Luyện tập): </label>
+                <select id="passage-dropdown" style="padding: 8px; border-radius: 4px;"></select>
+            </div>
+
+            <button class="submit-btn" style="font-size: 18px; padding: 12px 30px;" onclick="startTest()">Bắt đầu làm bài</button>
+        </div>
+    </div>
+
+    <!-- Results Modal -->
+    <div id="results-modal" class="overlay" style="display: none;">
+        <div class="modal-box">
+            <h2 id="results-modal-title">Kết quả làm bài</h2>
+            <div id="homework-success-banner" style="display:none; margin-bottom:14px; padding:10px 14px; border-radius:10px; background:#e6f4d9; border:2px solid #4b7a2a; color:#2B4214; font-weight:800;">
+                ✅ Đã nộp homework thành công! Giáo viên sẽ thấy kết quả này.
+            </div>
+            <div class="score-display">
+                <span id="score-correct">0</span> / <span id="score-total">40</span>
+            </div>
+            <div class="band-display" id="band-container" style="display:none;">
+                Estimated Band: <span id="band-score">0.0</span>
+            </div>
+            <p style="margin-bottom: 20px; color: #555;">Bạn có thể xem lại chi tiết đáp án, lời giải thích và vị trí thông tin trong bài đọc.</p>
+            <button class="submit-btn" onclick="closeResultsAndReview()">Xem giải thích chi tiết</button>
+        </div>
+    </div>
+
+    <!-- Main Interface -->
+    <div class="header">
+        <div class="header-left">
+            <button class="nav-btn" onclick="exitTest()">← Thoát</button>
+            <div class="passage-tabs" id="passage-tabs">
+                <button class="tab-btn active" onclick="switchPassage(1)">P1</button>
+                <button class="tab-btn" onclick="switchPassage(2)">P2</button>
+                <button class="tab-btn" onclick="switchPassage(3)">P3</button>
+            </div>
+            <span class="part-indicator" id="current-passage-indicator">PASSAGE 1</span>
+
+            <!-- Navigation Circles -->
+            <div class="question-nav" id="q-nav-p1"></div>
+            <div class="question-nav" id="q-nav-p2" style="display:none;"></div>
+            <div class="question-nav" id="q-nav-p3" style="display:none;"></div>
+        </div>
+        <div class="header-right">
+            <button class="nav-btn" onclick="openVocabBook()">📖 Sổ từ vựng (<span id="vocab-count">0</span>)</button>
+            <div class="timer" id="timer-display" style="display:none;">60:00</div>
+            <button class="submit-btn" id="main-submit-btn" onclick="submitTest()">Nộp bài</button>
+        </div>
+    </div>
+
+    <div class="main-container" id="main-workspace">
+
+        <!-- LEFT PANEL: Reading Passage -->
+        <div class="panel" id="panel-passage">
+            <div class="panel-content passage-text">
+
+                <!-- PASSAGE 1 -->
+                <div id="passage-1-text" class="content-wrapper active" data-title="Bringing cinnamon to Europe">
+                    <p style="color: #666; font-size: 14px;">READING PASSAGE 1</p>
+                    <h2>Bringing cinnamon to Europe</h2>
+                    <p>Cinnamon is a sweet, fragrant spice produced from the inner bark of trees of the genus Cinnamomum, which is native to the Indian sub-continent. It was known in biblical times, and is mentioned in several books of the Bible, both as an ingredient that was <span id="loc-1">mixed with oils for anointing people’s bodies</span>, and also as <span id="loc-2">a token indicating friendship among lovers and friends</span>. In ancient Rome, <span id="loc-3">mourners attending funerals burnt cinnamon to create a pleasant scent</span>. Most often, however, the spice found its primary use as an additive to food and drink. In the Middle Ages, Europeans who could afford the spice used it to flavour food, particularly meat, and to impress those around them with their ability to purchase an expensive condiment from the ‘exotic’ East. At a banquet, a host would offer guests a plate with various spices piled upon it <span id="loc-4">as a sign of the wealth at his or her disposal</span>. Cinnamon was also reported to have health benefits, and <span id="loc-5">was thought to cure various ailments, such as indigestion</span>.</p>
+<p>Toward the end of the Middle Ages, the European middle classes began to desire the lifestyle of the elite, including their consumption of spices. This led to a growth in demand for cinnamon and other spices. At that time, cinnamon was transported by Arab merchants, who closely guarded the secret of the source of the spice from potential rivals. <span id="loc-6">They took it from India, where it was grown</span>, <span id="loc-7">on camels via an overland route to the Mediterranean</span>. <span id="loc-8">Their journey ended when they reached Alexandria</span>. European traders sailed there to purchase their supply of cinnamon, then <span id="loc-9">brought it back to Venice</span>. The spice then travelled from that great trading city to markets all around Europe. Because the overland trade route allowed for only small quantities of the spice to reach Europe, and because Venice had a virtual monopoly of the trade, the Venetians could set the price of cinnamon exorbitantly high. These prices, coupled with the increasing demand, spurred the search for new routes to Asia by Europeans eager to take part in the spice trade.</p>
+<p>Seeking the high profits promised by the cinnamon market, Portuguese traders arrived on the island of Ceylon in the Indian Ocean toward the end of the 15th century. Before Europeans arrived on the island, the state had organized the cultivation of cinnamon. People belonging to the ethnic group called the Salagama would peel the bark off young shoots of the cinnamon plant in the rainy season, when the wet bark was more pliable. During the peeling process, they curled the bark into the ‘stick’ shape still associated with the spice today. The Salagama then gave the finished product to the king as a form of tribute. When the Portuguese arrived, they needed to increase production significantly, and so enslaved many other members of the Ceylonese native population, forcing them to work in cinnamon harvesting. In 1518, the Portuguese built a fort on Ceylon, which enabled them to protect the island, so helping them to develop a monopoly in the cinnamon trade and generate very high profits. <span id="loc-10">In the late 16th century, for example, they enjoyed a tenfold profit</span> when shipping cinnamon over a journey of eight days from Ceylon to India.</p>
+<p>When the Dutch arrived off the coast of southern Asia at the very beginning of the 17th century, they set their sights on displacing the Portuguese as kings of cinnamon. The Dutch allied themselves with Kandy, an inland kingdom on Ceylon. In return for payments of elephants and cinnamon, they protected the native king from the Portuguese. By 1640, the Dutch broke the 150-year Portuguese monopoly when they overran and occupied their factories. <span id="loc-11">By 1658, they had permanently expelled the Portuguese from the island</span>, thereby gaining control of the lucrative cinnamon trade. In order to protect their hold on the market, the Dutch, like the Portuguese before them, treated the native inhabitants harshly. Because of the need to boost production and satisfy Europe’s ever-increasing appetite for cinnamon, the Dutch began to alter the harvesting practices of the Ceylonese. Over time, the supply of cinnamon trees on the island became nearly exhausted, due to systematic stripping of the bark. Eventually, the Dutch began cultivating their own cinnamon trees to <span id="loc-12">supplement the diminishing number of wild trees available for use</span>.</p>
+<p>Then, in 1796, the English arrived on Ceylon, thereby displacing the Dutch from their control of the cinnamon monopoly. By the middle of the 19th century, production of cinnamon reached 1,000 tons a year, after a lower grade quality of the spice became acceptable to European tastes. By that time, cinnamon was being grown in other parts of the Indian Ocean region and in the West Indies, Brazil, and Guyana. Not only was a monopoly of cinnamon becoming impossible, but <span id="loc-13">the spice trade overall was diminishing in economic potential</span>, and was eventually superseded by the rise of trade in coffee, tea, chocolate, and sugar.</p>
+                </div>
+
+                <!-- PASSAGE 2 -->
+                <div id="passage-2-text" class="content-wrapper" data-title="Oxytocin">
+                    <p style="color: #666; font-size: 14px;">READING PASSAGE 2</p>
+                    <h2>Oxytocin</h2>
+                    <p>Oxytocin is a chemical, a hormone produced in the pituitary gland in the brain. It was through various <span id="loc-21">studies focusing on animals</span> that scientists first became aware of the influence of oxytocin. They discovered that it helps reinforce the bonds between prairie voles, which mate for life, and triggers the motherly behaviour that sheep show towards their newborn lambs. It is also <span id="loc-22">released by women in childbirth</span>, strengthening the attachment between mother and baby. Few chemicals have as positive a reputation as oxytocin, which is sometimes referred to as the ‘love hormone’. One sniff of it can, it is claimed, make a person more trusting, empathetic, generous and cooperative. It is time, however, to revise this wholly optimistic view. A new wave of studies has shown that its effects vary greatly depending on the person and the circumstances, and it can impact on our social interactions for worse as well as for better.</p>
+<p>Oxytocin’s role in human behaviour first emerged in 2005. In a groundbreaking experiment, Markus Heinrichs and his colleagues at the University of Freiburg, Germany, asked volunteers to do an activity in which they could invest money with an anonymous person who was not guaranteed to be honest. The team found that <span id="loc-18">participants who had sniffed oxytocin via a nasal spray beforehand invested more money than <span id="loc-23">those who received a placebo instead</span></span>. The study was the start of research into the effects of oxytocin on human interactions. ‘<span id="loc-16">For eight years, it was quite a lonesome field</span>,’ Heinrichs recalls. ‘Now, everyone is interested.’ <span id="loc-14">These follow-up studies have shown that after a sniff of the hormone, people become more charitable</span>, better at reading emotions on others’ faces and at communicating constructively in arguments. Together, the results fuelled the view that oxytocin universally enhanced the positive aspects of our social nature.</p>
+<p>Then, after a few years, contrasting findings began to emerge. Simone Shamay-Tsoory at the University of Haifa, Israel, found that when <span id="loc-24">volunteers played a competitive game</span>, those who inhaled the hormone showed more pleasure when they beat other players, and <span id="loc-19">felt more envy when others won</span>. What’s more, administering oxytocin also has <span id="loc-20">sharply contrasting outcomes depending on a person’s disposition</span>. Jennifer Bartz from Mount Sinai School of Medicine, New York, found that it improves people’s ability to read emotions, but only if they are not very socially adept to begin with. Her research also shows that oxytocin in fact reduces cooperation in subjects who are particularly anxious or sensitive to rejection.</p>
+<p>Another discovery is that oxytocin’s effects vary depending on who we are interacting with. Studies conducted by Carolyn DeClerck of the University of Antwerp, Belgium, revealed that people who had received a dose of oxytocin actually became less cooperative when <span id="loc-25">dealing with complete strangers</span>. Meanwhile, Carsten De Dreu at the University of Amsterdam in the Netherlands discovered that volunteers given oxytocin showed favouritism: Dutch men became quicker to <span id="loc-26">associate positive words with Dutch names than with foreign ones</span>, for example. According to De Dreu, oxytocin drives people to care for those in their social circles and defend them from outside dangers. So, it appears that oxytocin strengthens biases, rather than promoting general goodwill, as was previously thought.</p>
+<p>There were signs of these subtleties from the start. Bartz has recently shown that in almost half of the existing research results, oxytocin influenced only certain individuals or in certain circumstances. <span id="loc-17">Where once researchers took no notice of such findings</span>, now a more nuanced understanding of oxytocin’s effects is propelling investigations down new lines. To Bartz, the key to understanding what the hormone does lies in pinpointing its core function rather than in cataloguing its seemingly endless effects. There are several hypotheses which are not mutually exclusive. Oxytocin could help to reduce anxiety and fear. Or it could simply motivate people to seek out social connections. She believes that oxytocin acts as a chemical spotlight that shines on social clues - a shift in posture, a flicker of the eyes, a dip in the voice - making people more attuned to their social environment. This would explain why it makes us more likely to look others in the eye and improves our ability to identify emotions. But it could also make things worse for people who are overly sensitive or prone to interpreting social cues in the worst light.</p>
+<p>Perhaps we should not be surprised that the oxytocin story has become more perplexing. The hormone is found in everything from octopuses to sheep, and its evolutionary roots stretch back half a billion years. ‘It’s a very simple and ancient molecule that has been co-opted for many different functions,’ says Sue Carter at the University of Illinois, Chicago, USA. ‘It affects primitive parts of the brain like the amygdala, so <span id="loc-15">it’s going to have many effects on just about everything</span>.’ Bartz agrees. ‘Oxytocin probably does some very basic things, but once you add our higher-order thinking and social situations, these basic processes could manifest in different ways depending on individual differences and context.</p>
+                </div>
+
+                <!-- PASSAGE 3 -->
+                <div id="passage-3-text" class="content-wrapper" data-title="MAKING THE MOST OF TRENDS">
+                    <p style="color: #666; font-size: 14px;">READING PASSAGE 3</p>
+                    <h2>MAKING THE MOST OF TRENDS</h2>
+                    <p>Most managers can identify the major trends of the day. But in the course of conducting research in a number of industries and working directly with companies, we have discovered that <span id="loc-27">managers often fail to recognize the less obvious but profound ways these trends are influencing consumers’ aspirations, attitudes, and behaviors</span>. This is especially true of trends that managers view as peripheral to their core markets.</p>
+<p>Many ignore trends in their innovation strategies or adopt a wait-and-see approach and let competitors take the lead. At a minimum, such responses mean missed profit opportunities. At the extreme, they can jeopardize a company by ceding to rivals the opportunity to transform the industry. The purpose of this article is twofold: to spur managers to think more expansively about how trends could engender new value propositions in their core markets, and to provide some high-level advice on how to make market research and product development personnel more adept at analyzing and exploiting trends.</p>
+<p>One strategy, known as ‘infuse and augment’, is to design a product or service that retains most of the attributes and functions of existing products in the category but adds others that address the needs and desires unleashed by a major trend. A case in point is the Poppy range of handbags, which the firm Coach created in response to the economic downturn of 2008. The Coach brand had been a symbol of opulence and luxury for nearly 70 years, and the most obvious reaction to the downturn would have been to lower prices. However, <span id="loc-28">that would have risked cheapening the brand’s image</span>. Instead, they initiated a consumer-research project which revealed that <span id="loc-35">customers were eager to lift themselves and the country out of tough times</span>. Using these insights, Coach launched the lower-priced Poppy handbags, which were in vibrant colors, and looked more youthful and playful than conventional Coach products. Creating the sub-brand <span id="loc-37">allowed Coach to avert an across-the-board price cut</span>. In contrast to the many companies that responded to the recession by cutting prices, Coach saw the new consumer mindset as an opportunity for innovation and renewal.</p>
+<p>A further example of this strategy was supermarket Tesco’s response to consumers’ growing concerns about the environment. With that in mind, Tesco, one of the world’s top five retailers, introduced its Greener Living program, which demonstrates the company’s commitment to protecting the environment by involving consumers in ways that produce tangible results. For example, <span id="loc-34">Tesco customers can accumulate points for such activities as reusing bags, recycling cans and printer cartridges</span>, and buying home-insulation materials. Like points earned on regular purchases, these green points can be redeemed for cash. <span id="loc-29">Tesco has not abandoned its traditional retail offering but augmented its business with these innovations</span>, thereby infusing its value proposition with a green streak.</p>
+<p>A more radical strategy is ‘combine and transcend’. This entails combining aspects of the product’s existing value proposition with attributes addressing changes arising from a trend, to create a novel experience – one that may land the company in an entirely new market space. <span id="loc-30">At first glance, spending resources to incorporate elements of a seemingly irrelevant trend into one’s core offerings sounds like it’s hardly worthwhile</span>. But consider Nike’s move to <span id="loc-36">integrate the digital revolution into its reputation for high-performance athletic footwear</span>. In 2006, <span id="loc-33">they teamed up with technology company Apple to launch Nike+</span>, a digital sports kit comprising a sensor that attaches to the running shoe and a wireless receiver that connects to the user’s iPod. By combining Nike’s original value proposition for amateur athletes with one for digital consumers, the Nike+ sports kit and web interface moved the company from a focus on athletic apparel to a new plane of engagement with its customers.</p>
+<p>A third approach, known as ‘counteract and reaffirm’, involves developing products or services that stress the values traditionally associated with the category in ways that allow consumers to oppose – or at least temporarily escape from – the aspects of trends they view as undesirable. A product that accomplished this is the ME2, a video game created by Canada’s iToys. By reaffirming the toy category’s association with physical play, <span id="loc-31"><span id="loc-32">the ME2 counteracted some of the widely perceived negative impacts of digital gaming devices</span></span>. Like other handheld games, the device featured a host of exciting interactive games, a full-color LCD screen, and advanced 3D graphics. What set it apart was that it incorporated the traditional physical component of children’s play: it contained a pedometer, which tracked and awarded points for physical activity (walking, running, biking, skateboarding, climbing stairs). The child could use the points to enhance various virtual skills needed for the video game. The ME2, introduced in mid-2008, catered to kids’ huge desire to play video games while countering the negatives, such as associations with lack of exercise and obesity.</p>
+<p>Once you have gained perspective on how trend-related changes in consumer opinions and behaviors impact on your category, <span id="loc-38">you can determine which of our three innovation strategies to pursue</span>. When your category’s basic value proposition continues to be meaningful for consumers influenced by the trend, the infuse-and-augment strategy will allow you to reinvigorate the category. <span id="loc-40">If analysis reveals an increasing disparity between your category and consumers’ new focus</span>, your innovations need to transcend the category to integrate the two worlds. Finally, if aspects of the category clash with undesired outcomes of a trend, such as associations with unhealthy lifestyles, <span id="loc-39">there is an opportunity to counteract those changes by reaffirming the core values of your category</span>.</p>
+<p>Trends – technological, economic, environmental, social, or political – that affect how people perceive the world around them and shape what they expect from products and services present firms with unique opportunities for growth.</p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- DRAGGABLE RESIZER -->
+        <div class="panel-resizer" id="panel-resizer"></div>
+
+        <!-- RIGHT PANEL: Questions -->
+        <div class="panel" id="panel-questions">
+            <div class="panel-content" id="questions-container">
+                <!-- JavaScript will inject questions here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Data Structure (generated by the Test Builder tool) ---
+        // questionsData[passageIndex] = array of question groups for that passage
+        const questionsData = [[{"instruction":"Complete the notes below.<br>Choose ONE WORD ONLY from the passage for each answer.<br>Write your answers in boxes 1-9 on your answer sheet.","type":"text","reference":"","imageUrl":"","notesTemplate":"The Early History of Cinnamon\n\nBiblical times:\nadded to _____\nused to show _____ between people\n\nAncient Rome:\nused for its sweet smell at _____\n\nMiddle Ages:\nadded to food, especially meat\nwas an indication of a person’s _____\nknown as a treatment for _____ and other health problems\ngrown in _____\nmerchants used _____ to bring it to the Mediterranean\narrived in the Mediterranean at _____\ntraders took it to _____ and sold it to destinations around Europe","questions":[{"text":"","answer":"oils","exp":"Đáp án “oils” nằm ngay trong đoạn đầu: “both as an ingredient that was mixed with oils for anointing people’s bodies”. “Added to” tương ứng với “mixed with”, nên từ cần điền là “oils”. Các đáp án khác không phù hợp vì đoạn văn không nói cinnamon được thêm vào một chất khác trong ngữ cảnh này.","loc":"loc-1"},{"text":"","answer":"friendship","exp":"Đoạn đầu nói cinnamon được dùng “as a token indicating friendship among lovers and friends”. Câu hỏi dùng “used to show _____ between people”, nên danh từ chính xác là “friendship”. “Lovers and friends” chỉ những người giữa họ có mối quan hệ này, không phải đáp án cần điền.","loc":"loc-2"},{"text":"","answer":"funerals","exp":"Bài viết nói: “In ancient Rome, mourners attending funerals burnt cinnamon to create a pleasant scent.” Vì câu hỏi hỏi nơi/thời điểm cinnamon được sử dụng để tạo mùi thơm dễ chịu, đáp án là “funerals”. “Ancient Rome” đã được đưa sẵn trong notes nên không phải đáp án.","loc":"loc-3"},{"text":"","answer":"wealth","exp":"Trong phần Middle Ages, bài nói rằng tại các bữa tiệc, việc đưa ra các loại gia vị đắt tiền là “a sign of the wealth at his or her disposal”. Vì vậy cinnamon là dấu hiệu cho thấy “wealth” của một người. “Expensive” chỉ đặc điểm của gia vị, không phải thứ được hỏi.","loc":"loc-4"},{"text":"","answer":"indigestion","exp":"Đoạn đầu kết thúc bằng câu “Cinnamon was also reported to have health benefits, and was thought to cure various ailments, such as indigestion.” “Indigestion” là vấn đề sức khỏe cụ thể được nêu làm ví dụ về bệnh mà cinnamon được cho là có thể điều trị. Vì vậy đây là đáp án duy nhất được lấy trực tiếp từ passage.","loc":"loc-5"},{"text":"","answer":"India","exp":"Đoạn B nói rõ cinnamon được lấy từ “India, where it was grown”. Notes hỏi “grown in _____”, nên đáp án chính xác là “India”. “Mediterranean” là nơi cinnamon được đưa tới, còn “Alexandria” là điểm đến tại Mediterranean, nên cả hai đều không phù hợp.","loc":"loc-6"},{"text":"","answer":"camels","exp":"Bài viết cho biết các thương nhân Arab đưa cinnamon từ India “on camels via an overland route to the Mediterranean”. Vì câu hỏi hỏi phương tiện được sử dụng để vận chuyển cinnamon, đáp án là “camels”. “Overland route” là tuyến đường, không phải phương tiện.","loc":"loc-7"},{"text":"","answer":"Alexandria","exp":"Sau khi nói cinnamon được vận chuyển bằng đường bộ đến Mediterranean, bài viết nói: “Their journey ended when they reached Alexandria.” Vì vậy nơi cinnamon đến tại Mediterranean là “Alexandria”. “Venice” xuất hiện sau đó và là nơi European traders đưa cinnamon về.","loc":"loc-8"},{"text":"","answer":"Venice","exp":"Sau khi tới Alexandria, “European traders sailed there to purchase their supply of cinnamon, then brought it back to Venice.” Sau đó cinnamon tiếp tục đi từ Venice tới các thị trường châu Âu. Vì vậy đáp án cho “traders took it to _____” là “Venice”. “Alexandria” là nơi họ mua cinnamon, không phải nơi họ mang nó về.","loc":"loc-9"}]},{"instruction":"Do the following statements agree with the information given in Reading Passage 1?<br>In boxes 10-13 on your answer sheet, write<br>TRUE if the statement agrees with the information<br>FALSE if the statement contradicts the information<br>NOT GIVEN if there is no information on this","type":"tfng","reference":"","imageUrl":"","labels":["TRUE","FALSE","NOT GIVEN"],"questions":[{"text":"The Portuguese had control over the cinnamon trade in Ceylon throughout the 16th century.","answer":"TRUE","exp":"Đáp án TRUE. Bài cho biết Portuguese xây dựng một pháo đài năm 1518, giúp họ “develop a monopoly in the cinnamon trade”. Sau đó passage còn nói đến lợi nhuận của họ “in the late 16th century”. Như vậy họ kiểm soát độc quyền việc buôn bán cinnamon trong thế kỷ 16. Câu không mâu thuẫn với bài và không phải NOT GIVEN vì thời gian kiểm soát được thể hiện qua các mốc trong đoạn.","loc":"loc-10"},{"text":"The Dutch took over the cinnamon trade from the Portuguese as soon as they arrived in Ceylon.","answer":"FALSE","exp":"Đáp án FALSE. Dutch đến vào đầu thế kỷ 17 nhưng không ngay lập tức giành quyền kiểm soát. Bài nói “By 1640, the Dutch broke the 150-year Portuguese monopoly” và mãi đến “By 1658” họ mới “gaining control of the lucrative cinnamon trade”. Vì vậy “as soon as they arrived” trái với thông tin.","loc":"loc-11"},{"text":"The trees planted by the Dutch produced larger quantities of cinnamon than the wild trees.","answer":"NOT GIVEN","exp":"Đáp án NOT GIVEN. Bài chỉ nói Dutch “began cultivating their own cinnamon trees to supplement the diminishing number of wild trees available for use”. Passage không so sánh sản lượng của cây Dutch trồng với cây hoang dã và không nói cây nào cho nhiều cinnamon hơn. Vì vậy không đủ thông tin để kết luận TRUE hoặc FALSE.","loc":"loc-12"},{"text":"The spice trade maintained its economic importance during the 19th century.","answer":"FALSE","exp":"Đáp án FALSE. Câu hỏi nói trade “maintained its economic importance”, trong khi đoạn cuối khẳng định ngược lại rằng “the spice trade overall was diminishing in economic potential”. Ngoài ra trade này sau đó “was eventually superseded by the rise of trade in coffee, tea, chocolate, and sugar”. Vì vậy thông tin trong câu hỏi trái với passage.","loc":"loc-13"}]}],[{"instruction":"Questions 14-17<br>Reading Passage 2 has six paragraphs, A-F.<br>Which paragraph contains the following information?<br>Write the correct letter, A-F, in boxes 14-17 on your answer sheet.<br>NB You may use any letter more than once.","type":"grid","reference":"","imageUrl":"","options":["A","B","C","D","E","F"],"questions":[{"text":"reference to research showing the beneficial effects of oxytocin on people","answer":"B","exp":"Đáp án B. Đoạn B mô tả các nghiên cứu tiếp theo cho thấy người dùng oxytocin “become more charitable, better at reading emotions on others’ faces and at communicating constructively in arguments.” Đây là các tác động có lợi ở con người. A nói về nghiên cứu ban đầu chủ yếu liên quan đến động vật; C và D tập trung vào các kết quả tiêu cực hoặc khác biệt; E nói về cách diễn giải dữ liệu nghiên cứu; F giải thích sự phức tạp của hormone.","loc":"loc-14"},{"text":"reasons why the effects of oxytocin are complex","answer":"F","exp":"Đáp án F. Sue Carter giải thích rằng oxytocin là một phân tử cổ xưa, “has been co-opted for many different functions” và tác động lên những phần nguyên thủy của não như amygdala, nên “it’s going to have many effects on just about everything.” Đây chính là lý do tại sao tác động của nó phức tạp. B nói về giai đoạn nghiên cứu ban đầu; C nói về những phát hiện trái ngược; D nói về đối tượng tương tác; E nói về việc dữ liệu trước đây bị bỏ qua.","loc":"loc-15"},{"text":"mention of a period in which oxytocin attracted little scientific attention","answer":"B","exp":"Đáp án B. Heinrichs nói: “‘For eight years, it was quite a lonesome field,’” cho thấy trong tám năm lĩnh vực nghiên cứu oxytocin có rất ít sự quan tâm. Sau đó ông nói “‘Now, everyone is interested.’” A chỉ nói về nghiên cứu động vật; C và D nói về các phát hiện mới; E nói về việc các nhà nghiên cứu trước đây không chú ý đến một số kết quả; F nói về nguyên nhân khiến tác động của oxytocin phức tạp.","loc":"loc-16"},{"text":"reference to people ignoring certain aspects of their research data","answer":"E","exp":"Đáp án E. Đoạn E nói rằng trong gần một nửa các kết quả nghiên cứu, oxytocin chỉ ảnh hưởng đến một số người hoặc trong một số hoàn cảnh, và “Where once researchers took no notice of such findings”. “Took no notice” chính là bỏ qua/không chú ý. Các đoạn khác không đề cập trực tiếp đến việc các nhà nghiên cứu bỏ qua một phần dữ liệu nghiên cứu.","loc":"loc-17"}]},{"instruction":"Questions 18-20<br>Look at the following research findings (Questions 18-20) and the list of researchers below.<br>Match each research finding with the correct researcher, A-F.<br>Write the correct letter, A-F, in boxes 18-20 on your answer sheet.","type":"list_match","reference":"","imageUrl":"","options":["A. Markus Heinrichs","B. Simone Shamay-Tsoory","C. Jennifer Bartz","D. Carolyn DeClerck","E. Carsten De Dreu","F. Sue Carter"],"questions":[{"text":"People are more trusting when affected by oxytocin.","answer":"A","exp":"Đáp án A, Markus Heinrichs. Trong thí nghiệm năm 2005, những người nhận oxytocin đầu tư nhiều tiền hơn với một người ẩn danh không chắc chắn trung thực. Hành vi này cho thấy họ tin tưởng người kia hơn. B thuộc Simone Shamay-Tsoory với cảm giác envy trong competitive game; C thuộc Jennifer Bartz với sự khác biệt theo disposition; D và E liên quan đến strangers và favouritism; F là Sue Carter, người giải thích tính phức tạp của hormone.","loc":"loc-18"},{"text":"Oxytocin increases people’s feelings of jealousy.","answer":"B","exp":"Đáp án B, Simone Shamay-Tsoory. Trong nghiên cứu tại University of Haifa, những người hít oxytocin “felt more envy when others won”. “Envy” tương ứng với jealousy trong câu hỏi. A nghiên cứu về trust; C về khác biệt giữa các kiểu người; D về strangers; E về favouritism; F về cơ chế và lịch sử tiến hóa của hormone.","loc":"loc-19"},{"text":"The effect of oxytocin varies from one type of person to another.","answer":"C","exp":"Đáp án C, Jennifer Bartz. Passage nói oxytocin có “sharply contrasting outcomes depending on a person’s disposition”, sau đó Bartz cho thấy tác dụng khác nhau ở những người có mức độ social adeptness, anxiety và sensitivity to rejection khác nhau. A chỉ liên quan đến trust; B đến envy; D đến strangers; E đến favouritism; F giải thích cơ chế chung.","loc":"loc-20"}]},{"instruction":"Complete the summary below.<br>Choose ONE WORD ONLY from the passage for each answer.<br>Write your answers in boxes 21-26 on your answer sheet.","type":"text","reference":"","imageUrl":"","notesTemplate":"Oxytocin research\n\nThe earliest findings about oxytocin and bonding came from research involving _____ It was also discovered that humans produce oxytocin during _____ An experiment in 2005, in which participants were given either oxytocin or a _____, reinforced the belief that the hormone had a positive effect.\n\nHowever, later research suggests that this is not always the case. A study at the University of Haifa where participants took part in a _____ revealed the negative emotions which oxytocin can trigger. A study at the University of Antwerp showed people’s lack of willingness to help _____ while under the influence of oxytocin. Meanwhile, research at the University of Amsterdam revealed that people who have been given oxytocin consider _____ that are familiar to them in their own country to have more positive associations than those from other cultures.","questions":[{"text":"","answer":"animals","exp":"Đáp án “animals”. Đoạn A nói “It was through various studies focusing on animals that scientists first became aware of the influence of oxytocin.” Vì summary hỏi research involving _____, từ nguyên văn cần điền là “animals”. “Prairie voles” và “sheep” chỉ là những loài được nghiên cứu cụ thể, nhưng câu hỏi yêu cầu từ tổng quát đúng với cấu trúc của summary.","loc":"loc-21"},{"text":"","answer":"childbirth","exp":"Đáp án “childbirth”. Đoạn A nói oxytocin “is also released by women in childbirth, strengthening the attachment between mother and baby.” Vì summary hỏi con người sản xuất/release oxytocin “during _____”, từ phù hợp là “childbirth”. “Mother” và “baby” không phải thời điểm nên không thể điền.","loc":"loc-22"},{"text":"","answer":"placebo","exp":"Đáp án “placebo”. Trong thí nghiệm năm 2005, nhóm nghiên cứu so sánh những người nhận oxytocin với những người “received a placebo instead”. Vì summary có cấu trúc “either oxytocin or a _____”, đáp án là “placebo”.","loc":"loc-23"},{"text":"","answer":"game","exp":"Đáp án “game”. Nghiên cứu của Simone Shamay-Tsoory tại University of Haifa cho các tình nguyện viên tham gia “a competitive game”. Kết quả cho thấy oxytocin có thể làm tăng cảm giác envy khi người khác chiến thắng. Vì vậy từ cần điền là “game”.","loc":"loc-24"},{"text":"","answer":"strangers","exp":"Đáp án “strangers”. Nghiên cứu của Carolyn DeClerck cho thấy người nhận oxytocin “became less cooperative when dealing with complete strangers”. Summary hỏi họ không sẵn lòng giúp _____, nên đáp án là “strangers”.","loc":"loc-25"},{"text":"","answer":"names","exp":"Đáp án “names”. Carsten De Dreu phát hiện Dutch men nhanh hơn trong việc liên hệ các từ tích cực với “Dutch names” thay vì foreign ones. Summary nói “consider _____ that are familiar to them in their own country to have more positive associations”, nên từ cần điền là “names”.","loc":"loc-26"}]}],[{"instruction":"Questions 27-31<br>Choose the correct letter, A, B, C or D.<br>Write the correct letter in boxes 27-31 on your answer sheet.","type":"mcq","reference":"","imageUrl":"","questions":[{"text":"In the first paragraph, the writer says that most managers","options":["A. fail to spot the key consumer trends of the moment.","B. make the mistake of focusing only on the principal consumer trends.","C. misinterpret market research data relating to current consumer trends.","D. are unaware of the significant impact that trends have on consumers’ lives."],"answer":"D","exp":"Đáp án D. Đoạn đầu nói managers “fail to recognize the less obvious but profound ways” trends ảnh hưởng tới “consumers’ aspirations, attitudes, and behaviors”. Điều này tương ứng với việc họ “are unaware of the significant impact that trends have on consumers’ lives”. A sai vì passage nói họ nhận ra major trends nhưng bỏ qua ảnh hưởng ít rõ ràng; B sai vì không nói họ chỉ tập trung vào principal trends; C sai vì không nói họ hiểu sai dữ liệu market research.","loc":"loc-27"},{"text":"According to the third paragraph, Coach was anxious to","options":["A. follow what some of its competitors were doing.","B. maintain its prices throughout its range.","C. safeguard its reputation as a manufacturer of luxury goods.","D. modify the entire look of its brand to suit the economic climate."],"answer":"C","exp":"Đáp án C. Coach có hình ảnh “opulence and luxury for nearly 70 years”, và việc giảm giá sẽ “risk cheapening the brand’s image”. Vì vậy họ muốn bảo vệ hình ảnh/danh tiếng cao cấp của thương hiệu. A không được đề cập; B sai vì Coach thực tế tung ra dòng Poppy giá thấp hơn; D sai vì họ không thay đổi toàn bộ hình ảnh thương hiệu mà tạo một sub-brand mới.","loc":"loc-28"},{"text":"What point is made about Tesco’s Greener Living programme?","options":["A. It did not require Tesco to modify its core business activities.","B. It succeeded in attracting a more eco-conscious clientele.","C. Its main aim was to raise consumers’ awareness of environmental issues.","D. It was not the first time that Tesco had implemented such an initiative."],"answer":"A","exp":"Đáp án A. Passage nói Tesco “has not abandoned its traditional retail offering but augmented its business with these innovations”. Nghĩa là Tesco giữ hoạt động bán lẻ truyền thống và bổ sung thêm các sáng kiến xanh, không thay đổi hoạt động cốt lõi. B không được nói rằng chương trình thành công nhờ thu hút một nhóm khách hàng mới; C sai vì mục tiêu được mô tả là tạo ra tangible results và bảo vệ môi trường, không chỉ nâng cao awareness; D không có thông tin.","loc":"loc-29"},{"text":"What does the writer suggest about Nike’s strategy?","options":["A. It was an extremely risky strategy at the time.","B. It was a strategy that only a major company could afford to follow.","C. It was the type of strategy that would not have been possible in the past.","D. It was the kind of strategy which might appear to have few obvious benefits."],"answer":"D","exp":"Đáp án D. Ngay trước ví dụ Nike, tác giả nói việc đưa một xu hướng có vẻ “seemingly irrelevant” vào sản phẩm cốt lõi “sounds like it’s hardly worthwhile”. Điều này tương ứng với “might appear to have few obvious benefits”. A không có bằng chứng về mức độ rủi ro; B không nói chiến lược chỉ dành cho công ty lớn; C không nói trước đây chiến lược này không thể thực hiện.","loc":"loc-30"},{"text":"What was original about the ME2?","options":["A. It contained technology that had been developed for the sports industry.","B. It appealed to young people who were keen to improve their physical fitness.","C. It took advantage of a current trend for video games with colourful 3D graphics.","D. It was a handheld game that addressed people’s concerns about unhealthy lifestyles."],"answer":"D","exp":"Đáp án D. Điểm đặc biệt của ME2 là nó kết hợp video game với physical play và “countering the negatives, such as associations with lack of exercise and obesity”. A sai vì pedometer không được nói là technology developed for the sports industry; B sai vì mục tiêu không phải chỉ phục vụ những trẻ em muốn tăng thể lực; C sai vì colourful LCD và 3D graphics cũng có ở các handheld games khác. D bao quát chính xác điểm khác biệt của ME2.","loc":"loc-31"}]},{"instruction":"Questions 32-37<br>Look at the following statements (Questions 32-37) and the list of companies below.<br>Match each statement with the correct company, A, B, C or D.<br>Write the correct letter, A, B, C or D, in boxes 32-37 on your answer sheet.<br>NB You may use any letter more than once.","type":"grid","reference":"","imageUrl":"","options":["A","B","C","D"],"questions":[{"text":"It turned the notion that its products could have harmful effects to its own advantage.","answer":"D","exp":"Đáp án D = iToys. ME2 biến vấn đề tiêu cực thường gắn với digital gaming thành một lợi thế bằng cách đưa physical play vào game. A Coach liên quan đến economic downturn và luxury image; B Tesco liên quan đến environmental concerns; C Nike liên quan đến digital revolution trong athletic footwear.","loc":"loc-32"},{"text":"It extended its offering by collaborating with another manufacturer.","answer":"C","exp":"Đáp án C = Nike. Passage nói Nike “teamed up with technology company Apple to launch Nike+”. Đây là sự mở rộng offering thông qua hợp tác với một manufacturer/technology company khác. A không hợp tác với đối tác khác; B triển khai Greener Living trong chính business; D tự tạo ME2.","loc":"loc-33"},{"text":"It implemented an incentive scheme to demonstrate its corporate social responsibility.","answer":"B","exp":"Đáp án B = Tesco. Tesco cho khách hàng tích điểm khi tái sử dụng túi, tái chế lon và cartridge, sau đó điểm xanh có thể đổi thành tiền. Đây là incentive scheme gắn với việc bảo vệ môi trường và thể hiện corporate social responsibility. A không có incentive scheme; C không dùng điểm thưởng theo cách này; D không có chương trình tương tự trong passage.","loc":"loc-34"},{"text":"It discovered that customers had a positive attitude towards dealing with difficult circumstances.","answer":"A","exp":"Đáp án A = Coach. Consumer-research project của Coach cho thấy customers “were eager to lift themselves and the country out of tough times”. Đây chính là thái độ tích cực đối với hoàn cảnh khó khăn. Tesco nói về môi trường; Nike về digital consumers; iToys về tác động tiêu cực của gaming.","loc":"loc-35"},{"text":"It responded to a growing lifestyle trend in an unrelated product sector.","answer":"C","exp":"Đáp án C = Nike. Nike đáp ứng xu hướng digital revolution, một xu hướng có vẻ xa với lĩnh vực athletic footwear, bằng Nike+. A Coach phản ứng với economic downturn; B Tesco phản ứng với environmental concerns; D iToys xử lý negative impacts của digital gaming.","loc":"loc-36"},{"text":"It successfully avoided having to charge its customers less for its core products.","answer":"A","exp":"Đáp án A = Coach. Thay vì giảm giá toàn bộ sản phẩm, Coach tạo sub-brand Poppy với mức giá thấp hơn, nhờ đó “avert an across-the-board price cut”. B không liên quan đến price cuts; C tập trung vào Nike+; D tập trung vào physical activity trong game.","loc":"loc-37"}]},{"instruction":"Questions 38-40<br>Complete each sentence with the correct ending, A, B, C or D below.<br>Write the correct letter, A, B, C or D, in boxes 38-40 on your answer sheet.","type":"list_match","reference":"","imageUrl":"","options":["A. employ a combination of strategies to maintain your consumer base.","B. identify the most appropriate innovation strategy to use.","C. emphasise your brand’s traditional values with the counteract-and-affirm strategy.","D. use the combine-and-transcend strategy to integrate the two worlds."],"questions":[{"text":"If there are any trend-related changes impacting on your category, you should","answer":"B","exp":"Đáp án B. Đoạn cuối nói rằng sau khi hiểu cách trend-related changes tác động đến category, doanh nghiệp có thể “determine which of our three innovation strategies to pursue”. Điều này tương ứng với “identify the most appropriate innovation strategy to use.” A không được nói; C chỉ áp dụng khi trend tạo ra khía cạnh tiêu cực; D chỉ áp dụng khi có increasing disparity giữa category và consumers’ new focus.","loc":"loc-38"},{"text":"If a current trend highlights a negative aspect of your category, you should","answer":"C","exp":"Đáp án C. Passage nói nếu “aspects of the category clash with undesired outcomes of a trend”, doanh nghiệp có thể “counteract those changes by reaffirming the core values of your category”. Đây chính là “emphasise your brand’s traditional values with the counteract-and-affirm strategy.” B là quy tắc chung khi xác định strategy; D dành cho increasing disparity; A không được nêu.","loc":"loc-39"},{"text":"If the consumers’ new focus has an increasing lack of connection with your offering you should","answer":"D","exp":"Đáp án D. Khi có “an increasing disparity between your category and consumers’ new focus”, passage nói “your innovations need to transcend the category to integrate the two worlds”. Vì vậy phải dùng “the combine-and-transcend strategy to integrate the two worlds.” B chỉ là nguyên tắc xác định strategy; C áp dụng cho negative outcomes; A không phải chiến lược được nêu cho tình huống này.","loc":"loc-40"}]}]];
+
+        // --- Chế độ "làm bài tập được giao" ---
+        // Khi trang này được mở từ nút "Bài tập" bên trang chủ (index.html), URL sẽ có kèm
+        // assignmentId+uid (và scope = 'all'/'1'/'2'/'3'). Lúc đó đây KHÔNG phải luyện tập tự do
+        // mà là một bài homework cụ thể — giao diện + nút "Nộp bài" cần rõ ràng theo đúng phạm vi
+        // (1 Passage hay cả bài) mà giáo viên đã giao, thay vì luôn mở full 3 Passage mập mờ.
+        const __assignParams = new URLSearchParams(location.search);
+        const ASSIGN_ID = __assignParams.get('assignmentId') || '';
+        const ASSIGN_UID = __assignParams.get('uid') || '';
+        const ASSIGN_SCOPE = __assignParams.get('scope') || 'all'; // 'all' | '1' | '2' | '3'
+        const IS_ASSIGNMENT_MODE = !!(ASSIGN_ID && ASSIGN_UID);
+        function assignmentScopeLabel() {
+            return (ASSIGN_SCOPE === '1' || ASSIGN_SCOPE === '2' || ASSIGN_SCOPE === '3')
+                ? `Passage ${ASSIGN_SCOPE}` : 'Cả bài (3 Passage)';
+        }
+
+        const testData = {};
+        const passageRanges = [];
+        let qCounter = 0;
+        questionsData.forEach(groups => {
+            const start = qCounter + 1;
+            groups.forEach(g => {
+                g.questions.forEach(q => {
+                    qCounter++;
+                    q.qNum = qCounter;
+                    testData[qCounter] = {
+                        type: (g.type === 'mcq' || g.type === 'tfng') ? 'radio' : 'text',
+                        answer: q.answer,
+                        loc: q.loc || "",
+                        exp: q.exp || ""
+                    };
+                });
+            });
+            passageRanges.push([start, qCounter]);
+        });
+        const TOTAL_QUESTIONS = qCounter;
+        // passageRanges/TOTAL_QUESTIONS được khai báo bằng const nên KHÔNG tự gắn lên window
+        // (khác với "var"/function ở top-level của script thường) — gắn tay ở đây để đoạn
+        // <script type="module"> báo kết quả về Firestore ở cuối trang đọc được khoảng câu hỏi
+        // của từng Passage khi cần chấm riêng 1 Passage.
+        window.passageRanges = passageRanges;
+
+        // Populate the practice-mode passage dropdown from passage titles
+        (function initDropdown() {
+            const dd = document.getElementById('passage-dropdown');
+            const opts = [1, 2, 3].map(i => {
+                const el = document.getElementById(`passage-${i}-text`);
+                const title = el ? el.dataset.title : `Passage ${i}`;
+                return `<option value="${i}">Passage ${i}: ${title}</option>`;
+            });
+            dd.innerHTML = opts.join('');
+        })();
+
+        // Khi đang làm 1 bài tập được giao (IS_ASSIGNMENT_MODE): ẩn phần chọn chế độ Luyện
+        // tập/Thi thật (không liên quan tới homework), thay bằng 1 dòng thông báo rõ ràng giáo
+        // viên đã giao đúng phạm vi nào, tự chọn sẵn đúng Passage đó trong dropdown (ẩn), và đổi
+        // chữ trên nút nộp bài chính (header) thành "Nộp homework (...)" để không còn mập mờ.
+        (function initAssignmentMode() {
+            if (!IS_ASSIGNMENT_MODE) return;
+
+            const modeSelectEl = document.querySelector('#setup-screen .mode-select');
+            const passageSelectorEl = document.getElementById('passage-selector');
+            const setupIntro = document.querySelector('#setup-screen .modal-box > p');
+            if (modeSelectEl) modeSelectEl.style.display = 'none';
+            if (passageSelectorEl) passageSelectorEl.style.display = 'none';
+            if (setupIntro) {
+                setupIntro.innerHTML = `📩 Bạn đang làm <strong>BÀI TẬP được giao</strong>: <strong>${assignmentScopeLabel()}</strong>. Làm xong nhớ bấm nút <strong>"Nộp homework"</strong> ở góc trên bên phải để nộp bài nhé!`;
+            }
+
+            const dd = document.getElementById('passage-dropdown');
+            if (dd && (ASSIGN_SCOPE === '1' || ASSIGN_SCOPE === '2' || ASSIGN_SCOPE === '3')) {
+                dd.value = ASSIGN_SCOPE;
+            }
+
+            const mainSubmitBtn = document.getElementById('main-submit-btn');
+            if (mainSubmitBtn) mainSubmitBtn.textContent = `📩 Nộp homework (${assignmentScopeLabel()})`;
+        })();
+
+        // --- HTML Question Templates Generation ---
+        function generateQuestionsHTML() {
+            let html = '';
+            let groupCounter = 0;
+            questionsData.forEach((groups, pIdx) => {
+                html += `<div id="questions-p${pIdx + 1}" class="content-wrapper${pIdx === 0 ? ' active' : ''}">`;
+                html += `<div class="part-grade-bar" id="part-grade-bar-${pIdx + 1}">
+                            <button class="part-grade-btn" type="button" onclick="gradePart(${pIdx + 1})">✅ Chấm riêng Part ${pIdx + 1}</button>
+                          </div>`;
+                groups.forEach(g => {
+                    groupCounter++;
+                    const nums = g.questions.map(q => q.qNum);
+                    const rangeLabel = nums.length > 1 ? `Questions ${nums[0]}-${nums[nums.length - 1]}` : `Question ${nums[0]}`;
+                    html += `<div class="question-group"><h3>${rangeLabel}</h3><p class="instruction">${g.instruction || ''}</p>`;
+                    if (g.imageUrl) {
+                        html += renderGroupImage(g.imageUrl);
+                    }
+                    if (g.reference) {
+                        html += `<div style="border:1px solid #ccc; padding:15px; margin-bottom:15px; background:#fff;">${g.reference}</div>`;
+                    }
+                    if (g.type === 'matching') {
+                        html += genMatching(groupCounter, g.options || [], g.questions);
+                    } else if (g.type === 'heading') {
+                        // Matching Headings: kéo-thả heading (i, ii, iii...) từ ngân hàng ở panel câu
+                        // hỏi thẳng vào "khe" đã đặt sẵn ở ĐẦU mỗi đoạn văn tương ứng bên panel bài đọc
+                        // (xem initHeadingGapsInPassage() + span.heading-gap do test-builder chèn sẵn).
+                        html += genHeadingDrag('hg' + g.questions[0].qNum, g.options || [], g.questions);
+                    } else if (g.type === 'list_match') {
+                        // Matching Names-Claims-Sentence Endings: 1 bảng chú thích (legend) các lựa
+                        // chọn A/B/C... + mỗi câu hỏi có 1 dropdown chọn đáp án đúng (không kéo thả,
+                        // vì các mục ở đây không nằm trong bài đọc để mà "thả vào" như headings).
+                        html += genLettered(groupCounter, g.options || [], g.questions);
+                    } else if (g.type === 'grid') {
+                        // Matching Information / Matching Names / Matching Features dạng bảng: mỗi
+                        // dòng là 1 câu, mỗi cột là 1 chữ cái — click radio ở đúng ô giao nhau.
+                        html += genGrid(groupCounter, g.options || [], g.questions);
+                    } else if (g.type === 'multi') {
+                        // "Choose TWO/THREE correct answers": checkbox dùng chung cho cả nhóm câu.
+                        html += genMulti(groupCounter, g.options || [], g.questions, g.pickCount || g.questions.length);
+                    } else if (g.type === 'inline') {
+                        // Complete the summary/table: gộp CẢ NHÓM câu hỏi thành 1 đoạn văn chảy liên
+                        // tục (giống summary thật), không tách mỗi câu ra 1 dòng riêng có số tròn to.
+                        html += genInlineGroup(g.questions);
+                    } else if (g.type === 'text') {
+                        // Complete the notes: 2 kiểu nội dung khác nhau, KHÔNG dùng chung 1 cách render —
+                        // xem genNotesFromTemplate()/genNotesGroup() bên dưới để biết vì sao phải phân biệt.
+                        // - Có g.notesTemplate (giáo viên dán nguyên khối ghi chú/outline, có tiêu đề, gạch
+                        //   đầu dòng...): giữ NGUYÊN 100% chữ gốc, chỉ thay mỗi dấu "_____" bằng 1 ô nhập.
+                        // - Không có (nhóm chỉ là 1 đoạn văn liền mạch, câu nào cũng có blank riêng): dùng
+                        //   cách cũ — tự ghép pre/post của từng câu lại thành 1 khối chảy liên tục.
+                        html += (g.notesTemplate && g.notesTemplate.trim())
+                            ? genNotesFromTemplate(g.notesTemplate, g.questions)
+                            : genNotesGroup(g.questions);
+                    } else if (g.type === 'table') {
+                        // Complete the table below: đề gốc là 1 BẢNG THẬT có cột/hàng (vd Stepwells |
+                        // Date | Features | Other notes) — khác "Complete the notes" (khối ghi chú chảy
+                        // liên tục), nên render đúng thành <table> giữ nguyên cột/hàng, xem genTableGroup().
+                        html += genTableGroup(g.tableColumns || [], g.tableRows || [], g.questions);
+                    } else if (g.type === 'wordbank') {
+                        // Summary/Sentence completion CÓ SẴN danh sách từ (word list/box) — khác "text"
+                        // (điền từ tự gõ, lấy nguyên văn từ bài đọc): ở đây học sinh CHỌN đúng từ trong
+                        // 1 ngân hàng cho sẵn (thường NHIỀU từ hơn số chỗ trống), không được gõ tự do.
+                        // Vẫn là 1 đoạn văn chảy liên tục (dùng g.notesTemplate y hệt "text" (b)), chỉ
+                        // khác chỗ mỗi blank là 1 <select> thay vì <input> tự gõ — xem genWordBankGroup().
+                        html += genWordBankGroup(g.notesTemplate || '', g.options || [], g.questions);
+                    } else {
+                        g.questions.forEach(q => {
+                            if (g.type === 'tfng') {
+                                html += genRadio(q.qNum, q.text, g.labels || ['TRUE', 'FALSE', 'NOT GIVEN']);
+                            } else if (g.type === 'mcq') {
+                                html += genRadio(q.qNum, q.text, q.options || []);
+                            } else {
+                                html += genText(q.qNum, q.text || '');
+                            }
+                        });
+                    }
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            });
+            document.getElementById('questions-container').innerHTML = html;
+        }
+
+        // Converts a typical Google Drive "share" link into a directly-viewable
+        // image URL; passes any other URL (Imgur, direct image host, etc.) through untouched.
+        function toDirectImageUrl(url) {
+            if (!url) return '';
+            url = url.trim();
+            const m = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/) || (url.includes('drive.google.com') && url.match(/[?&]id=([a-zA-Z0-9_-]+)/));
+            if (m && m[1]) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+            return url;
+        }
+
+        function renderGroupImage(url) {
+            const src = toDirectImageUrl(url);
+            return `<div class="group-image-wrap"><img src="${src}" alt="Sơ đồ minh hoạ" class="group-image" loading="lazy"
+                        onerror="this.parentElement.innerHTML='&lt;p style=&quot;color:#c62828;font-size:13px;&quot;&gt;⚠️ Không tải được ảnh — kiểm tra lại link (cần bật chia sẻ &quot;Anyone with the link&quot;).&lt;/p&gt;'"></div>`;
+        }
+
+        function genRadio(qNum, text, options) {
+            let optsHtml = options.map(opt => `<label class="radio-label"><input type="radio" name="q${qNum}" value="${opt.split('.')[0].trim()}"> ${opt}</label>`).join('');
+            return `<div class="question-item" id="q-container-${qNum}">
+                        <div class="q-num">${qNum}</div>
+                        <div style="flex:1;">
+                            <p style="margin:0 0 10px 0;">${text}</p>
+                            <div class="${options.length > 3 ? 'mcq-options' : 'options-tf'}">${optsHtml}</div>
+                            <div class="feedback-box" id="fb-${qNum}"></div>
+                        </div>
+                    </div>`;
+        }
+        // Fallback đơn lẻ (chỉ dùng khi type không xác định được) — 1 câu/1 dòng, KHÔNG dùng cho
+        // 'text' hay 'inline' nữa (2 loại đó giờ render theo nhóm, xem genNotesGroup/genInlineGroup
+        // + renderFlowingBlanks() bên dưới, để cả nhóm chảy liền mạch thành 1 khối ghi chú/đoạn văn
+        // thay vì mỗi câu là 1 thẻ tách rời có vòng tròn số to).
+        function genText(qNum, text) {
+            return `<div class="question-item compact-item" id="q-container-${qNum}" style="align-items:center;">
+                        <div class="q-num" style="width:24px;height:24px;font-size:12px;">${qNum}</div>
+                        <div style="flex:1; display:flex; align-items:center; flex-wrap:wrap; gap:10px;">
+                            <span>${text}</span>
+                            <input type="text" class="text-input" name="q${qNum}" placeholder="Your answer..." style="width:160px;">
+                            <div class="feedback-box" id="fb-${qNum}" style="width:100%; margin-top:5px;"></div>
+                        </div>
+                    </div>`;
+        }
+
+        // Tìm dấu chỗ trống trong 1 câu văn (___, ....., …) để tách ra phần TRƯỚC/SAU chỗ trống đó
+        // — dùng cho "Complete the notes" (type 'text') khi giáo viên gõ nguyên câu kèm gạch chân
+        // (vd "Trees may be falling down because of _____ from nearby fields") thay vì tách sẵn
+        // pre/post như 'inline'. Không tìm thấy dấu nào thì coi cả câu là phần TRƯỚC, chỗ trống tự
+        // nối ngay sau (ô nhập nằm ở cuối câu).
+        function splitBlankMarker(text) {
+            const t = text || '';
+            const m = t.match(/_{2,}|\.{4,}|…+/);
+            if (!m) return { pre: t.trim(), post: '' };
+            return { pre: t.slice(0, m.index).trim(), post: t.slice(m.index + m[0].length).trim() };
+        }
+
+        // Render CHUNG cho cả 'inline' (Complete the summary/table) lẫn 'text' (Complete the
+        // notes) — nhận vào 1 mảng {qNum, pre, post}, gộp CẢ NHÓM thành 1 khối văn bản chảy liên
+        // tục (pre câu 1 -> ô trống 1 -> post câu 1 -> pre câu 2 -> ...) thay vì tách mỗi câu ra 1
+        // dòng riêng với vòng tròn số to — số câu hỏi nằm NGAY TRONG ô nhập liệu (placeholder), gõ
+        // chữ vào là số tự biến mất, đúng như 1 chỗ trống thật trong bài.
+        function renderFlowingBlanks(items) {
+            const spansHtml = items.map(it => `<span>${it.pre || ''}</span><span class="inline-blank-wrap" id="q-container-${it.qNum}"><input type="text" class="text-input inline-blank" name="q${it.qNum}" placeholder="${it.qNum}"></span><span>${it.post || ''}</span>`).join(' ');
+            const feedbackHtml = items.map(it =>
+                `<div class="feedback-box" id="fb-${it.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `<div class="inline-summary">${spansHtml}</div>${feedbackHtml}`;
+        }
+        function genInlineGroup(questions) {
+            return renderFlowingBlanks(questions.map(q => ({ qNum: q.qNum, pre: q.pre || '', post: q.post || '' })));
+        }
+        function genNotesGroup(questions) {
+            return renderFlowingBlanks(questions.map(q => {
+                const { pre, post } = splitBlankMarker(q.text || '');
+                return { qNum: q.qNum, pre, post };
+            }));
+        }
+
+        // "Complete the notes" khi đề KHÔNG phải 1 đoạn văn liền mạch mà là 1 khối ghi chú/outline có
+        // tiêu đề, gạch đầu dòng, các dòng con thụt lề... (vd lịch sử cuộc đời theo từng mốc thời gian).
+        // Ghép từng câu riêng lẻ như genNotesGroup() sẽ làm MẤT toàn bộ cấu trúc đó (tiêu đề, những dòng
+        // không có chỗ trống...). Ở đây ngược lại: giáo viên dán NGUYÊN VĂN cả khối ghi chú vào 1 ô duy
+        // nhất (template, giữ nguyên xuống dòng), đánh dấu mỗi chỗ trống bằng ___/..../… theo ĐÚNG thứ tự
+        // câu hỏi trong nhóm — hàm này CHỈ thay từng dấu đó bằng 1 ô nhập, còn lại giữ y nguyên 100% (kể
+        // cả tiêu đề, gạch đầu dòng, những dòng không có chỗ trống nào) nhờ escapeHtml() + white-space:
+        // pre-wrap (xem CSS .notes-template) để xuống dòng/khoảng trắng gốc hiển thị đúng như đã gõ.
+        function genNotesFromTemplate(template, questions) {
+            const re = /_{2,}|\.{4,}|…+/g;
+            const segments = [];
+            let lastIndex = 0, qi = 0, m;
+            while (qi < questions.length && (m = re.exec(template)) !== null) {
+                segments.push({ text: template.slice(lastIndex, m.index) });
+                segments.push({ q: questions[qi] });
+                lastIndex = m.index + m[0].length;
+                qi++;
+            }
+            segments.push({ text: template.slice(lastIndex) });
+            // Nếu template có ÍT dấu chỗ trống hơn số câu trong nhóm (giáo viên gõ thiếu ___), vẫn
+            // thêm ô nhập cho các câu còn lại vào cuối cùng để không mất câu hỏi nào.
+            for (; qi < questions.length; qi++) segments.push({ q: questions[qi] });
+
+            const bodyHtml = segments.map(seg => {
+                if (seg.q) {
+                    return `<span class="inline-blank-wrap" id="q-container-${seg.q.qNum}"><input type="text" class="text-input inline-blank" name="q${seg.q.qNum}" placeholder="${seg.q.qNum}"></span>`;
+                }
+                return escapeHtml(seg.text);
+            }).join('');
+            const feedbackHtml = questions.map(q => `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `<div class="inline-summary notes-template">${bodyHtml}</div>${feedbackHtml}`;
+        }
+
+        // Thay lần lượt từng dấu chỗ trống (___/..../…) trong 1 đoạn text bằng 1 ô nhập, bắt đầu từ
+        // questions[startQi] — dùng CHUNG logic với genNotesFromTemplate() nhưng nhận thêm "con trỏ"
+        // startQi vì genTableGroup() cần đánh số blank xuyên suốt NHIỀU Ô của bảng theo đúng thứ tự
+        // đọc trái-qua-phải, trên-xuống-dưới (không reset lại mỗi ô như genNotesFromTemplate làm với
+        // mỗi khối text riêng biệt). Trả về {html, qi} để caller biết đã dùng tới câu hỏi thứ mấy.
+        function fillBlanksInText(text, questions, startQi) {
+            const re = /_{2,}|\.{4,}|…+/g;
+            let qi = startQi, lastIndex = 0, m;
+            let out = '';
+            while (qi < questions.length && (m = re.exec(text)) !== null) {
+                out += escapeHtml(text.slice(lastIndex, m.index));
+                const q = questions[qi];
+                out += `<span class="inline-blank-wrap" id="q-container-${q.qNum}"><input type="text" class="text-input inline-blank" name="q${q.qNum}" placeholder="${q.qNum}"></span>`;
+                lastIndex = m.index + m[0].length;
+                qi++;
+            }
+            out += escapeHtml(text.slice(lastIndex));
+            return { html: out, qi };
+        }
+
+        // "Complete the table below": đề gốc là 1 bảng THẬT có cột/hàng (test-builder đã tách sẵn
+        // thành columns[] + rows[][] khi xuất bản — xem currentTestPaths()/buildTestHTML() phía tool
+        // soạn đề). Ô nào KHÔNG có chỗ trống thì hiện nguyên văn; ô nào có 1+ dấu ___ thì thay bằng ô
+        // nhập, đánh số blank LIÊN TỤC theo thứ tự đọc bảng (trái→phải, trên→dưới) khớp đúng thứ tự
+        // các câu hỏi trong nhóm — giữ được cấu trúc cột/hàng thật thay vì dồn hết thành 1 đoạn văn
+        // chảy liên tục như "Complete the notes" (xem genNotesFromTemplate).
+        function genTableGroup(columns, rows, questions) {
+            let qi = 0;
+            const theadHtml = (columns && columns.length)
+                ? `<thead><tr>${columns.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr></thead>`
+                : '';
+            const tbodyHtml = (rows || []).map(row => {
+                const cellsHtml = (row || []).map(cellText => {
+                    const filled = fillBlanksInText(cellText || '', questions, qi);
+                    qi = filled.qi;
+                    return `<td>${filled.html}</td>`;
+                }).join('');
+                return `<tr>${cellsHtml}</tr>`;
+            }).join('');
+            // Nếu bảng có ÍT chỗ trống hơn số câu trong nhóm, vẫn thêm ô nhập cho các câu còn lại
+            // (không mất câu hỏi nào) — dồn vào cuối dòng cuối bảng dưới dạng 1 hàng phụ.
+            let extraRowHtml = '';
+            if (qi < questions.length) {
+                const remaining = questions.slice(qi);
+                const spans = remaining.map(q => `<span class="inline-blank-wrap" id="q-container-${q.qNum}"><input type="text" class="text-input inline-blank" name="q${q.qNum}" placeholder="${q.qNum}"></span>`).join(' ');
+                extraRowHtml = `<tr><td colspan="${Math.max(1, (columns || []).length)}">${spans}</td></tr>`;
+            }
+            const feedbackHtml = questions.map(q => `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `<div class="data-table-scroll-wrap"><table class="data-table">${theadHtml}<tbody>${tbodyHtml}${extraRowHtml}</tbody></table></div>${feedbackHtml}`;
+        }
+
+        // Summary/Sentence completion CÓ SẴN danh sách từ (word list/box) — khác genNotesFromTemplate
+        // (điền tự gõ): ở đây mỗi chỗ trống là 1 <select> chọn từ ngân hàng chung "options" (thường
+        // NHIỀU lựa chọn hơn số chỗ trống, đúng chuẩn IELTS thật — học sinh phải loại trừ bớt). Ngân
+        // hàng hiện 1 lần dạng "chip" phía trên (giống genLettered), select mặc định hiện SỐ THỨ TỰ
+        // câu hỏi (option value="") để học sinh biết đang ở câu mấy trước khi chọn — cùng quy ước với
+        // mọi loại "điền chỗ trống" khác trong bài (xem fillBlanksInText/genNotesFromTemplate).
+        function genWordBankGroup(template, options, questions) {
+            const legendHtml = `<div class="match-bank match-legend">${options.map(opt =>
+                `<div class="match-chip match-chip-static">${opt}</div>`).join('')}</div>`;
+
+            const re = /_{2,}|\.{4,}|…+/g;
+            const segments = [];
+            let lastIndex = 0, qi = 0, m;
+            while (qi < questions.length && (m = re.exec(template)) !== null) {
+                segments.push({ text: template.slice(lastIndex, m.index) });
+                segments.push({ q: questions[qi] });
+                lastIndex = m.index + m[0].length;
+                qi++;
+            }
+            segments.push({ text: template.slice(lastIndex) });
+            for (; qi < questions.length; qi++) segments.push({ q: questions[qi] });
+
+            const bodyHtml = segments.map(seg => {
+                if (seg.q) {
+                    const optHtml = options.map(opt => {
+                        const letter = (opt.split('.')[0] || '').trim();
+                        return `<option value="${letter}">${opt}</option>`;
+                    }).join('');
+                    return `<span class="inline-blank-wrap" id="q-container-${seg.q.qNum}"><select name="q${seg.q.qNum}" class="lettered-select inline-select"><option value="">${seg.q.qNum}</option>${optHtml}</select></span>`;
+                }
+                return escapeHtml(seg.text);
+            }).join('');
+            const feedbackHtml = questions.map(q => `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `${legendHtml}<div class="inline-summary notes-template">${bodyHtml}</div>${feedbackHtml}`;
+        }
+
+        // Matching / drag-drop question type: a bank of draggable option chips
+        // (A, B, C...) that get dragged into a slot next to each prompt. Answers
+        // are mirrored into a hidden <input name="qN"> so all the existing grading /
+        // "answered" nav-circle logic works unchanged, with no special-casing needed.
+        function genMatching(groupId, options, questions) {
+            const bankHtml = options.map(opt => {
+                const letter = (opt.split('.')[0] || '').trim();
+                return `<div class="match-chip" data-letter="${letter}" data-group="${groupId}" id="chip-${groupId}-${letter}">${opt}</div>`;
+            }).join('');
+
+            const rowsHtml = questions.map(q => `
+                <div class="question-item match-row" id="q-container-${q.qNum}">
+                    <div class="q-num">${q.qNum}</div>
+                    <span class="match-prompt-text">${q.text}</span>
+                    <div class="match-slot" id="slot-${q.qNum}" data-group="${groupId}" data-qnum="${q.qNum}" data-letter="">Kéo đáp án vào đây</div>
+                    <input type="hidden" name="q${q.qNum}" id="input-q${q.qNum}" value="">
+                    <div class="feedback-box" id="fb-${q.qNum}" style="width:100%; margin-top:5px;"></div>
+                </div>
+            `).join('');
+
+            return `<div class="match-bank" id="bank-${groupId}">${bankHtml}</div>${rowsHtml}`;
+        }
+
+        // Matching Headings: kéo-thả trực tiếp vào bài đọc. Panel câu hỏi (bên phải) chỉ hiện
+        // NGÂN HÀNG heading (i, ii, iii...) để kéo, cộng với 1 hộp feedback nhỏ/câu (hiện sau khi
+        // nộp bài) — vị trí thả (slot) thật sự nằm ngay ĐẦU mỗi đoạn văn tương ứng bên panel bài
+        // đọc (trái), do test-builder.html chèn sẵn 1 <span class="heading-gap"> tĩnh vào đúng
+        // đoạn văn khớp thứ tự câu hỏi, rồi initHeadingGapsInPassage() (gọi trong startTest()) sẽ
+        // "nâng cấp" span đó thành 1 match-slot thật để dùng chung bộ máy kéo-thả Pointer Events
+        // đã có sẵn của genMatching() (chip + slot cùng data-group) — không cần viết lại logic kéo
+        // thả riêng, không cần các dropdown cồng kềnh.
+        function genHeadingDrag(groupId, options, questions) {
+            const bankHtml = options.map(opt => {
+                const letter = (opt.split('.')[0] || '').trim();
+                return `<div class="match-chip" data-letter="${letter}" data-group="${groupId}" id="chip-${groupId}-${letter}">${opt}</div>`;
+            }).join('');
+
+            const feedbackHtml = questions.map(q =>
+                `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+
+            return `<div class="match-bank" id="bank-${groupId}">${bankHtml}</div>
+                    <p class="hint" style="margin:0 0 10px 0;">👆 Kéo heading phía trên vào đúng vị trí đầu mỗi đoạn văn bên bài đọc (panel trái).</p>
+                    ${feedbackHtml}`;
+        }
+
+        // Matching Names-Claims-Sentence Endings (nối người/mệnh đề với đáp án đúng, A-G...): một
+        // bảng chú thích tĩnh (legend) liệt kê hết các lựa chọn, và mỗi câu hỏi có 1 dropdown
+        // <select> để chọn đáp án đúng — không kéo-thả vì các mục ở đây (tên người, mệnh đề...)
+        // không nằm sẵn trong bài đọc để "thả vào" như Matching Headings.
+        function genLettered(groupId, options, questions) {
+            const legendHtml = `<div class="match-bank match-legend" id="bank-${groupId}">${options.map(opt =>
+                `<div class="match-chip match-chip-static">${opt}</div>`).join('')}</div>`;
+
+            const rowsHtml = questions.map(q => {
+                const optHtml = options.map(opt => {
+                    const letter = (opt.split('.')[0] || '').trim();
+                    return `<option value="${letter}">${opt}</option>`;
+                }).join('');
+                return `<div class="question-item match-row" id="q-container-${q.qNum}">
+                            <div class="q-num">${q.qNum}</div>
+                            <span class="match-prompt-text">${q.text}</span>
+                            <select name="q${q.qNum}" class="lettered-select">
+                                <option value="">-- Chọn đáp án --</option>${optHtml}
+                            </select>
+                            <div class="feedback-box" id="fb-${q.qNum}" style="width:100%; margin-top:5px;"></div>
+                        </div>`;
+            }).join('');
+
+            return `${legendHtml}${rowsHtml}`;
+        }
+
+        // Matching Information / Matching Names / Matching Features dạng LƯỚI (grid/matrix): mỗi
+        // dòng là 1 câu (đoạn văn/thông tin cần tìm), mỗi cột là 1 chữ cái (A-I, A-F...) — bấm
+        // radio ở đúng ô giao giữa dòng và cột. Cho phép dùng lại cùng 1 chữ cái cho nhiều dòng
+        // (mỗi dòng có input name="qN" RIÊNG nên các radio ở các dòng khác nhau không loại trừ
+        // lẫn nhau — chỉ những ô CÙNG dòng mới loại trừ nhau, đúng chuẩn "may use any letter more
+        // than once").
+        function genGrid(groupId, options, questions) {
+            const letters = options.map(opt => (opt.split('.')[0] || opt).trim());
+            const hasLegend = options.some(opt => opt.includes('.'));
+            const legendHtml = hasLegend
+                ? `<div class="match-bank match-legend" id="bank-${groupId}">${options.map(opt =>
+                    `<div class="match-chip match-chip-static">${opt}</div>`).join('')}</div>`
+                : '';
+
+            const headerCells = letters.map(l => `<th>${l}</th>`).join('');
+            const rowsHtml = questions.map(q => {
+                const cells = letters.map(l =>
+                    `<td><input type="radio" name="q${q.qNum}" value="${l}" class="grid-radio"></td>`).join('');
+                return `<tr id="q-container-${q.qNum}"><td class="grid-row-label"><span class="q-num grid-q-num">${q.qNum}</span> ${q.text}</td>${cells}</tr>`;
+            }).join('');
+            const feedbackHtml = questions.map(q =>
+                `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+
+            return `${legendHtml}
+                <div class="grid-scroll-wrap">
+                    <table class="match-grid"><thead><tr><th></th>${headerCells}</tr></thead><tbody>${rowsHtml}</tbody></table>
+                </div>
+                ${feedbackHtml}`;
+        }
+
+        // "Choose TWO/THREE correct answers" (chọn N trong M đáp án bằng checkbox, dùng chung 1
+        // danh sách lựa chọn cho cả nhóm câu). Mỗi checkbox KHÔNG gắn trực tiếp vào 1 câu — thay
+        // vào đó, mỗi lần tick/bỏ tick sẽ đồng bộ danh sách chữ cái đang được chọn xuống các
+        // <input type="hidden" name="qN"> riêng của từng câu trong nhóm (xem initMultiSelect() bên
+        // dưới): nếu chữ cái đúng của câu N nằm trong tập đang chọn thì input đó = đáp án đúng
+        // (chấm ĐÚNG), ngược lại = danh sách học sinh đã chọn (chấm SAI, vẫn hiển thị rõ học sinh
+        // đã chọn gì) — nhờ vậy gradeQuestionRange() ở dưới chấm điểm y hệt các dạng câu khác mà
+        // không cần thêm logic riêng.
+        function genMulti(groupId, options, questions, pickCount) {
+            const optsHtml = options.map(opt => {
+                const letter = (opt.split('.')[0] || '').trim();
+                return `<label class="radio-label multi-check-label">
+                            <input type="checkbox" class="multi-check" value="${letter}"> ${opt}
+                        </label>`;
+            }).join('');
+
+            const qNums = questions.map(q => q.qNum);
+            const firstQ = qNums[0], lastQ = qNums[qNums.length - 1];
+            const isRange = firstQ !== lastQ;
+            const qLabel = isRange ? `${firstQ}-${lastQ}` : String(firstQ);
+
+            // KHÔNG hiện lại số câu (21, 22...) riêng lẻ ở đây nữa — con số đó đã hiện ở "viên
+            // thuốc" q-num phía trên rồi, lặp lại bên dưới gây rối mắt. Vẫn giữ input ẩn + hộp
+            // feedback riêng cho từng câu (bắt buộc để gradeQuestionRange() chấm đúng từng câu).
+            const perQFeedback = qNums.map(n => `
+                <div id="q-container-${n}" style="margin-top:6px;">
+                    <input type="hidden" name="q${n}" id="input-q${n}" value="">
+                    <div class="feedback-box" id="fb-${n}" style="width:100%; margin-top:0;"></div>
+                </div>`).join('');
+
+            return `<div class="question-item multi-group" data-multi-group="${groupId}" data-pick-count="${pickCount}">
+                        <div class="q-num${isRange ? ' q-num-range' : ''}">${qLabel}</div>
+                        <div style="flex:1;">
+                            <p class="multi-hint">Chọn đúng <strong>${pickCount}</strong> đáp án.</p>
+                            <div class="mcq-options">${optsHtml}</div>
+                            ${perQFeedback}
+                        </div>
+                    </div>`;
+        }
+
+        // Đồng bộ checkbox "Choose N of M" -> các input hidden qN riêng của từng câu trong nhóm
+        // (xem giải thích ở genMulti() phía trên). Giới hạn tối đa đúng pickCount checkbox được
+        // tick cùng lúc để học sinh không "ăn gian" bằng cách tick hết.
+        (function initMultiSelect() {
+            document.addEventListener('change', e => {
+                if (!e.target.classList || !e.target.classList.contains('multi-check')) return;
+                const container = e.target.closest('.multi-group');
+                if (!container) return;
+                const pickCount = parseInt(container.dataset.pickCount, 10) || 1;
+                const allChecks = container.querySelectorAll('.multi-check');
+                const checked = Array.from(allChecks).filter(c => c.checked);
+
+                if (checked.length > pickCount) {
+                    e.target.checked = false;
+                    return;
+                }
+
+                const checkedLetters = checked.map(c => c.value.toUpperCase());
+                container.querySelectorAll('input[type="hidden"]').forEach(hidden => {
+                    const qNum = hidden.name.substring(1);
+                    const info = testData[qNum];
+                    if (!info) return;
+                    const correctLetter = (info.answer || '').toUpperCase();
+                    const isRight = checkedLetters.includes(correctLetter);
+                    hidden.value = isRight ? info.answer : checkedLetters.join(', ');
+                    hidden.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+            });
+        })();
+
+        // --- Matching drag-and-drop engine (Pointer Events, so it works the same
+        //     with mouse, touch and pen — unlike the native HTML5 DnD API, which
+        //     iOS Safari does not support at all). Delegated at document level so
+        //     it works for every matching group generated above. ---
+        (function initMatchingDnD() {
+            const DEFAULT_SLOT_TEXT = 'Kéo đáp án vào đây';
+            let dragSource = null; // { letter, label, group, sourceSlot }
+            let dragGhost = null;
+
+            function showBankChip(group, letter) {
+                const chip = document.getElementById(`chip-${group}-${letter}`);
+                if (chip) chip.style.display = '';
+            }
+            function hideBankChip(group, letter) {
+                const chip = document.getElementById(`chip-${group}-${letter}`);
+                if (chip) chip.style.display = 'none';
+            }
+            function setSlotInput(slotEl) {
+                const input = document.getElementById('input-q' + slotEl.dataset.qnum);
+                if (!input) return;
+                input.value = slotEl.dataset.letter || '';
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            function clearSlot(slotEl) {
+                if (!slotEl.dataset.letter) return;
+                showBankChip(slotEl.dataset.group, slotEl.dataset.letter);
+                slotEl.dataset.letter = '';
+                slotEl.textContent = DEFAULT_SLOT_TEXT;
+                slotEl.classList.remove('filled');
+                setSlotInput(slotEl);
+            }
+            function fillSlot(slotEl, letter, label) {
+                if (slotEl.dataset.letter && slotEl.dataset.letter !== letter) {
+                    showBankChip(slotEl.dataset.group, slotEl.dataset.letter);
+                }
+                slotEl.dataset.letter = letter;
+                slotEl.textContent = label;
+                slotEl.classList.add('filled');
+                hideBankChip(slotEl.dataset.group, letter);
+                setSlotInput(slotEl);
+            }
+            function makeGhost(sourceEl, text) {
+                const ghost = document.createElement('div');
+                ghost.className = 'match-chip match-chip-ghost';
+                ghost.textContent = text;
+                ghost.style.position = 'fixed';
+                ghost.style.pointerEvents = 'none';
+                ghost.style.zIndex = 3000;
+                ghost.style.width = sourceEl.offsetWidth + 'px';
+                document.body.appendChild(ghost);
+                return ghost;
+            }
+            function moveGhost(x, y) {
+                if (!dragGhost) return;
+                dragGhost.style.left = (x - dragGhost.offsetWidth / 2) + 'px';
+                dragGhost.style.top = (y - dragGhost.offsetHeight / 2) + 'px';
+            }
+            function clearDragOverStyles() {
+                document.querySelectorAll('.match-slot.drag-over').forEach(s => s.classList.remove('drag-over'));
+            }
+            function cleanup() {
+                if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+                clearDragOverStyles();
+                dragSource = null;
+            }
+
+            document.addEventListener('pointerdown', e => {
+                const chip = e.target.closest('.match-chip');
+                const slot = e.target.closest('.match-slot');
+                if (chip && chip.style.display !== 'none') {
+                    dragSource = { letter: chip.dataset.letter, label: chip.textContent, group: chip.dataset.group, sourceSlot: null };
+                    dragGhost = makeGhost(chip, chip.textContent);
+                    moveGhost(e.clientX, e.clientY);
+                    e.preventDefault();
+                } else if (slot && slot.classList.contains('filled')) {
+                    dragSource = { letter: slot.dataset.letter, label: slot.textContent, group: slot.dataset.group, sourceSlot: slot };
+                    dragGhost = makeGhost(slot, slot.textContent);
+                    moveGhost(e.clientX, e.clientY);
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            document.addEventListener('pointermove', e => {
+                if (!dragSource) return;
+                moveGhost(e.clientX, e.clientY);
+                clearDragOverStyles();
+                if (dragGhost) dragGhost.style.display = 'none';
+                const target = document.elementFromPoint(e.clientX, e.clientY);
+                if (dragGhost) dragGhost.style.display = '';
+                const slotUnder = target && target.closest && target.closest('.match-slot');
+                if (slotUnder && slotUnder.dataset.group === dragSource.group) slotUnder.classList.add('drag-over');
+            }, { passive: true });
+
+            document.addEventListener('pointerup', e => {
+                if (!dragSource) return;
+                if (dragGhost) dragGhost.style.display = 'none';
+                const target = document.elementFromPoint(e.clientX, e.clientY);
+                if (dragGhost) dragGhost.style.display = '';
+                const slotUnder = target && target.closest && target.closest('.match-slot');
+
+                if (slotUnder && slotUnder.dataset.group === dragSource.group && slotUnder !== dragSource.sourceSlot) {
+                    if (dragSource.sourceSlot) clearSlot(dragSource.sourceSlot);
+                    fillSlot(slotUnder, dragSource.letter, dragSource.label);
+                } else if (!slotUnder && dragSource.sourceSlot) {
+                    // dropped outside any slot -> send the chip back to the bank
+                    clearSlot(dragSource.sourceSlot);
+                }
+                // dropped back on its own slot, or a bank chip dropped nowhere valid: no-op
+
+                cleanup();
+            });
+
+            document.addEventListener('pointercancel', cleanup);
+        })();
+
+        function gradePart(pNum) {
+            const [startQ, endQ] = passageRanges[pNum - 1];
+            const score = gradeQuestionRange(startQ, endQ);
+            const total = endQ - startQ + 1;
+            const btn = document.querySelector(`#part-grade-bar-${pNum} .part-grade-btn`);
+            if (btn) {
+                const original = btn.dataset.original || btn.innerText;
+                btn.dataset.original = original;
+                btn.innerText = `✅ Part ${pNum}: đúng ${score}/${total} câu`;
+                clearTimeout(btn._resetTimer);
+                btn._resetTimer = setTimeout(() => { btn.innerText = original; }, 5000);
+            }
+        }
+
+        // --- Application Logic ---
+        let appMode = 'practice'; // 'practice' or 'exam'
+        let currentPassage = 1;
+        let timerInterval;
+
+        // Nút "← Thoát": đóng hẳn tab/cửa sổ này luôn (giống bấm nút ✕ của trình duyệt) thay vì
+        // reload lại trang như trước. window.close() chỉ được trình duyệt cho phép khi tab này do
+        // 1 script khác mở ra (vd window.open() từ trang chủ khi bấm "Bài tập", hoặc mở từ Test
+        // Builder) — đúng với cách hầu hết học sinh mở trang này. Nếu trình duyệt CHẶN việc đóng
+        // (tab được gõ thẳng URL / mở từ dấu 3 chấm... không phải do script mở), fallback về lại
+        // trang trước đó (hoặc trang chủ nếu không có trang trước) để vẫn "thoát" ra được thay vì
+        // đứng yên không phản hồi gì.
+        function exitTest() {
+            if (timerInterval) clearInterval(timerInterval);
+            window.close();
+            setTimeout(function () {
+                if (!window.closed) {
+                    if (window.history.length > 1) window.history.back();
+                    else window.location.href = 'index.html';
+                }
+            }, 250);
+        }
+
+        function initNavCircles() {
+            for (let p = 1; p <= 3; p++) {
+                const [startQ, endQ] = passageRanges[p - 1];
+                let html = '';
+                for (let i = startQ; i <= endQ; i++) {
+                    html += `<div class="q-circle" id="nav-q${i}" onclick="scrollToQ(${i})">${i}</div>`;
+                }
+                document.getElementById(`q-nav-p${p}`).innerHTML = html;
+            }
+        }
+
+        function selectMode(mode) {
+            appMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById(`btn-${mode}`).classList.add('selected');
+            document.getElementById('passage-selector').style.display = mode === 'practice' ? 'block' : 'none';
+        }
+
+        // "Nâng cấp" các <span class="heading-gap"> tĩnh (do test-builder.html chèn sẵn ở đầu mỗi
+        // đoạn văn liên quan tới câu hỏi Matching Headings) thành match-slot thật — có thể kéo-thả
+        // được — rồi thêm input ẩn để gradeQuestionRange() chấm điểm y như mọi loại câu khác.
+        function initHeadingGapsInPassage() {
+            document.querySelectorAll('.heading-gap').forEach(gapEl => {
+                const qNum = gapEl.dataset.qnum;
+                const groupId = gapEl.dataset.group;
+                if (!qNum || !groupId) return;
+                gapEl.classList.add('match-slot');
+                gapEl.dataset.qnum = qNum;
+                gapEl.dataset.group = groupId;
+                gapEl.dataset.letter = '';
+                gapEl.id = 'slot-' + qNum;
+                gapEl.textContent = 'Kéo heading vào đây';
+                if (!document.getElementById('input-q' + qNum)) {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'q' + qNum;
+                    hidden.id = 'input-q' + qNum;
+                    hidden.value = '';
+                    gapEl.insertAdjacentElement('afterend', hidden);
+                }
+            });
+        }
+
+        function startTest() {
+            document.getElementById('setup-screen').style.display = 'none';
+            generateQuestionsHTML();
+            initHeadingGapsInPassage();
+            initNavCircles();
+            setupInputListeners();
+
+            // Exam mode: minimal white theme + single purple highlight colour, no
+            // per-part "chấm riêng" buttons (real exam only submits once at the end).
+            // Practice mode: original theme, full 4-colour highlight palette, and a
+            // per-part grade button on top of the shared "Nộp bài" button.
+            const isExam = appMode === 'exam';
+            document.body.classList.toggle('exam-mode', isExam);
+            document.querySelectorAll('.annot-color-practice').forEach(btn => btn.style.display = isExam ? 'none' : '');
+            document.querySelectorAll('.annot-color-exam').forEach(btn => btn.style.display = isExam ? '' : 'none');
+            document.querySelectorAll('.part-grade-bar').forEach(bar => bar.classList.toggle('visible', !isExam));
+
+            if (appMode === 'practice') {
+                let p = parseInt(document.getElementById('passage-dropdown').value);
+                document.getElementById('passage-tabs').style.display = 'flex';
+                switchPassage(p);
+            } else {
+                document.getElementById('passage-tabs').style.display = 'flex'; // allow manual nav in exam
+                switchPassage(1);
+                document.getElementById('timer-display').style.display = 'block';
+                startTimer(60 * 60); // Reading section is 60 minutes in the real IELTS exam
+            }
+        }
+
+        function switchPassage(pNum) {
+            currentPassage = pNum;
+            document.querySelectorAll('.tab-btn').forEach((btn, idx) => btn.classList.toggle('active', idx + 1 === pNum));
+            document.getElementById('current-passage-indicator').innerText = `PASSAGE ${pNum}`;
+
+            for(let i=1; i<=3; i++) {
+                document.getElementById(`q-nav-p${i}`).style.display = (i === pNum) ? 'flex' : 'none';
+                document.getElementById(`passage-${i}-text`).classList.toggle('active', i === pNum);
+                document.getElementById(`questions-p${i}`).classList.toggle('active', i === pNum);
+            }
+            document.querySelectorAll('.panel-content').forEach(p => p.scrollTop = 0);
+        }
+
+        function scrollToQ(qNum) {
+            const qEl = document.getElementById(`q-container-${qNum}`);
+            if(qEl) qEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // --- Draggable resizer between the passage panel and questions panel ---
+        (function initPanelResizer() {
+            const resizer = document.getElementById('panel-resizer');
+            const leftPanel = document.getElementById('panel-passage');
+            const container = document.getElementById('main-workspace');
+            if (!resizer || !leftPanel || !container) return;
+
+            let dragging = false;
+
+            function startDrag() {
+                dragging = true;
+                resizer.classList.add('dragging');
+                document.body.style.userSelect = 'none';
+            }
+            function doDrag(clientX) {
+                if (!dragging) return;
+                const rect = container.getBoundingClientRect();
+                let leftWidth = clientX - rect.left;
+                const min = 220;
+                const max = rect.width - 220 - resizer.offsetWidth;
+                leftWidth = Math.max(min, Math.min(max, leftWidth));
+                leftPanel.style.flex = 'none';
+                leftPanel.style.width = leftWidth + 'px';
+            }
+            function endDrag() {
+                dragging = false;
+                resizer.classList.remove('dragging');
+                document.body.style.userSelect = '';
+            }
+
+            resizer.addEventListener('mousedown', e => { startDrag(); e.preventDefault(); });
+            document.addEventListener('mousemove', e => doDrag(e.clientX));
+            document.addEventListener('mouseup', endDrag);
+
+            resizer.addEventListener('touchstart', () => { startDrag(); }, { passive: true });
+            document.addEventListener('touchmove', e => {
+                if (dragging) { doDrag(e.touches[0].clientX); e.preventDefault(); }
+            }, { passive: false });
+            document.addEventListener('touchend', endDrag);
+        })();
+
+        function setupInputListeners() {
+            document.addEventListener('input', e => {
+                if (e.target.name && e.target.name.startsWith('q')) {
+                    const qNum = e.target.name.substring(1);
+                    const circle = document.getElementById(`nav-q${qNum}`);
+                    if (!circle) return;
+
+                    let isAnswered = false;
+                    if (e.target.type === 'text') isAnswered = e.target.value.trim() !== '';
+                    if (e.target.type === 'radio') isAnswered = e.target.checked;
+                    // 'hidden' = ô đồng bộ của nhóm "Choose N of M" (genMulti); 'select-one' = dropdown
+                    // của Matching Headings / Matching Names-Claims (genLettered).
+                    if (e.target.type === 'hidden' || e.target.type === 'select-one') isAnswered = e.target.value.trim() !== '';
+
+                    circle.classList.toggle('answered', isAnswered);
+                }
+            });
+            // <select> chỉ tự bắn ra sự kiện 'change', không phải 'input' trên mọi trình duyệt —
+            // lắng thêm 'change' và tái dùng lại đúng logic ở trên cho chắc chắn nút tròn số câu
+            // hỏi luôn sáng lên khi học sinh đã chọn xong dropdown.
+            document.addEventListener('change', e => {
+                if (e.target.tagName === 'SELECT' && e.target.name && e.target.name.startsWith('q')) {
+                    const qNum = e.target.name.substring(1);
+                    const circle = document.getElementById(`nav-q${qNum}`);
+                    if (circle) circle.classList.toggle('answered', e.target.value.trim() !== '');
+                }
+            });
+        }
+
+        function startTimer(duration) {
+            let timer = duration;
+            const display = document.getElementById('timer-display');
+            timerInterval = setInterval(() => {
+                let m = parseInt(timer / 60, 10);
+                let s = parseInt(timer % 60, 10);
+                display.textContent = (m < 10 ? "0"+m : m) + ":" + (s < 10 ? "0"+s : s);
+                if (--timer < 0) { clearInterval(timerInterval); submitTest(); }
+            }, 1000);
+        }
+
+        // Grades questions [startQ, endQ] inclusive, writing feedback into each
+        // question's #fb-N box, and returns the number correct. Shared by the
+        // full "Nộp bài" submit and the per-part "Chấm riêng Part N" buttons.
+        function gradeQuestionRange(startQ, endQ) {
+            let score = 0;
+            for (let i = startQ; i <= endQ; i++) {
+                let uAns = "";
+                const inputs = document.getElementsByName(`q${i}`);
+                if (inputs.length > 0) {
+                    if (inputs[0].type === 'radio') {
+                        inputs.forEach(r => { if(r.checked) uAns = r.value; });
+                    } else {
+                        uAns = inputs[0].value.trim().toUpperCase();
+                    }
+                }
+
+                const cAns = (testData[i].answer || '').toUpperCase();
+                const fbBox = document.getElementById(`fb-${i}`);
+
+                if (fbBox) {
+                    fbBox.style.display = 'block';
+                    fbBox.className = 'feedback-box'; // reset
+
+                    let isCorrect = (uAns === cAns);
+
+                    if (isCorrect) {
+                        score++;
+                        fbBox.classList.add('correct');
+                        fbBox.innerHTML = `<strong>Đúng!</strong> Đáp án: ${testData[i].answer}`;
+                    } else {
+                        fbBox.classList.add('incorrect');
+                        fbBox.innerHTML = `<strong>Sai.</strong> Bạn chọn: <s style="color:#aaa">${uAns||'Trống'}</s> | Đáp án đúng: <strong style="color:var(--text-color)">${testData[i].answer}</strong>`;
+                    }
+
+                    // Add explanation and locate button
+                    fbBox.innerHTML += `<div class="explanation-text">${testData[i].exp}</div>`;
+                    if (testData[i].loc !== "") {
+                        fbBox.innerHTML += `<button class="show-loc-btn" onclick="highlightPassage('${testData[i].loc}')">🔍 Xem vị trí trong bài</button>`;
+                    }
+                }
+            }
+            return score;
+        }
+
+        function submitTest() {
+            if(timerInterval) clearInterval(timerInterval);
+
+            // Mặc định: chấm cả 3 passage/part cùng lúc (luyện tập tự do / thi thử), không chỉ
+            // passage tab đang mở. NHƯNG nếu đây là 1 bài tập được giao (IS_ASSIGNMENT_MODE) chỉ
+            // cho ĐÚNG 1 Passage, thì CHỈ chấm đúng Passage đó — để điểm hiển thị khớp với chính
+            // xác phần bài giáo viên đã giao, tránh gây hiểu nhầm "làm 1 đoạn nhưng điểm tính cả bài".
+            let startQ = 1, endQ = TOTAL_QUESTIONS;
+            if (IS_ASSIGNMENT_MODE && (ASSIGN_SCOPE === '1' || ASSIGN_SCOPE === '2' || ASSIGN_SCOPE === '3')) {
+                const range = passageRanges[parseInt(ASSIGN_SCOPE, 10) - 1];
+                if (range) { startQ = range[0]; endQ = range[1]; }
+            }
+            const total = endQ - startQ + 1;
+            const score = gradeQuestionRange(startQ, endQ);
+
+            // Show results
+            document.getElementById('score-correct').innerText = score;
+            document.getElementById('score-total').innerText = total;
+
+            // Show the estimated band score in both modes now that grading always
+            // covers all 3 passages.
+            document.getElementById('band-container').style.display = 'block';
+            const band = calculateBand(score);
+            document.getElementById('band-score').innerText = band;
+
+            saveProgressRecord(score, total, band);
+
+            // Khi đang nộp 1 bài tập được giao: hiện rõ banner "Đã nộp homework thành công" +
+            // đổi tiêu đề modal, để học sinh biết chắc chắn bài đã được ghi nhận (không chỉ là
+            // "xem điểm luyện tập" như bình thường).
+            const successBanner = document.getElementById('homework-success-banner');
+            const resultsTitle = document.getElementById('results-modal-title');
+            if (IS_ASSIGNMENT_MODE) {
+                if (successBanner) successBanner.style.display = 'block';
+                if (resultsTitle) resultsTitle.innerText = `Đã nộp homework thành công! (${assignmentScopeLabel()})`;
+            } else {
+                if (successBanner) successBanner.style.display = 'none';
+                if (resultsTitle) resultsTitle.innerText = 'Kết quả làm bài';
+            }
+
+            document.getElementById('results-modal').style.display = 'flex';
+        }
+
+        function calculateBand(s) {
+            const scaled = TOTAL_QUESTIONS > 0 ? Math.round(s * 40 / TOTAL_QUESTIONS) : s;
+            if (scaled>=39) return "9.0"; if (scaled>=37) return "8.5"; if (scaled>=35) return "8.0";
+            if (scaled>=33) return "7.5"; if (scaled>=30) return "7.0"; if (scaled>=27) return "6.5";
+            if (scaled>=23) return "6.0"; if (scaled>=19) return "5.5"; if (scaled>=15) return "5.0";
+            if (scaled>=13) return "4.5"; if (scaled>=10) return "4.0"; return "< 4.0";
+        }
+
+        // --- Shared progress/history log (read by the site's index page) ---
+        // Kept deliberately tiny per attempt and capped in count so it never
+        // eats meaningful localStorage space.
+        const PROGRESS_HISTORY_KEY = 'bseh_progress_history';
+        const PROGRESS_HISTORY_LIMIT = 40;
+
+        function saveProgressRecord(score, total, band) {
+            try {
+                let history = JSON.parse(localStorage.getItem(PROGRESS_HISTORY_KEY) || '[]');
+                history.unshift({
+                    t: document.title,                // test title
+                    u: location.pathname.split('/').pop(), // filename, so index.html can link back
+                    s: score,
+                    n: total,
+                    b: band,
+                    m: appMode,
+                    d: new Date().toLocaleDateString('vi-VN')
+                });
+                if (history.length > PROGRESS_HISTORY_LIMIT) history = history.slice(0, PROGRESS_HISTORY_LIMIT);
+                localStorage.setItem(PROGRESS_HISTORY_KEY, JSON.stringify(history));
+            } catch (e) { /* localStorage unavailable or full - fail silently, non-critical */ }
+        }
+
+        function closeResultsAndReview() {
+            document.getElementById('results-modal').style.display = 'none';
+            document.getElementById('main-submit-btn').style.display = 'none';
+        }
+
+        let currentHighlight = null;
+        function highlightPassage(locId) {
+            if(currentHighlight) currentHighlight.classList.remove('explanation-highlight');
+
+            const span = document.getElementById(locId);
+            if (span) {
+                span.classList.add('explanation-highlight');
+                currentHighlight = span;
+
+                // Determine which passage this belongs to based on DOM hierarchy
+                let pWrapper = span.closest('.content-wrapper');
+                if (pWrapper) {
+                    let pId = pWrapper.id;
+                    if(pId.includes('1') && currentPassage !== 1) switchPassage(1);
+                    if(pId.includes('2') && currentPassage !== 2) switchPassage(2);
+                    if(pId.includes('3') && currentPassage !== 3) switchPassage(3);
+                }
+
+                span.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // --- Annotation Toolbar (highlight / underline / strikethrough / eraser / note) ---
+        const annotToolbar = document.getElementById('annot-toolbar');
+        const transBox = document.getElementById('trans-box');
+        const noteInputBox = document.getElementById('note-input-box');
+        const noteInputField = document.getElementById('note-input-field');
+        let selectedTextStr = "";
+        let savedRange = null;
+        let currentTranslation = null;
+        let noteInputOpen = false;
+
+        // Keep text selection alive while clicking toolbar buttons
+        annotToolbar.addEventListener('mousedown', e => e.preventDefault());
+        noteInputBox.addEventListener('mousedown', e => e.preventDefault());
+
+        const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+
+        function positionFloatingBox(boxEl, rect) {
+            // On touch devices (iPad etc.) place the box BELOW the selection so it
+            // doesn't collide/overlap with the OS's own native selection toolbar (which
+            // pops up above the selection).
+            boxEl.style.visibility = 'hidden';
+            boxEl.style.display = 'flex';
+            const tbWidth = boxEl.offsetWidth || 220;
+            const top = isCoarsePointer
+                ? (rect.bottom + window.scrollY + 14)
+                : (rect.top + window.scrollY - 48);
+            let left = rect.left + window.scrollX + (rect.width / 2) - (tbWidth / 2);
+            left = Math.max(10, Math.min(left, window.scrollX + window.innerWidth - tbWidth - 10));
+            boxEl.style.top = top + 'px';
+            boxEl.style.left = left + 'px';
+            boxEl.style.visibility = 'visible';
+        }
+
+        function positionToolbar(rect) { positionFloatingBox(annotToolbar, rect); }
+
+        function handleSelectionUI(e) {
+            // Don't trigger if clicking inside the toolbar, note-input popup, or translation box itself
+            if (e && (transBox.contains(e.target) || annotToolbar.contains(e.target) || noteInputBox.contains(e.target))) return;
+            if (noteInputOpen) return; // đang gõ dở note thì không xử lý lại theo selection nữa
+
+            const selection = window.getSelection();
+            const text = selection.toString().trim();
+
+            if (text.length > 0 && selection.rangeCount > 0 && text.split(/\s+/).length < 50) {
+                const anchorNode = selection.anchorNode;
+                const anchorEl = anchorNode && (anchorNode.nodeType === 3 ? anchorNode.parentNode : anchorNode);
+                const workspace = document.getElementById('main-workspace');
+                if (!anchorEl || !workspace.contains(anchorEl)) return;
+
+                savedRange = selection.getRangeAt(0).cloneRange();
+                selectedTextStr = text;
+
+                const rect = savedRange.getBoundingClientRect();
+                if (rect.width === 0 && rect.height === 0) return; // selection geometry not painted yet
+                positionToolbar(rect);
+                annotToolbar.style.display = 'flex';
+                transBox.style.display = 'none'; // hide translation box if making a new selection
+                noteInputBox.style.display = 'none'; noteInputOpen = false; // hide note popup too
+            } else {
+                annotToolbar.style.display = 'none';
+                if (!(e && transBox.contains(e.target))) transBox.style.display = 'none';
+            }
+        }
+
+        document.getElementById('main-workspace').addEventListener('mouseup', handleSelectionUI);
+
+        // iOS/iPad (and other touch/stylus devices) frequently don't fire a usable
+        // 'mouseup' after a native text-selection gesture, so 'selectionchange'
+        // (debounced) is used as a more reliable, cross-platform fallback.
+        let selectionDebounceTimer = null;
+        document.addEventListener('selectionchange', function() {
+            clearTimeout(selectionDebounceTimer);
+            selectionDebounceTimer = setTimeout(() => handleSelectionUI(null), 220);
+        });
+
+        // Touch: dismiss the toolbar when tapping empty space with no active selection
+        document.addEventListener('touchstart', function(e) {
+            if (!annotToolbar.contains(e.target) && !transBox.contains(e.target) && !noteInputBox.contains(e.target) && !noteDeleteBox.contains(e.target)) {
+                const sel = window.getSelection();
+                if (!sel || sel.toString().trim() === '') {
+                    annotToolbar.style.display = 'none';
+                    if (!noteInputOpen) noteInputBox.style.display = 'none';
+                    if (!findNoteAtClick(e.target)) hideNoteDeleteBox();
+                }
+            }
+        }, { passive: true });
+
+        // --- Robust multi-node wrap/erase so annotations survive selections that
+        //     span multiple paragraphs or existing <span id="loc-..."> markers ---
+        // Trả về mảng các phần tử wrapper vừa tạo (theo đúng thứ tự trong văn bản) — dùng để, vd, chèn
+        // thêm 1 note ngay sau phần tử CUỐI CÙNG khi vùng chọn note trải dài qua nhiều đoạn/node.
+        function wrapRangeNodes(range, makeWrapper) {
+            if (!range || range.collapsed) return [];
+            const root = range.commonAncestorContainer;
+            const walker = document.createTreeWalker(
+                root.nodeType === 3 ? root.parentNode : root,
+                NodeFilter.SHOW_TEXT,
+                null
+            );
+            const nodes = [];
+            let node;
+            while (node = walker.nextNode()) {
+                if (range.intersectsNode(node) && node.nodeValue.trim() !== '') nodes.push(node);
+            }
+            const wrappers = [];
+            nodes.forEach(textNode => {
+                const nodeRange = document.createRange();
+                nodeRange.selectNodeContents(textNode);
+                if (textNode === range.startContainer) nodeRange.setStart(textNode, range.startOffset);
+                if (textNode === range.endContainer) nodeRange.setEnd(textNode, range.endOffset);
+                if (nodeRange.collapsed) return;
+                try {
+                    const wrapper = makeWrapper();
+                    nodeRange.surroundContents(wrapper);
+                    wrappers.push(wrapper);
+                } catch (err) { /* skip nodes that can't be safely wrapped */ }
+            });
+            return wrappers;
+        }
+
+        function applyHighlight(range, color, textColor) {
+            wrapRangeNodes(range, () => {
+                const span = document.createElement('span');
+                span.className = 'user-annotation user-highlight';
+                span.style.backgroundColor = color;
+                // Dark highlight colors (e.g. exam mode's maroon/wine) need white text
+                // on top to stay readable; pastel practice colors leave text untouched.
+                if (textColor) span.style.color = textColor;
+                return span;
+            });
+        }
+
+        function applyUnderline(range) {
+            wrapRangeNodes(range, () => {
+                const span = document.createElement('span');
+                span.className = 'user-annotation';
+                span.style.textDecoration = 'underline';
+                span.style.textDecorationColor = '#1a73e8';
+                span.style.textDecorationThickness = '2px';
+                return span;
+            });
+        }
+
+        function applyStrike(range) {
+            wrapRangeNodes(range, () => {
+                const span = document.createElement('span');
+                span.className = 'user-annotation';
+                span.style.textDecoration = 'line-through';
+                span.style.textDecorationColor = '#f44336';
+                return span;
+            });
+        }
+
+        function eraseAnnotations(range) {
+            if (!range) return;
+            document.querySelectorAll('.user-annotation').forEach(el => {
+                if (range.intersectsNode(el)) unwrapElement(el);
+            });
+        }
+
+        function unwrapElement(el) {
+            const parent = el.parentNode;
+            if (!parent) return;
+            while (el.firstChild) parent.insertBefore(el.firstChild, el);
+            parent.removeChild(el);
+            parent.normalize();
+        }
+
+        function cleanupAfterAnnotate() {
+            annotToolbar.style.display = 'none';
+            window.getSelection().removeAllRanges();
+            savedRange = null;
+        }
+
+        document.querySelectorAll('.annot-color').forEach(btn => {
+            btn.addEventListener('click', () => {
+                applyHighlight(savedRange, btn.dataset.color, btn.dataset.textColor || null);
+                cleanupAfterAnnotate();
+            });
+        });
+        document.getElementById('annot-underline').addEventListener('click', () => {
+            applyUnderline(savedRange);
+            cleanupAfterAnnotate();
+        });
+        document.getElementById('annot-strike').addEventListener('click', () => {
+            applyStrike(savedRange);
+            cleanupAfterAnnotate();
+        });
+        document.getElementById('annot-erase').addEventListener('click', () => {
+            eraseAnnotations(savedRange);
+            cleanupAfterAnnotate();
+        });
+
+        // --- Note popup: bấm "📝 Note" trên thanh nổi -> ẩn thanh nổi, hiện ô nhập note ngay tại
+        //     đúng vị trí đó -> Enter/nút ✓ để xác nhận, Esc/nút ✕ để huỷ.
+        //     QUAN TRỌNG: bấm vào ô nhập (input) sẽ làm trình duyệt tự huỷ vùng bôi đen xanh mặc định,
+        //     nên NGAY khi mở ô nhập, đoạn chữ vừa chọn được bọc tạm trong 1 lớp highlight vàng
+        //     (.note-pending-highlight) để người dùng vẫn thấy rõ mình đang note cho đúng đoạn nào.
+        //     Xác nhận thì lớp tạm này được "chốt" thành in đậm + note đỏ; Huỷ thì gỡ ra, trả nguyên
+        //     trạng đoạn chữ. ---
+        let pendingNoteWrappers = [];
+
+        document.getElementById('annot-note-btn').addEventListener('click', () => {
+            if (!savedRange) return;
+            const wrappers = wrapRangeNodes(savedRange, () => {
+                const span = document.createElement('span');
+                span.className = 'note-pending-highlight';
+                return span;
+            });
+            if (wrappers.length === 0) {
+                alert('Không thể thêm note vào đúng đoạn đã chọn (có thể vùng chọn đè lên định dạng khác). Vui lòng bôi đen lại 1 đoạn chữ khác rồi thử lại.');
+                cleanupAfterAnnotate();
+                return;
+            }
+            pendingNoteWrappers = wrappers;
+            const rect = wrappers[0].getBoundingClientRect();
+            annotToolbar.style.display = 'none';
+            noteInputOpen = true;
+            noteInputField.value = '';
+            positionFloatingBox(noteInputBox, rect);
+            noteInputField.focus();
+        });
+
+        function closeNoteInput(clearSelection) {
+            noteInputBox.style.display = 'none';
+            noteInputOpen = false;
+            if (clearSelection) {
+                window.getSelection().removeAllRanges();
+                savedRange = null;
+            }
+        }
+
+        function confirmNoteInput() {
+            const noteText = noteInputField.value.trim();
+            if (!noteText) { noteInputField.focus(); return; }
+            // "Chốt" từng đoạn highlight tạm thành <b> thật (giữ nguyên text bên trong, chỉ đổi span -> b).
+            const finalWrappers = pendingNoteWrappers.map(span => {
+                const b = document.createElement('b');
+                b.className = 'user-annotation user-note-phrase';
+                while (span.firstChild) b.appendChild(span.firstChild);
+                span.parentNode.replaceChild(b, span);
+                return b;
+            });
+            pendingNoteWrappers = [];
+            const lastWrapper = finalWrappers[finalWrappers.length - 1];
+            // Dùng lại đúng class .reading-note mà công cụ soạn đề dùng cho note giáo viên soạn sẵn lúc
+            // build, nên style giống hệt nhau. Cả phần in đậm lẫn phần note đều mang "user-annotation"
+            // nên nút "🧹 Xóa định dạng" vẫn xoá được, và bấm trực tiếp vào note cũng xoá được riêng nó
+            // (xem trình xử lý click "Xóa note" bên dưới).
+            const noteSpan = document.createElement('span');
+            noteSpan.className = 'user-annotation reading-note';
+            noteSpan.textContent = ` [${noteText}]`;
+            lastWrapper.parentNode.insertBefore(noteSpan, lastWrapper.nextSibling);
+            closeNoteInput(true);
+        }
+
+        function cancelNoteInput() {
+            // Gỡ lớp highlight tạm, trả đoạn chữ về nguyên trạng ban đầu (chưa note gì cả).
+            pendingNoteWrappers.forEach(span => unwrapElement(span));
+            pendingNoteWrappers = [];
+            closeNoteInput(true);
+        }
+
+        document.getElementById('note-input-ok').addEventListener('click', confirmNoteInput);
+        document.getElementById('note-input-cancel').addEventListener('click', cancelNoteInput);
+        noteInputField.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); confirmNoteInput(); }
+            else if (e.key === 'Escape') { e.preventDefault(); cancelNoteInput(); }
+        });
+
+        // --- Xoá 1 note đã thêm: bấm trực tiếp vào note đó (chữ in đậm hoặc phần [note] đỏ ngay sau)
+        //     -> hiện 1 nút nhỏ nổi lên "🗑 Xóa note" ngay phía trên -> bấm để xoá riêng note đó, không
+        //     cần bôi đen lại rồi dùng "🧹 Xóa định dạng" như trước. Áp dụng cho MỌI note đang hiển thị,
+        //     kể cả note giáo viên soạn sẵn lúc build đề (cú pháp {{đoạn chữ|note}}) — vì đây chỉ là xoá
+        //     tạm trên máy người đang xem lúc đó, tải lại trang là note gốc hiện lại bình thường. ---
+        const noteDeleteBox = document.getElementById('note-delete-box');
+        const noteDeleteBtn = document.getElementById('note-delete-btn');
+        noteDeleteBox.addEventListener('mousedown', e => e.preventDefault());
+        let noteDeleteTarget = null;
+
+        function hideNoteDeleteBox() {
+            noteDeleteBox.style.display = 'none';
+            noteDeleteTarget = null;
+        }
+
+        function findNoteAtClick(target) {
+            let noteSpan = target.closest ? target.closest('.reading-note') : null;
+            let bold = target.closest ? target.closest('b') : null;
+            if (bold && !noteSpan) {
+                const next = bold.nextElementSibling;
+                if (next && next.classList && next.classList.contains('reading-note')) noteSpan = next;
+                else bold = null; // <b> này không liền kề note nào -> không phải note, bỏ qua
+            }
+            if (noteSpan && !bold) {
+                const prev = noteSpan.previousElementSibling;
+                if (prev && prev.tagName === 'B') bold = prev;
+            }
+            return noteSpan ? { bold, noteSpan } : null;
+        }
+
+        document.getElementById('main-workspace').addEventListener('click', (e) => {
+            if (annotToolbar.contains(e.target) || noteInputBox.contains(e.target) || transBox.contains(e.target) || noteDeleteBox.contains(e.target)) return;
+            // Đang có vùng bôi đen (vừa kéo chọn chữ) thì ưu tiên luồng thêm định dạng/note mới, không
+            // xử lý theo hướng "xoá note" nữa.
+            const sel = window.getSelection();
+            if (sel && sel.toString().trim().length > 0) { hideNoteDeleteBox(); return; }
+
+            const found = findNoteAtClick(e.target);
+            if (!found) { hideNoteDeleteBox(); return; }
+            noteDeleteTarget = found;
+            const rect = found.noteSpan.getBoundingClientRect();
+            positionFloatingBox(noteDeleteBox, rect);
+        });
+
+        noteDeleteBtn.addEventListener('click', () => {
+            if (!noteDeleteTarget) return;
+            const { bold, noteSpan } = noteDeleteTarget;
+            if (noteSpan && noteSpan.parentNode) noteSpan.parentNode.removeChild(noteSpan);
+            if (bold) unwrapElement(bold);
+            hideNoteDeleteBox();
+        });
+
+        // --- Translation (real free API: Google Translate unofficial endpoint,
+        //     falling back to MyMemory if the first one fails/blocked) ---
+        document.getElementById('annot-translate-btn').addEventListener('click', () => {
+            if (!savedRange) return;
+            const rect = savedRange.getBoundingClientRect();
+            annotToolbar.style.display = 'none';
+            showTranslationBox(selectedTextStr, rect);
+        });
+
+        async function fetchTranslation(text) {
+            try {
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=vi&dt=t&q=${encodeURIComponent(text)}`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Google Translate request failed');
+                const data = await res.json();
+                const translated = data[0].map(chunk => chunk[0]).join('');
+                if (translated) return translated;
+                throw new Error('Empty result');
+            } catch (err) {
+                console.warn('Google Translate lỗi, thử MyMemory...', err);
+            }
+            try {
+                const url2 = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|vi`;
+                const res2 = await fetch(url2);
+                const data2 = await res2.json();
+                if (data2 && data2.responseData && data2.responseData.translatedText) {
+                    return data2.responseData.translatedText;
+                }
+                throw new Error('MyMemory trả về rỗng');
+            } catch (err2) {
+                console.error('Tất cả API dịch đều lỗi', err2);
+                return null;
+            }
+        }
+
+        async function showTranslationBox(text, rect) {
+            document.getElementById('trans-original').innerText = text;
+            const resultEl = document.getElementById('trans-result');
+            resultEl.innerText = 'Đang dịch...';
+            resultEl.style.opacity = '0.6';
+            currentTranslation = null;
+
+            transBox.style.top = (rect.bottom + window.scrollY + 10) + 'px';
+            transBox.style.left = (rect.left + window.scrollX) + 'px';
+            transBox.style.display = 'block';
+
+            requestAnimationFrame(() => {
+                const boxRect = transBox.getBoundingClientRect();
+                if (boxRect.right > window.innerWidth) {
+                    transBox.style.left = Math.max(10, window.innerWidth - boxRect.width - 20 + window.scrollX) + 'px';
+                }
+            });
+
+            const translated = await fetchTranslation(text);
+            resultEl.style.opacity = '1';
+            if (translated) {
+                resultEl.innerText = translated;
+                currentTranslation = translated;
+            } else {
+                resultEl.innerHTML = 'Không thể dịch lúc này.<br><span style="font-size:12px;color:#999;">(Kiểm tra kết nối mạng)</span>';
+            }
+        }
+
+        function closeTranslation() {
+            transBox.style.display = 'none';
+            window.getSelection().removeAllRanges();
+            savedRange = null;
+        }
+
+        // Text-to-Speech
+        document.getElementById('tts-play').addEventListener('click', function() {
+            if ('speechSynthesis' in window && selectedTextStr) {
+                window.speechSynthesis.cancel(); // stop current
+                let msg = new SpeechSynthesisUtterance(selectedTextStr);
+                msg.lang = 'en-US';
+                window.speechSynthesis.speak(msg);
+            } else {
+                alert("Trình duyệt không hỗ trợ đọc Text-to-Speech.");
+            }
+        });
+
+        // --- Vocabulary Notebook (saved locally in this browser) ---
+        const VOCAB_LIMIT = 300;
+
+        document.getElementById('save-vocab-btn').addEventListener('click', () => {
+            if (!selectedTextStr || !currentTranslation) return;
+            const result = saveToVocabBook(selectedTextStr, currentTranslation);
+            const btn = document.getElementById('save-vocab-btn');
+            const original = btn.innerText;
+            if (result === 'full') {
+                alert(`Sổ từ vựng đã đầy (tối đa ${VOCAB_LIMIT} từ). Hãy xoá bớt từ cũ trong "My Words" trước khi lưu thêm.`);
+                return;
+            }
+            btn.innerText = result === 'duplicate' ? '✓ Đã có sẵn' : '✅ Đã lưu!';
+            setTimeout(() => { btn.innerText = original; }, 1500);
+        });
+
+        function getVocabBook() {
+            try {
+                return JSON.parse(localStorage.getItem('ielts_vocab_book') || '[]');
+            } catch (e) { return []; }
+        }
+
+        // Returns 'saved' | 'duplicate' | 'full'
+        function saveToVocabBook(en, vi) {
+            let book = getVocabBook();
+            if (book.some(item => item.en.toLowerCase() === en.toLowerCase())) return 'duplicate'; // avoid duplicates
+            if (book.length >= VOCAB_LIMIT) return 'full'; // must delete old words before saving new ones
+            book.unshift({ en, vi, date: new Date().toLocaleDateString('vi-VN') });
+            localStorage.setItem('ielts_vocab_book', JSON.stringify(book));
+            updateVocabCount();
+            return 'saved';
+        }
+
+        function removeVocab(idx) {
+            let book = getVocabBook();
+            book.splice(idx, 1);
+            localStorage.setItem('ielts_vocab_book', JSON.stringify(book));
+            updateVocabCount();
+            renderVocabList();
+        }
+
+        function updateVocabCount() {
+            const el = document.getElementById('vocab-count');
+            if (el) {
+                const n = getVocabBook().length;
+                el.innerText = n >= VOCAB_LIMIT ? `${n}/${VOCAB_LIMIT}` : n;
+            }
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function renderVocabList() {
+            const book = getVocabBook();
+            const listEl = document.getElementById('vocab-list');
+            if (book.length === 0) {
+                listEl.innerHTML = '<p style="color:#888;">Chưa có từ nào được lưu. Hãy bôi đen một từ trong bài đọc, bấm 🌐 Dịch rồi Lưu vào Sổ!</p>';
+                return;
+            }
+            listEl.innerHTML = book.map((item, idx) => `
+                <div class="vocab-item">
+                    <div>
+                        <div class="vocab-en">${escapeHtml(item.en)}</div>
+                        <div class="vocab-vi">${escapeHtml(item.vi)}</div>
+                        <div class="vocab-date">${escapeHtml(item.date)}</div>
+                    </div>
+                    <button class="vocab-del-btn" onclick="removeVocab(${idx})" title="Xóa">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        function openVocabBook() {
+            renderVocabList();
+            document.getElementById('vocab-modal').style.display = 'flex';
+        }
+
+        function closeVocabBook() {
+            document.getElementById('vocab-modal').style.display = 'none';
+        }
+
+        updateVocabCount();
+
+    </script>
+
+    <!-- ============ BÁO CÁO KẾT QUẢ VỀ FIRESTORE (chỉ chạy khi bài test này được mở từ 1 bài
+         tập được giao qua "Bài tập" trên trang chủ — tức URL có ?assignmentId=&uid=). Tách riêng
+         thành 1 <script type="module"> độc lập, KHÔNG đụng vào script chính ở trên, để không phải
+         gắn lại hàng loạt hàm lên window. Script này chỉ đọc kết quả grading có sẵn (submitTest())
+         và ghi vào submissions/{assignmentId}_{uid}, không thay đổi hành vi làm bài bình thường. -->
+    <script type="module">
+        (function () {
+            var params = new URLSearchParams(location.search);
+            var assignmentId = params.get('assignmentId');
+            var uid = params.get('uid');
+            var scope = params.get('scope') || 'all';
+            if (!assignmentId || !uid) return; // mở bài test bình thường (không phải bài được giao) -> bỏ qua
+
+            // TODO(night): dán ĐÚNG firebaseConfig của project "b-s-english-house" — PHẢI GIỐNG HỆT
+            // khối config trong index.html / listeningtypegenerator.html, nếu không kết quả sẽ ghi
+            // nhầm sang project khác và giáo viên sẽ không thấy được.
+            var FB_CONFIG = {
+                apiKey: "AIzaSyDuoosjvJe3EoF22h9UJ6M95os5s_boQ-o",
+                authDomain: "b-s-english-house.firebaseapp.com",
+                projectId: "b-s-english-house",
+                storageBucket: "b-s-english-house.firebasestorage.app",
+                messagingSenderId: "946574286636",
+                appId: "1:946574286636:web:44624fb938e6b5dc961689",
+                measurementId: "G-YZR2QFWQGR"
+            };
+
+            Promise.all([
+                import('https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js'),
+                import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js')
+            ]).then(function (mods) {
+                var appMod = mods[0], fsMod = mods[1];
+                var app = appMod.initializeApp(FB_CONFIG, 'bseh-reading-report-' + Date.now());
+                var db = fsMod.getFirestore(app);
+                var subRef = fsMod.doc(db, 'submissions', assignmentId + '_' + uid);
+
+                // Bọc submitTest() gốc: chấm bài vẫn chạy y như cũ, chỉ thêm bước báo kết quả về
+                // Firestore ngay sau đó. submitTest là function khai báo ở top-level của <script>
+                // thường (không phải module) nên tự gắn lên window — an toàn để bọc lại ở đây vì
+                // module này chạy sau khi script chính đã thực thi xong (defer mặc định của module).
+                var origSubmitTest = window.submitTest;
+                window.submitTest = function () {
+                    if (typeof origSubmitTest === 'function') origSubmitTest();
+                    try { reportAssignmentResult(); } catch (e) { console.warn('BSEH: report failed', e); }
+                };
+
+                function reportAssignmentResult() {
+                    // submitTest() ở trên luôn chấm CẢ 3 passage rồi hiện tổng điểm ở #score-correct/#score-total.
+                    var fullCorrectEl = document.getElementById('score-correct');
+                    var fullTotalEl = document.getElementById('score-total');
+                    var reportCorrect = fullCorrectEl ? (parseInt(fullCorrectEl.innerText, 10) || 0) : 0;
+                    var reportTotal = fullTotalEl ? (parseInt(fullTotalEl.innerText, 10) || 0) : 0;
+
+                    // Nếu giáo viên chỉ giao 1 Passage (thường gặp nhất), báo điểm riêng của đúng
+                    // Passage đó thay vì điểm cả đề — chấm lại đúng khoảng câu hỏi của passage này
+                    // (an toàn để gọi lại: gradeQuestionRange ghi đè fbBox chứ không cộng dồn).
+                    if ((scope === '1' || scope === '2' || scope === '3') &&
+                        window.passageRanges && typeof window.gradeQuestionRange === 'function') {
+                        var range = window.passageRanges[parseInt(scope, 10) - 1];
+                        if (range) {
+                            reportCorrect = window.gradeQuestionRange(range[0], range[1]);
+                            reportTotal = range[1] - range[0] + 1;
+                        }
+                    }
+
+                    var percent = reportTotal > 0 ? Math.round(reportCorrect / reportTotal * 100) : 0;
+                    fsMod.setDoc(subRef, {
+                        status: 'done',
+                        percent: percent,
+                        score: reportCorrect + '/' + reportTotal,
+                        completedAt: fsMod.serverTimestamp()
+                    }, { merge: true }).catch(function (e) { console.warn('BSEH: submissions write failed', e); });
+                }
+            }).catch(function (e) { console.warn('BSEH: firebase init failed', e); });
+        })();
+    </script>
+</body>
+</html>
