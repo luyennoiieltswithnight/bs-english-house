@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Night IELTS — Listening Type Generator</title>
+<title>Bees English House — Listening Type Generator</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config={theme:{extend:{colors:{primary:{50:'#f0f9ff',100:'#e0f2fe',200:'#99f6e4',300:'#7dd3fc',400:'#38bdf8',500:'#0ea5e9',600:'#0d9488',700:'#0369a1',800:'#075985',900:'#134e4a'}},boxShadow:{card:'0 10px 30px rgba(20,184,166,.08)',floating:'0 20px 45px rgba(15,23,42,.12)'}}}};
@@ -22,7 +22,7 @@ button,input,select,textarea{font-family:'Plus Jakarta Sans',sans-serif;outline:
 <!-- ================= AUTH GATE (chỉ giáo viên/admin mới vào được) ================= -->
 <div id="authGate" class="fixed inset-0 z-[999] bg-slate-900/95 flex items-center justify-center p-6">
   <div class="bg-white rounded-[28px] p-8 max-w-sm w-full text-center shadow-floating">
-    <div class="text-[10px] font-extrabold tracking-[.2em] text-primary-500 uppercase">NIGHT IELTS</div>
+    <div class="text-[10px] font-extrabold tracking-[.2em] text-primary-500 uppercase">BEES ENGLISH HOUSE</div>
     <h1 class="text-xl font-extrabold text-slate-800 mt-1">Listening Type Generator</h1>
     <p id="authGateMsg" class="text-sm text-slate-500 mt-3">Công cụ này chỉ dành cho giáo viên. Vui lòng đăng nhập bằng tài khoản Google quản trị.</p>
     <button id="authGateLoginBtn" class="mt-5 w-full px-6 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm shadow-floating transition">
@@ -95,7 +95,7 @@ button,input,select,textarea{font-family:'Plus Jakarta Sans',sans-serif;outline:
   <header class="border-b border-slate-200 bg-white/90 backdrop-blur-md sticky top-0 z-20 px-5 md:px-10 py-5">
     <div class="max-w-[1400px] mx-auto flex flex-wrap items-center justify-between gap-3">
       <div>
-        <div class="text-[10px] font-extrabold tracking-[.2em] text-primary-500 uppercase">NIGHT IELTS</div>
+        <div class="text-[10px] font-extrabold tracking-[.2em] text-primary-500 uppercase">BEES ENGLISH HOUSE</div>
         <h1 class="text-xl md:text-2xl font-extrabold text-slate-800 mt-0.5">Listening Type Generator</h1>
       </div>
       <div class="flex items-center gap-3">
@@ -114,9 +114,9 @@ button,input,select,textarea{font-family:'Plus Jakarta Sans',sans-serif;outline:
       <h2 class="text-lg font-extrabold text-slate-800 mt-1">Tên bài tập</h2>
       <p class="text-xs text-slate-500 mt-2">Tên này sẽ hiện ngay trên bài tập, và cũng được dùng để đặt tên file khi tải về.</p>
 
-      <input id="titleInput" type="text" placeholder="VD: Bài tập cho Ánh · 23 tháng 8"
+      <input id="titleInput" type="text" placeholder="VD: Bài tập cho Ty · 23 tháng 8"
         class="mt-2 w-full px-4 py-3 rounded-2xl border-2 border-slate-200 focus:border-primary-400 transition text-sm font-bold text-slate-700">
-      <p class="text-[11px] text-slate-400 mt-1.5">Tên file tự động bỏ dấu, cách nhau bằng gạch dưới. VD: <b class="text-primary-600">Bài tập cho Ánh · 23 tháng 8</b> → file <b class="text-primary-600">bai_tap_cho_anh_23_thang_8.html</b>.</p>
+      <p class="text-[11px] text-slate-400 mt-1.5">Tên file tự động bỏ dấu, cách nhau bằng gạch dưới. VD: <b class="text-primary-600">Bài tập cho Ty · 23 tháng 8</b> → file <b class="text-primary-600">bai_tap_cho_ty_23_thang_8.html</b>.</p>
 
       <div class="text-[10px] font-extrabold tracking-widest text-primary-500 uppercase mt-7">Bước 2</div>
       <h2 class="text-lg font-extrabold text-slate-800 mt-1">Màu chủ đề</h2>
@@ -173,7 +173,7 @@ go to bed / đi ngủ / I go to bed at about 10pm. / Tôi đi ngủ vào khoản
 
   </main>
 
-  <footer class="text-center text-[11px] text-slate-400 py-8">Night IELTS · by Mr. Night</footer>
+  <footer class="text-center text-[11px] text-slate-400 py-8">Bees English House · by Mr. Night</footer>
 </div>
 
 <script>
@@ -430,7 +430,7 @@ function ghPublishToFolder(cfg, folderId, title, items, colorKey, buildLessonHTM
   var genId = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
   var filePath = 'homework/generated/' + slugifyUnderscore(title) + '_' + genId + '.html';
   var html = buildLessonHTMLFn(title, items, colorKey);
-  return ghPutFile(cfg, filePath, html, 'Night IELTS: thêm bài "' + title + '"', undefined).then(function(){
+  return ghPutFile(cfg, filePath, html, 'Bees English House: thêm bài "' + title + '"', undefined).then(function(){
     return ghGetFile(cfg, 'index.html');
   }).then(function(res){
     var data = parseLessonData(extractLessonDataArrayText(res.text).arrayText);
@@ -440,7 +440,7 @@ function ghPublishToFolder(cfg, folderId, title, items, colorKey, buildLessonHTM
     var dateStr = String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
     folder.tests.unshift({ title: title, date: dateStr, questions: items.length, link: filePath, gen: genId });
     var newFullText = replaceLessonDataInFile(res.text, serializeLessonData(data));
-    return ghPutFile(cfg, 'index.html', newFullText, 'Night IELTS: đăng bài "' + title + '" vào folder ' + folderId, res.sha);
+    return ghPutFile(cfg, 'index.html', newFullText, 'Bees English House: đăng bài "' + title + '" vào folder ' + folderId, res.sha);
   }).then(function(){ return { genId: genId, filePath: filePath }; });
 }
 
@@ -824,21 +824,52 @@ function normalizeSpaces(str){
     .replace(/\\s+/g, ' ');
 }
 
+// Nhiều điện thoại và bàn phím Windows (đặc biệt là bộ gõ tiếng Việt) không gõ ra được
+// dấu nháy đơn ' — nên dấu này được tự động "gõ giùm": học sinh không bắt buộc phải gõ nó,
+// chỉ cần gõ đúng các chữ cái xung quanh (VD: gõ "dont" vẫn được chấm đúng cho "don't").
+// Nếu bàn phím của học sinh gõ được dấu ' thì gõ vào vẫn khớp bình thường như cũ.
+function isApostrophe(ch){ return ch === "'"; }
+
+// So khớp chuỗi đã gõ (typedStr) với chuỗi mục tiêu (targetStr), tự động bỏ qua các dấu
+// nháy đơn trong targetStr nếu học sinh không gõ chúng. Trả về:
+//   matchedLen: số ký tự của targetStr được xem là đã "hoàn thành" (kể cả dấu nháy tự động)
+//   errorIndex: vị trí (theo targetStr) bị gõ sai, hoặc -1 nếu chưa có lỗi
+function computeMatch(targetStr, typedStr){
+  var ti = 0, gi = 0;
+  while (ti < typedStr.length) {
+    if (gi >= targetStr.length) {
+      return { matchedLen: gi, errorIndex: gi, typedConsumed: ti };
+    }
+    var tChar = targetStr[gi];
+    if (isApostrophe(tChar) && typedStr[ti].toLowerCase() !== tChar.toLowerCase()) {
+      gi++; // tự động bỏ qua dấu nháy, không cần học sinh gõ
+      continue;
+    }
+    if (typedStr[ti].toLowerCase() === tChar.toLowerCase()) {
+      gi++; ti++;
+    } else {
+      return { matchedLen: gi, errorIndex: gi, typedConsumed: ti };
+    }
+  }
+  // Chưa có lỗi: tự động bỏ qua luôn các dấu nháy đơn nằm ngay tại vị trí con trỏ hiện tại
+  // (kể cả khi đó là ký tự cuối cùng của cả câu/cụm từ).
+  while (gi < targetStr.length && isApostrophe(targetStr[gi])) gi++;
+  return { matchedLen: gi, errorIndex: -1, typedConsumed: ti };
+}
+
 function handleKeyInput(e){
   if(state.completed || state.revealed) return;
   var c = current();
   var targetStr = normalizeSpaces(c.target);
   var typedStr = normalizeSpaces(e.target.value);
 
-  var isValid = true, errIdx = -1;
-  for(var i=0;i<typedStr.length;i++){
-    if(typedStr[i].toLowerCase() !== (targetStr[i]||'').toLowerCase()){ isValid=false; errIdx=i; break; }
-  }
-  if(!isValid){
+  var m = computeMatch(targetStr, typedStr);
+  if(m.errorIndex !== -1){
     errorSound();
-    e.target.value = typedStr.substring(0, errIdx);
-    state.input = e.target.value;
-    state.errorIndex = errIdx;
+    var validTyped = typedStr.substring(0, m.typedConsumed);
+    e.target.value = validTyped;
+    state.input = validTyped;
+    state.errorIndex = m.errorIndex;
     updateTyping();
     clearTimeout(window.errorTimer);
     window.errorTimer = setTimeout(function(){ state.errorIndex = -1; updateTyping(); }, 350);
@@ -846,10 +877,10 @@ function handleKeyInput(e){
   }
   state.errorIndex = -1;
   state.input = typedStr;
-  if(state.hintActive && typedStr.length >= state.hintEndIndex) state.hintActive = false;
+  if(state.hintActive && m.matchedLen >= state.hintEndIndex) state.hintActive = false;
   if(typedStr.length > 0) beep(620+Math.min(typedStr.length,12)*24, 0.055, 0.022);
 
-  if(typedStr.toLowerCase() === targetStr.toLowerCase()){
+  if(m.matchedLen === targetStr.length){
     state.completed = true; state.revealed = true; state.input = c.target; e.target.value = c.target;
     completeSound();
     setTimeout(fireworks, 60);
@@ -861,8 +892,9 @@ function giveHint(){
   if(state.completed || state.revealed) return;
   var c = current();
   var targetStr = normalizeSpaces(c.target);
-  if(state.input.length < targetStr.length){
-    var startIdx = state.input.length;
+  var m = computeMatch(targetStr, normalizeSpaces(state.input));
+  if(m.matchedLen < targetStr.length){
+    var startIdx = m.matchedLen;
     if(targetStr[startIdx] === ' ') startIdx++;
     var nextSpace = targetStr.indexOf(' ', startIdx);
     if(nextSpace === -1) nextSpace = targetStr.length;
@@ -877,6 +909,10 @@ function updateTyping(){
   var targetStr = normalizeSpaces(c.target);
   var typedStr = state.input;
   var totalLetters = targetStr.length;
+  // matchedLen: số ký tự của targetStr coi như đã gõ xong, kể cả dấu nháy đơn được tự động
+  // bỏ qua (xem computeMatch) — không thể dùng typedStr.length trực tiếp nữa vì từ giờ
+  // typedStr có thể NGẮN HƠN targetStr do thiếu các dấu nháy mà học sinh không cần gõ.
+  var matchedLen = (state.revealed || state.completed) ? targetStr.length : computeMatch(targetStr, typedStr).matchedLen;
 
   var visualBox = document.getElementById('visualInputBox');
   if(visualBox){
@@ -885,11 +921,11 @@ function updateTyping(){
       var actualChar = targetStr[i];
       var isSpace = actualChar === ' ';
       var displayChar = isSpace ? '&nbsp;' : '*';
-      if(i < typedStr.length){
-        html += '<span class="char-box char-typed">' + (isSpace ? '&nbsp;' : esc(typedStr[i])) + '</span>';
+      if(i < matchedLen){
+        html += '<span class="char-box char-typed">' + (isSpace ? '&nbsp;' : esc(actualChar)) + '</span>';
       }else if(i === state.errorIndex){
         html += '<span class="char-box char-error">' + (isSpace ? '&nbsp;' : esc(actualChar)) + '</span>';
-      }else if(state.hintActive && i >= typedStr.length && i < state.hintEndIndex){
+      }else if(state.hintActive && i >= matchedLen && i < state.hintEndIndex){
         html += '<span class="char-box char-hint">' + esc(actualChar) + '</span>';
       }else{
         if(state.revealed || state.completed){
@@ -904,7 +940,7 @@ function updateTyping(){
 
   var progressBar = document.getElementById('purpleProgressBar');
   if(progressBar){
-    var percentage = totalLetters ? (typedStr.length/totalLetters)*100 : 0;
+    var percentage = totalLetters ? (matchedLen/totalLetters)*100 : 0;
     progressBar.style.width = percentage + '%';
     if(state.completed){ progressBar.classList.remove('bg-primary-500'); progressBar.classList.add('bg-emerald-500'); }
     else{ progressBar.classList.remove('bg-emerald-500'); progressBar.classList.add('bg-primary-500'); }
@@ -980,7 +1016,7 @@ function reveal(){
 function header(){
   return '<header class="sticky top-0 z-30 glass border-b border-primary-50 px-5 md:px-8 py-4 flex flex-wrap items-center justify-between gap-3">' +
     '<div>' +
-      '<div class="text-[9px] font-extrabold tracking-widest text-primary-500 uppercase">NIGHT IELTS &middot; LISTENING TYPE</div>' +
+      '<div class="text-[9px] font-extrabold tracking-widest text-primary-500 uppercase">BEES ENGLISH HOUSE &middot; LISTENING TYPE</div>' +
       '<h1 class="text-lg md:text-xl font-extrabold text-slate-800 mt-0.5">' + esc(TITLE) + '</h1>' +
     '</div>' +
     '<div class="flex items-center gap-2 flex-wrap">' +
