@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Writing — Night IELTS</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+/* ============================================================
+   Bảng màu chủ đạo: XANH BLUE (thay cho vàng/gold trước đó) — khung
+   panel trắng ánh xanh viền navy đậm, nút bo tròn xanh dương, đồng bộ
+   với font chính Plus Jakarta Sans của toàn trang web (giống index.html).
+   ============================================================ */
+:root {
+  --bg-color: #2f6fe0;
+  --panel-bg: #f4f8ff;
+  --border-color: #163a6b;
+  --text-color: #333;
+  --highlight-color: #cfe0ff;
+  --correct-color: #4caf50;
+  --incorrect-color: #f44336;
+  --primary-button: #7db8f7;
+  --hover-bg: #e6f2ff;
+}
+*{box-sizing:border-box}
+/* Không phụ thuộc hoàn toàn vào Tailwind CDN để ẩn/hiện các màn hình — nếu CDN chậm/bị chặn
+   (mạng trường học, trình chặn quảng cáo...) thì các view vẫn phải ẩn đúng, không bị xổ chồng
+   hết lên nhau. */
+.hidden{display:none !important;}
+html,body{
+  margin:0;
+  background-color: var(--bg-color);
+  background-image:
+    linear-gradient(rgba(255,255,255,.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.2) 1px, transparent 1px);
+  background-size: 20px 20px;
+  color: var(--text-color);
+  font-family:'Plus Jakarta Sans',sans-serif;
+}
+
+/* ---- Khung ứng dụng cố định theo chiều cao màn hình, giống hệt engine Reading (body
+   height:100vh) — để panel "Đề bài" luôn đứng yên, chỉ panel bài làm/bài sửa cuộn riêng. ---- */
+.ni-shell{height:100vh;display:flex;flex-direction:column;padding:16px;box-sizing:border-box;}
+.ni-shell main{flex:1;min-height:0;}
+
+/* ---- Header / nav / nút bấm, phong cách y hệt engine Reading ---- */
+.ni-header{background:var(--panel-bg);border:2px solid var(--border-color);border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,.1);flex-shrink:0;}
+.ni-nav-btn{background:none;border:2px solid var(--border-color);border-radius:6px;padding:7px 16px;font-weight:700;cursor:pointer;color:var(--text-color);text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-size:13px;white-space:nowrap;}
+.ni-nav-btn:hover{background:var(--hover-bg);}
+.ni-submit-btn{background:var(--primary-button);border:2px solid var(--border-color);border-radius:6px;padding:11px 24px;font-weight:800;cursor:pointer;transition:filter .15s, transform .1s;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;}
+.ni-submit-btn:hover{filter:brightness(1.08);}
+.ni-submit-btn:active{transform:scale(.98);}
+.ni-submit-btn:disabled{opacity:.55;cursor:default;filter:none;}
+
+/* ---- View 2 cột: panel bên trái (đề bài) và phải (bài làm/bài sửa) cao bằng nhau, mỗi
+   panel tự cuộn riêng bên trong — cuộn bên phải không làm đề bài bên trái nhúc nhích. ---- */
+.split-view{height:100%;display:grid;grid-template-columns:1fr;gap:1rem;min-height:0;}
+@media (min-width:768px){ .split-view{grid-template-columns:1fr 1fr;} }
+.split-view > .ni-panel{display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+.split-panel-label{padding:16px 20px 0;flex-shrink:0;}
+.split-panel-scroll{flex:1;overflow-y:auto;min-height:0;padding:12px 20px 20px;display:flex;flex-direction:column;}
+/* KHÔNG dùng position:sticky ở đây nữa: sticky + margin-top:auto trong khung có thể cuộn khiến
+   nút bị "ghim cứng" giữa màn hình, đè lên chữ đang cuộn qua thay vì nằm hẳn dưới cùng bài viết.
+   Để nút nằm trong luồng bình thường: bài ngắn -> margin-top:auto đẩy nút xuống sát đáy khung;
+   bài dài -> nút tự động trôi xuống cuối, phải cuộn hết mới thấy, giống 1 nút Submit bình thường. */
+.ni-submit-sticky{background:var(--panel-bg);padding-top:12px;margin-top:auto;border-top:1px solid rgba(22,58,107,.15);flex-shrink:0;}
+
+/* ---- View đơn giản (đăng nhập / lỗi / đang tải / hub giáo viên): căn giữa trong khung ---- */
+.view-center{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+
+/* ---- Dashboard: khối giới thiệu đứng yên, danh sách bài tự cuộn riêng ---- */
+.view-fill{height:100%;display:flex;flex-direction:column;min-height:0;}
+.dash-scroll{flex:1;overflow-y:auto;min-height:0;}
+
+/* ---- Panel / thẻ nội dung ---- */
+.ni-panel{background:var(--panel-bg);border:2px solid var(--border-color);border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,.1);}
+.ni-panel-label{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--border-color);opacity:.75;margin-bottom:10px;}
+.ni-card{background:var(--panel-bg);border:2px solid var(--border-color);border-radius:14px;box-shadow:0 4px 6px rgba(0,0,0,.08);transition:transform .12s, box-shadow .12s;color:inherit;text-decoration:none;}
+.ni-card:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,.14);}
+.ni-instruction{font-style:italic;color:#555;background:#f5f5f5;padding:10px 14px;border-left:4px solid var(--border-color);border-radius:0 6px 6px 0;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;}
+
+/* ---- Chữ đề bài / bài viết dùng serif giống Reading passage ---- */
+.ni-passage{font-family:'Source Serif Pro',serif;font-size:17px;line-height:1.65;color:#2a2a2a;}
+.ni-passage img{max-width:100%;border-radius:8px;margin:8px 0;}
+.ni-passage p{margin:0 0 14px;}
+
+/* ---- Ô soạn bài (contenteditable) ---- */
+.ni-editor{font-family:'Source Serif Pro',serif;font-size:16px;line-height:1.65;background:#fff;border:1px solid #d8d2bf;border-radius:8px;padding:18px;min-height:280px;color:#222;}
+.ni-editor:focus{outline:none;border-color:var(--primary-button);box-shadow:0 0 0 3px rgba(125,184,247,.3);}
+.ni-editor[contenteditable="true"]:empty:before{content:attr(data-placeholder);color:#999;font-style:italic;}
+.ni-editor img{max-width:100%;border-radius:8px;}
+.note-mark{color:var(--incorrect-color);background:#fdecea;padding:0 4px;border-radius:4px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;font-size:.9em;}
+
+/* ---- Badge trạng thái ---- */
+.ni-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;padding:5px 13px;border-radius:999px;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap;}
+.ni-badge-neutral{background:#e6e6e6;color:#555;}
+.ni-badge-amber{background:#fdf0cf;color:#8a6416;}
+.ni-badge-green{background:#dcf3df;color:#256b32;}
+.ni-badge-red{background:#fdecea;color:var(--incorrect-color);}
+
+/* ---- Toolbar soạn bài của học sinh (thanh cố định phía trên ô viết) ---- */
+.ni-toolbar{display:flex;align-items:center;gap:4px;background:#fff;border:1px solid #e5e5e5;border-radius:30px;padding:6px 10px;box-shadow:0 2px 6px rgba(0,0,0,.08);width:fit-content;margin-bottom:10px;flex-wrap:wrap;}
+.ni-toolbar button{background:none;border:none;cursor:pointer;font-size:13px;padding:6px 11px;border-radius:8px;color:#333;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;}
+.ni-toolbar button:hover{background:#f0f0f0;}
+
+/* ---- Thanh nổi khi bôi đen chữ trong bài chấm — y hệt #annot-toolbar bên Reading ---- */
+#floatToolbar{position:fixed;display:none;align-items:center;gap:6px;background:#fff;border-radius:30px;padding:8px 12px;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:1000;font-family:'Plus Jakarta Sans',sans-serif;border:1px solid #e5e5e5;}
+.annot-color{width:26px;height:26px;border-radius:8px;border:1px solid rgba(0,0,0,.15);cursor:pointer;padding:0;transition:transform .15s;}
+.annot-color:hover{transform:scale(1.12);}
+.annot-divider{width:1px;height:22px;background:#ddd;flex-shrink:0;}
+.annot-btn{background:none;border:none;cursor:pointer;font-size:14px;padding:5px 9px;border-radius:6px;color:#333;white-space:nowrap;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;}
+.annot-btn:hover{background:#f0f0f0;}
+.annot-note-btn{color:var(--incorrect-color);}
+.annot-hint{font-size:11px;color:#fff;background:rgba(22,58,107,.55);padding:4px 12px;border-radius:999px;font-weight:700;display:inline-flex;align-items:center;gap:5px;margin-bottom:10px;}
+
+/* ---- Danh sách dashboard học sinh ---- */
+.ni-dash-item{display:block;padding:16px 18px;margin-bottom:12px;}
+
+/* ---- Dashboard giáo viên (giao bài + xem bài đã giao), tự chứa trong writing.html ---- */
+.ni-input{width:100%;border:2px solid #cfe0f5;border-radius:10px;padding:11px 13px;font-weight:700;color:var(--text-color);background:#fff;outline:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;}
+.ni-input:focus{border-color:var(--primary-button);}
+.ni-label{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--border-color);opacity:.75;margin-bottom:8px;}
+.ni-tabbar{display:flex;gap:4px;background:rgba(22,58,107,.08);border-radius:12px;padding:5px;width:fit-content;}
+.ni-tab-btn{background:none;border:none;border-radius:8px;padding:9px 16px;font-weight:800;font-size:13px;cursor:pointer;color:var(--border-color);opacity:.6;font-family:'Plus Jakarta Sans',sans-serif;display:inline-flex;align-items:center;gap:6px;}
+.ni-tab-btn.active{background:var(--panel-bg);opacity:1;box-shadow:0 2px 5px rgba(0,0,0,.12);}
+.ni-tab-count{background:#e74c3c;color:#fff;border-radius:999px;font-size:10px;font-weight:800;padding:1px 7px;min-width:16px;text-align:center;}
+.ni-target-toggle{display:flex;gap:6px;background:rgba(22,58,107,.08);border-radius:10px;padding:4px;margin-bottom:8px;}
+.ni-target-toggle button{flex:1;background:none;border:none;border-radius:7px;padding:7px 8px;font-weight:800;font-size:12px;cursor:pointer;color:var(--border-color);opacity:.6;font-family:'Plus Jakarta Sans',sans-serif;}
+.ni-target-toggle button.active{background:var(--panel-bg);opacity:1;box-shadow:0 1px 4px rgba(0,0,0,.1);}
+/* Bố cục 2 cột cân đối cho form "Giao bài mới" — 1 cột trên mobile, 2 cột (thông tin | đề bài)
+   trên màn hình rộng, để form không bị dồn lệch hẳn sang 1 bên như thiết kế 1 cột hẹp trước đó. */
+.th-compose-grid{display:grid;grid-template-columns:1fr;gap:24px;height:100%;}
+@media (min-width:860px){ .th-compose-grid{grid-template-columns:minmax(280px,32%) 1fr;} }
+/* Ô soạn đề bài của GIÁO VIÊN là 1 field trong form (không phải văn bản đọc kiểu bài đọc), nên
+   dùng font chính Plus Jakarta Sans giống mọi nhãn/field khác quanh nó — tránh vừa có chữ serif
+   nghiêng (placeholder) vừa có chữ sans-serif đứng cạnh nhau nhìn rối mắt, không đồng bộ. */
+.ni-editor-plain, .ni-editor-plain[contenteditable="true"]:empty:before{font-family:'Plus Jakarta Sans',sans-serif;font-style:normal;}
+.ni-editor-plain{font-size:14.5px;}
+/* Cả 2 tab đều CHIẾM TRỌN chiều rộng khung (không giới hạn max-width nữa) — trên màn hình
+   rộng (laptop/monitor lớn), khung hẹp trước đó chỉ chiếm 1 góc bên trái, để trống cả mảng
+   lớn bên phải trông rất lệch/bé, nên bỏ hẳn giới hạn để cân đối với cỡ màn hình thực tế. */
+#thTabCompose > .ni-panel{width:100%;}
+#thTabList{width:100%;}
+.th-back-link{display:inline-flex;align-items:center;gap:6px;margin-bottom:12px;}
+</style>
+</head>
+<body class="antialiased" style="font-family:'Plus Jakarta Sans',sans-serif;">
+
+<div class="ni-shell w-full">
+
+  <header class="ni-header px-4 md:px-6 py-3 flex items-center gap-3 mb-4">
+    <a href="index.html" class="ni-nav-btn"><i class="fa-solid fa-arrow-left"></i> Trang chủ</a>
+    <a id="backToWritingListLink" href="writing.html?view=list" class="hidden ni-nav-btn"><i class="fa-solid fa-list"></i> <span class="hidden sm:inline">Danh sách</span> bài đã giao</a>
+    <div class="min-w-0 flex-1">
+      <h1 id="pageTitle" class="text-base md:text-lg font-extrabold truncate" style="color:var(--border-color);">Đang tải...</h1>
+    </div>
+  </header>
+
+  <main>
+
+    <div id="loadingBox" class="view-center text-center">
+      <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-4" style="color:var(--border-color);"></i>
+      <p class="font-bold" style="color:var(--border-color);">Đang tải...</p>
+    </div>
+
+    <div id="loginBox" class="hidden view-center text-center">
+      <div class="ni-panel text-center py-16 px-10" style="max-width:420px;">
+        <div class="text-4xl mb-4">📝</div>
+        <p class="font-bold mb-4" style="color:var(--border-color);">Đăng nhập để xem bài Writing của bạn.</p>
+        <button id="loginBtn" class="ni-submit-btn"><i class="fa-brands fa-google mr-2"></i> Đăng nhập Gmail</button>
+      </div>
+    </div>
+
+    <div id="errorBox" class="hidden view-center text-center">
+      <div class="ni-panel text-center px-10 py-16" style="max-width:420px;">
+        <i class="fa-solid fa-triangle-exclamation text-4xl mb-4" style="color:var(--incorrect-color);"></i>
+        <p id="errorMsg" class="font-bold" style="color:var(--incorrect-color);">Có lỗi xảy ra.</p>
+        <a href="index.html" class="ni-nav-btn inline-flex mt-5">Quay lại trang chủ</a>
+      </div>
+    </div>
+
+    <!-- ================= DASHBOARD (học sinh, không có ?id=) ================= -->
+    <div id="dashboardView" class="hidden view-fill">
+      <div class="flex items-center justify-between flex-wrap gap-3 mb-4" style="flex-shrink:0;">
+        <p class="ni-instruction" style="margin-bottom:0;">Tất cả bài Writing đã được giao cho bạn — được lưu trong hệ thống 6 tháng.</p>
+        <button type="button" onclick="openPracticeBank()" class="ni-submit-btn" style="white-space:nowrap;">📚 Luyện đề tự chọn</button>
+      </div>
+      <div class="dash-scroll"><div id="dashboardList"></div></div>
+    </div>
+
+    <!-- ================= HỌC SINH: KHO ĐỀ TỰ LUYỆN (chọn Task rồi luyện, không cần giáo viên giao) ================= -->
+    <div id="practiceBankView" class="hidden view-fill">
+      <div style="flex-shrink:0;" class="mb-4">
+        <a href="javascript:void(0)" onclick="showOnly('dashboardView')" class="ni-nav-btn th-back-link"><i class="fa-solid fa-arrow-left"></i> Quay lại bài đã giao</a>
+        <p class="ni-instruction mt-2">Chọn Task rồi chọn dạng đề để luyện viết tự do — viết xong có thể chọn 1 giáo viên để gửi chấm, hoặc chỉ luyện tập cho riêng mình.</p>
+      </div>
+      <div style="flex-shrink:0;" class="mb-3">
+        <div class="ni-target-toggle" style="max-width:280px;">
+          <button type="button" id="pbTaskT1Btn" onclick="setPracticeTask('task1')" class="active">Task 1</button>
+          <button type="button" id="pbTaskT2Btn" onclick="setPracticeTask('task2')">Task 2</button>
+        </div>
+      </div>
+      <div style="flex-shrink:0;" class="mb-3">
+        <div id="pbTypeChips" class="flex flex-wrap gap-2"></div>
+      </div>
+      <div class="dash-scroll"><div id="pbListContainer"></div></div>
+    </div>
+
+    <!-- ================= HỌC SINH: LUYỆN 1 ĐỀ TỪ KHO (chưa chắc gửi giáo viên chấm) ================= -->
+    <div id="practiceComposeView" class="hidden split-view">
+      <div class="ni-panel">
+        <p class="ni-panel-label split-panel-label">Đề bài <span id="pcTypeBadge" class="ni-badge ni-badge-neutral" style="margin-left:6px;"></span></p>
+        <div class="split-panel-scroll">
+          <a href="javascript:void(0)" onclick="showOnly('practiceBankView')" class="ni-nav-btn th-back-link" style="margin-bottom:10px;width:fit-content;"><i class="fa-solid fa-arrow-left"></i> Quay lại kho đề</a>
+          <div id="pcPromptBox" class="ni-passage"></div>
+        </div>
+      </div>
+      <div class="ni-panel">
+        <p class="ni-panel-label split-panel-label">Bài luyện của bạn</p>
+        <div class="split-panel-scroll">
+          <div class="ni-toolbar" style="flex-shrink:0;">
+            <button type="button" title="In đậm" onclick="wrCmd('pcEditor','bold')"><b>B</b></button>
+            <button type="button" title="In nghiêng" onclick="wrCmd('pcEditor','italic')"><i>I</i></button>
+            <button type="button" title="Gạch chân" onclick="wrCmd('pcEditor','underline')"><u>U</u></button>
+            <button type="button" title="Danh sách" onclick="wrCmd('pcEditor','insertUnorderedList')">☰</button>
+          </div>
+          <div id="pcEditor" contenteditable="true" class="ni-editor" style="flex:1 0 auto;" data-placeholder="Viết bài luyện của bạn vào đây..."></div>
+          <div class="ni-submit-sticky">
+            <div class="mb-2">
+              <label class="ni-label">Gửi cho giáo viên nào chấm?</label>
+              <select id="pcTeacherSelect" class="ni-input"><option value="">-- Chọn giáo viên --</option></select>
+            </div>
+            <p class="text-[11px] font-semibold mb-2" style="color:var(--border-color);opacity:.65;">Bài luyện này KHÔNG tự động gửi — chỉ gửi khi bạn chọn giáo viên và bấm nút dưới đây.</p>
+            <button id="pcSubmitBtn" onclick="submitPracticeToTeacher()" class="ni-submit-btn w-full">
+              <i class="fa-solid fa-paper-plane mr-1"></i> Gửi giáo viên chấm
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= TEACHER: KHÔNG CÓ ?id= — dashboard tự chứa, không điều hướng ra trang chủ ================= -->
+    <div id="teacherHubView" class="hidden view-fill">
+      <div style="flex-shrink:0;" class="mb-4">
+        <div class="ni-tabbar">
+          <button type="button" id="thTabComposeBtn" onclick="switchTeacherTab('compose')" class="ni-tab-btn active">✏️ Giao bài mới</button>
+          <button type="button" id="thTabListBtn" onclick="switchTeacherTab('list')" class="ni-tab-btn">📋 Bài đã giao <span id="thListPendingBadge" class="hidden ni-tab-count">0</span></button>
+          <button type="button" id="thTabBankBtn" onclick="switchTeacherTab('bank')" class="ni-tab-btn">📚 Kho đề</button>
+        </div>
+      </div>
+      <div class="dash-scroll">
+        <!-- TAB: Giao bài Writing mới — bố cục 2 cột cân đối, không dồn lệch sang 1 bên -->
+        <div id="thTabCompose">
+          <div class="ni-panel p-5 md:p-6">
+            <div class="th-compose-grid" style="min-height:460px;">
+              <div class="space-y-4">
+                <div>
+                  <label class="ni-label">Tên bài Writing</label>
+                  <input id="thTaskTitle" type="text" class="ni-input" placeholder="Ví dụ: Task 2 - Band 7 Practice">
+                </div>
+                <div>
+                  <label class="ni-label">Giao cho</label>
+                  <div class="ni-target-toggle">
+                    <button type="button" id="thTargetSingleBtn" onclick="setThTargetMode('single')" class="active">👤 1 học sinh</button>
+                    <button type="button" id="thTargetClassBtn" onclick="setThTargetMode('class')">👥 Cả lớp</button>
+                  </div>
+                  <div id="thTargetSingleField">
+                    <select id="thStudentSelect" class="ni-input"><option value="">Đang tải danh sách...</option></select>
+                  </div>
+                  <div id="thTargetClassField" class="hidden">
+                    <select id="thClassSelect" class="ni-input"><option value="">Đang tải danh sách...</option></select>
+                  </div>
+                </div>
+                <div>
+                  <label class="ni-label">Hạn nộp (không bắt buộc)</label>
+                  <input id="thDeadline" type="date" class="ni-input">
+                  <p class="text-[11px] font-semibold mt-1.5" style="color:var(--border-color);opacity:.65;">Bài Writing sẽ tự động biến mất sau 6 tháng kể từ lúc giao, bất kể có đặt hạn nộp hay không.</p>
+                </div>
+                <button id="thSubmitBtn" onclick="submitNewWritingTask()" class="ni-submit-btn w-full">🚀 Giao Bài</button>
+              </div>
+              <div class="flex flex-col">
+                <label class="ni-label">Đề bài Writing</label>
+                <div class="ni-target-toggle" style="margin-bottom:10px;">
+                  <button type="button" id="thPromptSourceCustomBtn" onclick="setThPromptSource('custom')" class="active">✍️ Đề tự soạn</button>
+                  <button type="button" id="thPromptSourceBankBtn" onclick="setThPromptSource('bank')">📚 Chọn từ kho đề</button>
+                </div>
+
+                <div id="thPromptCustomBlock" class="flex flex-col" style="flex:1;min-height:0;">
+                  <div class="ni-toolbar" style="margin-bottom:8px;">
+                    <button type="button" title="In đậm" onclick="wrCmd('thPromptEditor','bold')"><b>B</b></button>
+                    <button type="button" title="In nghiêng" onclick="wrCmd('thPromptEditor','italic')"><i>I</i></button>
+                    <button type="button" title="Gạch chân" onclick="wrCmd('thPromptEditor','underline')"><u>U</u></button>
+                    <label title="Chèn ảnh (đề bài, biểu đồ...)" style="cursor:pointer;">
+                      <i class="fa-solid fa-image mr-1"></i> Chèn ảnh
+                      <input type="file" accept="image/*" class="hidden" onchange="wrInsertImageFromInput(this,'thPromptEditor')">
+                    </label>
+                  </div>
+                  <div id="thPromptEditor" contenteditable="true" class="ni-editor ni-editor-plain" style="flex:1;min-height:220px;" data-placeholder="Gõ hoặc paste đề bài Writing vào đây (có thể dán trực tiếp ảnh chụp màn hình)..."></div>
+                </div>
+
+                <div id="thPromptBankBlock" class="hidden" style="flex:1;min-height:0;display:flex;flex-direction:column;">
+                  <div class="ni-target-toggle" style="margin-bottom:8px;">
+                    <button type="button" id="thBankTaskT1Btn" onclick="setThBankTask('task1')" class="active">Task 1</button>
+                    <button type="button" id="thBankTaskT2Btn" onclick="setThBankTask('task2')">Task 2</button>
+                  </div>
+                  <select id="thBankTypeSelect" class="ni-input" style="margin-bottom:8px;" onchange="setThBankType(this.value)"></select>
+                  <select id="thBankItemSelect" class="ni-input" style="margin-bottom:8px;" onchange="onThBankItemPicked(this.value)"></select>
+                  <div id="thBankPreviewBox" class="ni-passage" style="flex:1;overflow-y:auto;border:1px solid #cfe0f5;border-radius:8px;padding:14px;background:#fff;font-size:14.5px;">
+                    <p style="color:#999;font-style:italic;">Chọn 1 đề trong kho ở trên để xem trước...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- TAB: Bài Writing đã giao BỞI CHÍNH GIÁO VIÊN NÀY (chỉ Writing, không lẫn các loại bài
+             khác, và KHÔNG lẫn bài do giáo viên khác giao — mỗi giáo viên chỉ thấy bài của mình). -->
+        <div id="thTabList" class="hidden">
+          <div id="thListContainer"><p class="font-semibold text-center py-10" style="color:var(--border-color);opacity:.6;">Đang tải...</p></div>
+        </div>
+        <!-- TAB: Kho đề Writing — DÙNG CHUNG cho mọi giáo viên (giáo viên nào cũng thêm/xoá được),
+             chia theo Task 1/Task 2 và dạng đề, lưu VĨNH VIỄN vào collection 'writingTaskBank'.
+             Đề trong kho có thể: (1) chọn thẳng khi giao bài ở tab "Giao bài mới", hoặc (2) học
+             sinh tự bấm vào luyện ở dashboard, không cần giáo viên giao trước. -->
+        <div id="thTabBank" class="hidden">
+          <div class="ni-panel p-5 md:p-6">
+            <div class="th-compose-grid" style="min-height:460px;">
+              <div class="space-y-4">
+                <p class="ni-panel-label" style="margin-bottom:2px;">➕ Thêm đề mới vào kho</p>
+                <div>
+                  <label class="ni-label">Task</label>
+                  <div class="ni-target-toggle">
+                    <button type="button" id="tbAddTaskT1Btn" onclick="setTbAddTask('task1')" class="active">Task 1</button>
+                    <button type="button" id="tbAddTaskT2Btn" onclick="setTbAddTask('task2')">Task 2</button>
+                  </div>
+                </div>
+                <div>
+                  <label class="ni-label">Dạng đề</label>
+                  <select id="tbAddTypeSelect" class="ni-input"></select>
+                </div>
+                <div>
+                  <label class="ni-label">Tên đề (không bắt buộc)</label>
+                  <input id="tbAddTitle" type="text" class="ni-input" placeholder="Ví dụ: Biểu đồ cột dân số 2010-2020">
+                </div>
+                <button id="tbAddSubmitBtn" onclick="submitNewBankItem()" class="ni-submit-btn w-full">➕ Lưu vào kho đề</button>
+              </div>
+              <div class="flex flex-col">
+                <label class="ni-label">Nội dung đề (có thể chèn/paste ảnh — hợp cho Task 1 dạng biểu đồ)</label>
+                <div class="ni-toolbar" style="margin-bottom:8px;">
+                  <button type="button" title="In đậm" onclick="wrCmd('tbAddEditor','bold')"><b>B</b></button>
+                  <button type="button" title="In nghiêng" onclick="wrCmd('tbAddEditor','italic')"><i>I</i></button>
+                  <button type="button" title="Gạch chân" onclick="wrCmd('tbAddEditor','underline')"><u>U</u></button>
+                  <label title="Chèn ảnh (đề bài, biểu đồ...)" style="cursor:pointer;">
+                    <i class="fa-solid fa-image mr-1"></i> Chèn ảnh
+                    <input type="file" accept="image/*" class="hidden" onchange="wrInsertImageFromInput(this,'tbAddEditor')">
+                  </label>
+                </div>
+                <div id="tbAddEditor" contenteditable="true" class="ni-editor ni-editor-plain" style="flex:1;min-height:220px;" data-placeholder="Gõ hoặc paste đề bài vào đây (paste trực tiếp ảnh biểu đồ/sơ đồ chụp màn hình)..."></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-5">
+            <div class="flex items-center justify-between flex-wrap gap-3 mb-3">
+              <p class="ni-panel-label" style="margin-bottom:0;">📂 Đề đã lưu trong kho (dùng chung cho mọi giáo viên)</p>
+              <div class="flex items-center gap-2">
+                <div class="ni-target-toggle" style="margin-bottom:0;">
+                  <button type="button" id="tbFilterTaskT1Btn" onclick="setTbFilterTask('task1')" class="active">Task 1</button>
+                  <button type="button" id="tbFilterTaskT2Btn" onclick="setTbFilterTask('task2')">Task 2</button>
+                </div>
+                <select id="tbFilterTypeSelect" class="ni-input" style="width:auto;" onchange="setTbFilterType(this.value)"></select>
+              </div>
+            </div>
+            <div id="tbListContainer"><p class="font-semibold text-center py-10" style="color:var(--border-color);opacity:.6;">Đang tải...</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= HỌC SINH: SOẠN BÀI (status=assigned) ================= -->
+    <div id="composeView" class="hidden split-view">
+      <div class="ni-panel">
+        <p class="ni-panel-label split-panel-label">Đề bài</p>
+        <div class="split-panel-scroll">
+          <div id="composePromptBox" class="ni-passage"></div>
+          <div id="composeDeadlineBadge" class="hidden ni-badge mt-4" style="align-self:flex-start;"></div>
+        </div>
+      </div>
+      <div class="ni-panel">
+        <p class="ni-panel-label split-panel-label">Bài làm của bạn</p>
+        <div class="split-panel-scroll">
+          <div class="ni-toolbar" style="flex-shrink:0;">
+            <button type="button" title="In đậm" onclick="wrCmd('answerEditor','bold')"><b>B</b></button>
+            <button type="button" title="In nghiêng" onclick="wrCmd('answerEditor','italic')"><i>I</i></button>
+            <button type="button" title="Gạch chân" onclick="wrCmd('answerEditor','underline')"><u>U</u></button>
+            <button type="button" title="Danh sách" onclick="wrCmd('answerEditor','insertUnorderedList')">☰</button>
+          </div>
+          <div id="answerEditor" contenteditable="true" class="ni-editor" style="flex:1 0 auto;" data-placeholder="Viết bài của bạn vào đây..."></div>
+          <div class="ni-submit-sticky">
+            <button id="submitAnswerBtn" onclick="submitAnswer()" class="ni-submit-btn w-full">
+              <i class="fa-solid fa-paper-plane mr-1"></i> Nộp bài
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= HỌC SINH: ĐÃ NỘP, CHỜ CHẤM ================= -->
+    <div id="submittedView" class="hidden split-view">
+      <div class="ni-panel">
+        <p class="ni-panel-label split-panel-label">Đề bài</p>
+        <div class="split-panel-scroll"><div id="submittedPromptBox" class="ni-passage"></div></div>
+      </div>
+      <div class="ni-panel">
+        <p class="split-panel-label" style="padding-bottom:0;"><span class="ni-badge ni-badge-amber"><i class="fa-regular fa-clock"></i> Đã nộp — đang chờ chấm</span></p>
+        <div class="split-panel-scroll"><div id="submittedAnswerBox" class="ni-passage"></div></div>
+      </div>
+    </div>
+
+    <!-- ================= HỌC SINH: ĐÃ ĐƯỢC CHẤM ================= -->
+    <div id="gradedView" class="hidden split-view">
+      <div class="ni-panel">
+        <p class="split-panel-label" style="padding-bottom:0;">
+          <span class="ni-badge ni-badge-green">✅ Bài này đã được chấm và gửi lại!</span>
+        </p>
+        <div class="split-panel-scroll">
+          <p class="ni-instruction mb-3">Chú thích: <s>gạch ngang</s> = bỏ, <u>gạch chân</u>/<mark style="background:var(--highlight-color);padding:0 2px;">tô màu</mark> = chú ý, <span class="note-mark">[ghi chú]</span> = nhận xét của giáo viên.</p>
+          <details class="mb-3">
+            <summary class="ni-panel-label" style="display:inline;cursor:pointer;">Xem lại đề bài</summary>
+            <div id="gradedPromptBox" class="ni-passage mt-3"></div>
+          </details>
+          <details>
+            <summary class="ni-panel-label" style="display:inline;cursor:pointer;">Xem lại bài gốc bạn đã nộp</summary>
+            <div id="gradedOriginalBox" class="ni-passage mt-3"></div>
+          </details>
+        </div>
+      </div>
+      <div class="ni-panel">
+        <p class="ni-panel-label split-panel-label">Bài đã sửa</p>
+        <div class="split-panel-scroll"><div id="gradedAnswerBox" class="ni-passage"></div></div>
+      </div>
+    </div>
+
+    <!-- ================= GIÁO VIÊN: HỌC SINH CHƯA NỘP ================= -->
+    <div id="teacherWaitingView" class="hidden split-view">
+      <div class="ni-panel">
+        <p class="ni-panel-label split-panel-label">Đề bài</p>
+        <div class="split-panel-scroll"><div id="teacherWaitingPromptBox" class="ni-passage"></div></div>
+      </div>
+      <div class="ni-panel">
+        <p id="teacherWaitingMsg" class="text-center font-bold py-6 m-auto" style="color:var(--border-color);"></p>
+      </div>
+    </div>
+
+    <!-- ================= GIÁO VIÊN: CHẤM BÀI ================= -->
+    <div id="teacherGradeView" class="hidden split-view">
+      <div class="ni-panel">
+        <p class="ni-panel-label split-panel-label">Đề bài</p>
+        <div class="split-panel-scroll">
+          <div id="teacherGradePromptBox" class="ni-passage mb-4"></div>
+          <details>
+            <summary class="ni-panel-label" style="display:inline;cursor:pointer;">Bài gốc học sinh nộp (chưa sửa)</summary>
+            <div id="teacherOriginalBox" class="ni-passage mt-3" style="opacity:.75;"></div>
+          </details>
+        </div>
+      </div>
+      <div class="ni-panel">
+        <p class="ni-panel-label split-panel-label" style="margin-bottom:0;">Sửa bài</p>
+        <div class="split-panel-scroll">
+          <p class="annot-hint" style="flex-shrink:0;">👆 Bôi đen 1 đoạn chữ để hiện thanh công cụ sửa bài</p>
+          <div id="gradeEditor" contenteditable="true" class="ni-editor" style="flex:1 0 auto;" data-placeholder="Bài học sinh sẽ hiện ở đây để bạn sửa..."></div>
+          <div class="ni-submit-sticky">
+            <button id="sendGradedBtn" onclick="sendGradedBack()" class="ni-submit-btn w-full">
+              <i class="fa-solid fa-paper-plane mr-1"></i> Gửi lại cho học sinh
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Thanh công cụ nổi khi bôi đen chữ trong bài chấm — bấm giữ (mousedown) trên thanh này
+     không làm mất vùng đang bôi đen, y hệt cơ chế của trang làm bài Reading. -->
+<div id="floatToolbar">
+  <button type="button" class="annot-color" style="background:#fff59d" title="Tô màu vàng" onclick="wrCmd('gradeEditor','hiliteColor','#fff59d')"></button>
+  <button type="button" class="annot-color" style="background:#aecbfa" title="Tô màu xanh dương" onclick="wrCmd('gradeEditor','hiliteColor','#aecbfa')"></button>
+  <button type="button" class="annot-color" style="background:#f8bbd0" title="Tô màu hồng" onclick="wrCmd('gradeEditor','hiliteColor','#f8bbd0')"></button>
+  <span class="annot-divider"></span>
+  <button type="button" class="annot-btn" title="Gạch chân" onclick="wrCmd('gradeEditor','underline')"><u>U</u></button>
+  <button type="button" class="annot-btn" title="Gạch ngang (bỏ)" onclick="wrCmd('gradeEditor','strikeThrough')"><s>abc</s></button>
+  <button type="button" class="annot-btn" title="Xoá định dạng" onclick="wrCmd('gradeEditor','removeFormat')">🧹</button>
+  <button type="button" class="annot-btn annot-note-btn" title="Thêm ghi chú [trong ngoặc vuông]" onclick="wrInsertNote('gradeEditor')">📝 Note</button>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+  // firebaseConfig của DỰ ÁN RIÊNG "b-s-english-house" (KHÔNG dùng chung với night-ielts-land
+  // nữa) — vì B's English House có nhiều giáo viên, mỗi giáo viên chỉ được thấy/chấm đúng bài
+  // Writing do CHÍNH MÌNH giao (xem teacherId bên dưới + firestore.rules).
+  const firebaseConfig = {
+    apiKey: "AIzaSyDuoosjvJe3EoF22h9UJ6M95os5s_boQ-o",
+    authDomain: "b-s-english-house.firebaseapp.com",
+    projectId: "b-s-english-house",
+    storageBucket: "b-s-english-house.firebasestorage.app",
+    messagingSenderId: "946574286636",
+    appId: "1:946574286636:web:44624fb938e6b5dc961689",
+    measurementId: "G-YZR2QFWQGR"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+
+  // Bài Writing (đã sửa hay chưa) tự động biến mất sau 6 tháng — CHỈ áp dụng cho bài
+  // tập/dữ liệu chấm chữa (collection 'assignments'); riêng KHO ĐỀ ('writingTaskBank')
+  // được lưu VĨNH VIỄN, không có TTL, xem thêm ở phần "KHO ĐỀ WRITING" bên dưới.
+  const WRITING_TTL_MS = 180 * 24 * 60 * 60 * 1000;
+
+  const taskId = new URLSearchParams(window.location.search).get('id');
+
+  const ALL_VIEWS = ['loadingBox','loginBox','errorBox','dashboardView','teacherHubView','composeView','submittedView','gradedView','teacherWaitingView','teacherGradeView','practiceBankView','practiceComposeView'];
+  // Các view mở 1 bài Writing cụ thể của GIÁO VIÊN (chưa nộp / đang chấm) — chỉ ở đây mới cần
+  // nút "Danh sách bài đã giao" để quay lại đúng danh sách, thay vì phải quay hẳn về trang chủ.
+  const TEACHER_DETAIL_VIEWS = ['teacherWaitingView', 'teacherGradeView'];
+  function showOnly(id) {
+    ALL_VIEWS.forEach(v => document.getElementById(v).classList.toggle('hidden', v !== id));
+    const backLink = document.getElementById('backToWritingListLink');
+    if (backLink) backLink.classList.toggle('hidden', TEACHER_DETAIL_VIEWS.indexOf(id) === -1);
+  }
+  // Gắn lên window vì các nút "‹ Quay lại..." mới (kho đề tự luyện) gọi trực tiếp từ
+  // onclick="" trong HTML — thuộc scope toàn cục, không thấy được biến trong module này.
+  window.showOnly = showOnly;
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+  }
+
+  // Xoá bỏ thẻ <script> khỏi HTML do người dùng tự soạn (đề bài / bài làm / bài sửa) trước
+  // khi lưu — một lớp phòng vệ đơn giản, rẻ tiền, dù hệ thống này vốn chỉ dùng nội bộ cho
+  // giáo viên + học sinh của trung tâm.
+  function wrStripScripts(html) {
+    return String(html || '').replace(/<script[\s\S]*?<\/script>/gi, '');
+  }
+
+  function showError(msg) {
+    document.getElementById('errorMsg').textContent = msg;
+    showOnly('errorBox');
+  }
+
+  // ==========================================
+  // TOOLBAR DÙNG CHUNG (gọi được từ onclick="" vì gắn thẳng vào window — các nút bấm được
+  // chèn bằng innerHTML nên không tự tìm được biến trong scope của module này).
+  // ==========================================
+  window.wrCmd = function(editorId, cmd, val) {
+    const el = document.getElementById(editorId);
+    if (el) el.focus();
+    document.execCommand(cmd, false, val || null);
+  };
+  window.wrInsertNote = function(editorId) {
+    const el = document.getElementById(editorId);
+    if (!el) return;
+    el.focus();
+    const sel = window.getSelection();
+    if (!sel) return;
+
+    let range;
+    if (sel.rangeCount > 0 && el.contains(sel.anchorNode)) {
+      range = sel.getRangeAt(0);
+      // Thu gọn vùng chọn về cuối trước khi chèn — để ghi chú được thêm NGAY SAU đoạn chữ
+      // vừa bôi đen (ví dụ vừa gạch ngang/tô màu), thay vì thay thế mất đoạn đó. Đây chỉ
+      // là thao tác trên đối tượng Range, KHÔNG xoá nội dung đã chọn trong DOM.
+      range.collapse(false);
+    } else {
+      // Không có con trỏ/selection nào trong editor -> chèn vào cuối cùng.
+      range = document.createRange();
+      range.selectNodeContents(el);
+      range.collapse(false);
+    }
+
+    // Chèn trực tiếp bằng DOM Range (không dùng execCommand('insertHTML', ...)) để có thể
+    // tự tay đặt con trỏ vào ĐÚNG GIỮA hai dấu ngoặc vuông, sẵn sàng cho việc gõ chữ vào.
+    const space1 = document.createTextNode(' ');
+    const span = document.createElement('span');
+    span.className = 'note-mark';
+    const openBracket = document.createTextNode('[');
+    const closeBracket = document.createTextNode(']');
+    span.appendChild(openBracket);
+    span.appendChild(closeBracket);
+    const space2 = document.createTextNode(' ');
+
+    const frag = document.createDocumentFragment();
+    frag.appendChild(space1);
+    frag.appendChild(span);
+    frag.appendChild(space2);
+    range.insertNode(frag);
+
+    // Đặt con trỏ vào giữa openBracket và closeBracket (chính giữa "[" và "]").
+    const caretRange = document.createRange();
+    caretRange.setStart(closeBracket, 0);
+    caretRange.setEnd(closeBracket, 0);
+    sel.removeAllRanges();
+    sel.addRange(caretRange);
+    el.focus();
+  };
+
+  // ==========================================
+  // THANH CÔNG CỤ NỔI (giáo viên bôi đen bài học sinh để sửa) — phỏng theo đúng cơ chế
+  // #annot-toolbar của trang làm bài Reading: giữ selection sống khi bấm nút (mousedown
+  // preventDefault), định vị ngay phía trên vùng vừa bôi đen bằng getBoundingClientRect().
+  // ==========================================
+  (function setupFloatingToolbar() {
+    const editor = document.getElementById('gradeEditor');
+    const toolbar = document.getElementById('floatToolbar');
+    if (!editor || !toolbar) return;
+
+    toolbar.addEventListener('mousedown', e => e.preventDefault());
+
+    function positionAndShow(rect) {
+      toolbar.style.display = 'flex';
+      const tbWidth = toolbar.offsetWidth || 220;
+      const tbHeight = toolbar.offsetHeight || 44;
+      let top = rect.top - tbHeight - 10;
+      // Ngưỡng lấy theo chiều cao thực tế của header (thay vì số cứng 4px) để thanh công cụ
+      // không bị đè lên/khuất sau header khi bôi đen gần đầu khung soạn thảo.
+      const header = document.querySelector('.ni-header');
+      const minTop = (header ? header.getBoundingClientRect().bottom : 0) + 6;
+      if (top < minTop) top = rect.bottom + 10; // không đủ chỗ phía trên -> đặt xuống dưới
+      let left = rect.left + (rect.width / 2) - (tbWidth / 2);
+      left = Math.max(8, Math.min(left, window.innerWidth - tbWidth - 8));
+      toolbar.style.top = top + 'px';
+      toolbar.style.left = left + 'px';
+    }
+
+    function updateToolbar() {
+      const sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0 || sel.isCollapsed || !editor.contains(sel.anchorNode)) {
+        toolbar.style.display = 'none';
+        return;
+      }
+      const rect = sel.getRangeAt(0).getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) { toolbar.style.display = 'none'; return; }
+      positionAndShow(rect);
+    }
+
+    editor.addEventListener('mouseup', updateToolbar);
+    editor.addEventListener('keyup', updateToolbar);
+    document.addEventListener('selectionchange', () => {
+      const sel = window.getSelection();
+      if (sel && sel.anchorNode && editor.contains(sel.anchorNode) && !sel.isCollapsed) updateToolbar();
+      else if (!toolbar.contains(document.activeElement)) toolbar.style.display = 'none';
+    });
+    document.addEventListener('mousedown', (e) => {
+      if (!editor.contains(e.target) && !toolbar.contains(e.target)) toolbar.style.display = 'none';
+    });
+  })();
+
+  function fmtDate(ts) { return ts ? new Date(ts).toLocaleDateString('vi-VN') : ''; }
+  function fmtDateTime(ts) { return ts ? new Date(ts).toLocaleString('vi-VN') : ''; }
+
+  document.getElementById('loginBtn').addEventListener('click', () => signInWithPopup(auth, provider));
+
+  // ==========================================
+  // DANH SÁCH GIÁO VIÊN (dùng cho học sinh chọn khi tự luyện rồi gửi chấm) — gồm CẢ 3 role
+  // dev/head_teacher/teacher, vì ở B's English House cả 3 role đều có thể trực tiếp là giáo
+  // viên đứng lớp (kể cả tài khoản 'dev'). Cache lại vì danh sách này hiếm khi đổi.
+  // ==========================================
+  let __teacherOptionsCache = null;
+  async function loadTeacherOptions() {
+    if (__teacherOptionsCache) return __teacherOptionsCache;
+    try {
+      const q = query(collection(db, 'users'), where('role', 'in', ['dev', 'head_teacher', 'teacher']));
+      const snap = await getDocs(q);
+      const list = [];
+      snap.forEach(d => {
+        const u = d.data();
+        list.push({ id: d.id, name: u.name || u.email || d.id });
+      });
+      list.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+      __teacherOptionsCache = list;
+    } catch (e) {
+      __teacherOptionsCache = [];
+    }
+    return __teacherOptionsCache;
+  }
+  function fillTeacherSelect(selectEl, list) {
+    selectEl.innerHTML = '<option value="">-- Chọn giáo viên --</option>' +
+      list.map(t => '<option value="' + t.id + '">' + escapeHtml(t.name) + '</option>').join('');
+  }
+
+  // ==========================================
+  // DASHBOARD HỌC SINH (không có ?id=)
+  // ==========================================
+  async function renderStudentDashboard(uid) {
+    document.getElementById('pageTitle').textContent = 'Bài Writing của bạn';
+    const now = Date.now();
+    const q = query(collection(db, 'assignments'), where('studentId', '==', uid), where('kind', '==', 'writing'));
+    const snap = await getDocs(q);
+    const items = [];
+    snap.forEach(d => {
+      const a = d.data();
+      const expiresAt = a.expiresAt || (a.createdAt ? a.createdAt + WRITING_TTL_MS : null);
+      if (expiresAt && now > expiresAt) { deleteDoc(doc(db, 'assignments', d.id)).catch(() => {}); return; }
+      items.push(Object.assign({ id: d.id }, a));
+    });
+    items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    const listEl = document.getElementById('dashboardList');
+    if (items.length === 0) {
+      listEl.innerHTML = '<div class="ni-panel text-center py-14"><p class="font-semibold" style="color:var(--border-color);opacity:.7;">Chưa có bài Writing nào được giao cho bạn.</p></div>';
+    } else {
+      listEl.innerHTML = items.map(renderDashboardCard).join('');
+    }
+    showOnly('dashboardView');
+  }
+
+  function renderDashboardCard(a) {
+    let statusBadge;
+    if (a.status === 'graded') {
+      statusBadge = '<span class="ni-badge ni-badge-green">✅ Đã chấm' + (a.studentSeenGraded === false ? ' — xem ngay!' : '') + '</span>';
+    } else if (a.status === 'submitted') {
+      statusBadge = '<span class="ni-badge ni-badge-amber">📩 Đã nộp — chờ chấm</span>';
+    } else {
+      statusBadge = '<span class="ni-badge ni-badge-neutral">📝 Chưa làm</span>';
+    }
+    let deadlineHtml = '';
+    if (a.deadlineAt) {
+      const overdue = Date.now() > a.deadlineAt && a.status === 'assigned';
+      deadlineHtml = '<span class="ni-badge ' + (overdue ? 'ni-badge-red' : 'ni-badge-neutral') + '">' +
+        (overdue ? '<i class="fa-solid fa-triangle-exclamation"></i> Quá hạn ' : '<i class="fa-regular fa-clock"></i> Hạn: ') + fmtDate(a.deadlineAt) + '</span>';
+    }
+    return '<a href="writing.html?id=' + a.id + '" class="ni-card ni-dash-item">' +
+      '<div class="flex justify-between items-start gap-3 flex-wrap">' +
+        '<p class="font-extrabold" style="color:var(--border-color);">' + escapeHtml(a.title || '(Không tên)') + '</p>' +
+        statusBadge +
+      '</div>' +
+      '<div class="mt-2 flex gap-2 flex-wrap">' + deadlineHtml + '</div>' +
+    '</a>';
+  }
+
+  // ==========================================
+  // HỌC SINH: CHI TIẾT 1 BÀI
+  // ==========================================
+  async function renderStudentDetail(ref, data) {
+    document.getElementById('pageTitle').textContent = data.title || 'Bài Writing';
+
+    if (data.status === 'graded') {
+      document.getElementById('gradedPromptBox').innerHTML = data.promptHtml || '';
+      document.getElementById('gradedOriginalBox').innerHTML = data.submissionHtml || '';
+      document.getElementById('gradedAnswerBox').innerHTML = data.gradedHtml || '';
+      showOnly('gradedView');
+      if (data.studentSeenGraded !== true) {
+        updateDoc(ref, { studentSeenGraded: true }).catch(() => {});
+      }
+      return;
+    }
+
+    if (data.status === 'submitted') {
+      document.getElementById('submittedPromptBox').innerHTML = data.promptHtml || '';
+      document.getElementById('submittedAnswerBox').innerHTML = data.submissionHtml || '';
+      showOnly('submittedView');
+      return;
+    }
+
+    // status === 'assigned' -> soạn bài
+    document.getElementById('composePromptBox').innerHTML = data.promptHtml || '';
+    if (data.deadlineAt) {
+      const overdue = Date.now() > data.deadlineAt;
+      const badge = document.getElementById('composeDeadlineBadge');
+      badge.classList.remove('hidden');
+      badge.classList.add(overdue ? 'ni-badge-red' : 'ni-badge-neutral');
+      badge.innerHTML = (overdue ? '<i class="fa-solid fa-triangle-exclamation"></i> Đã quá hạn nộp (' : '<i class="fa-regular fa-clock"></i> Hạn nộp: ') + fmtDate(data.deadlineAt) + (overdue ? ')' : '');
+    }
+    window.__currentRef = ref;
+    // Tương tự nút chấm bài của giáo viên: reset nút "Nộp bài" mỗi khi vào view này, tránh bị
+    // kẹt ở chữ "Đang nộp..." nếu có lúc nào đó view này được vẽ lại mà không phải từ đầu.
+    const submitBtn = document.getElementById('submitAnswerBtn');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1"></i> Nộp bài';
+    }
+    showOnly('composeView');
+  }
+
+  window.submitAnswer = async function() {
+    const editor = document.getElementById('answerEditor');
+    const html = wrStripScripts(editor.innerHTML || '').trim();
+    const text = (editor.textContent || '').trim();
+    if (!text && html.indexOf('<img') === -1) { alert('Vui lòng viết bài trước khi nộp nhé.'); return; }
+    if (html.length > 900000) { alert('Bài viết đang quá nặng để lưu (có thể do ảnh dán vào). Vui lòng rút gọn.'); return; }
+    const ok = confirm('Nộp bài này? Sau khi nộp bạn sẽ không sửa được nữa cho đến khi được chấm và gửi lại.');
+    if (!ok) return;
+    const btn = document.getElementById('submitAnswerBtn');
+    btn.disabled = true; btn.innerText = 'Đang nộp...';
+    try {
+      await updateDoc(window.__currentRef, {
+        submissionHtml: html,
+        submittedAt: Date.now(),
+        status: 'submitted',
+        teacherSeenSubmission: false
+      });
+      alert('Đã nộp bài thành công! Giáo viên sẽ chấm và gửi lại cho bạn sớm nhất.');
+      const freshSnap = await getDoc(window.__currentRef);
+      await renderStudentDetail(freshSnap.ref, freshSnap.data());
+    } catch (e) {
+      alert('Lỗi khi nộp bài: ' + e.message);
+      btn.disabled = false; btn.innerText = 'Nộp bài';
+    }
+  };
+
+  // ==========================================
+  // GIÁO VIÊN: CHI TIẾT 1 BÀI
+  // ==========================================
+  async function renderTeacherDetail(ref, data) {
+    document.getElementById('pageTitle').textContent = data.title || 'Bài Writing';
+    let studentName = data.studentId || '';
+    try {
+      const stuSnap = await getDoc(doc(db, 'users', data.studentId));
+      if (stuSnap.exists()) studentName = stuSnap.data().name || studentName;
+    } catch (e) { /* không chặn luồng chính nếu lỗi */ }
+
+    if (data.status === 'assigned') {
+      document.getElementById('teacherWaitingPromptBox').innerHTML = data.promptHtml || '';
+      document.getElementById('teacherWaitingMsg').textContent = '📝 ' + studentName + ' chưa nộp bài này.';
+      showOnly('teacherWaitingView');
+      return;
+    }
+
+    // status === 'submitted' hoặc 'graded'
+    document.getElementById('teacherGradePromptBox').innerHTML = data.promptHtml || '';
+    document.getElementById('teacherOriginalBox').innerHTML = data.submissionHtml || '';
+    document.getElementById('gradeEditor').innerHTML = data.gradedHtml || data.submissionHtml || '';
+    window.__currentRef = ref;
+    window.__currentStudentName = studentName;
+    // Luôn đưa nút "Gửi lại cho học sinh" về trạng thái bình thường mỗi khi vào view này —
+    // nếu không, sau khi gửi thành công (bấm lại vào cùng 1 bài đã chấm để sửa tiếp) nút sẽ bị
+    // kẹt mãi ở chữ "Đang gửi..." vì nó là cùng 1 phần tử DOM được tái sử dụng, không tự sinh lại.
+    const sendBtn = document.getElementById('sendGradedBtn');
+    if (sendBtn) {
+      sendBtn.disabled = false;
+      sendBtn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1"></i> Gửi lại cho học sinh';
+    }
+    showOnly('teacherGradeView');
+
+    if (data.status === 'submitted' && data.teacherSeenSubmission !== true) {
+      updateDoc(ref, { teacherSeenSubmission: true }).catch(() => {});
+    }
+  }
+
+  window.sendGradedBack = async function() {
+    const editor = document.getElementById('gradeEditor');
+    const html = wrStripScripts(editor.innerHTML || '').trim();
+    if (!html) { alert('Chưa có nội dung để gửi lại.'); return; }
+    if (html.length > 900000) { alert('Bài sửa đang quá nặng để lưu. Vui lòng rút gọn.'); return; }
+    const ok = confirm('Gửi bài đã sửa lại cho ' + (window.__currentStudentName || 'học sinh') + '?');
+    if (!ok) return;
+    const btn = document.getElementById('sendGradedBtn');
+    btn.disabled = true; btn.innerText = 'Đang gửi...';
+    try {
+      await updateDoc(window.__currentRef, {
+        gradedHtml: html,
+        gradedAt: Date.now(),
+        status: 'graded',
+        teacherSeenSubmission: true,
+        studentSeenGraded: false
+      });
+      alert('Đã gửi bài sửa lại cho học sinh!');
+      const freshSnap = await getDoc(window.__currentRef);
+      await renderTeacherDetail(freshSnap.ref, freshSnap.data());
+    } catch (e) {
+      alert('Lỗi khi gửi bài sửa: ' + e.message);
+      btn.disabled = false; btn.innerText = 'Gửi lại cho học sinh';
+    }
+  };
+
+  // ==========================================
+  // TIỆN ÍCH CHÈN ẢNH (nén trước khi nhúng base64) — giống hệt index.html, dùng cho ô soạn
+  // đề bài Writing mới ngay tại đây, không cần quay lại trang chủ nữa.
+  // ==========================================
+  function wrCompressImageFile(file, maxW) {
+    return new Promise(function (resolve, reject) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = new Image();
+        img.onload = function () {
+          const scale = Math.min(1, (maxW || 900) / img.width);
+          const w = Math.max(1, Math.round(img.width * scale));
+          const h = Math.max(1, Math.round(img.height * scale));
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.65));
+        };
+        img.onerror = function () { reject(new Error('Không đọc được ảnh')); };
+        img.src = e.target.result;
+      };
+      reader.onerror = function () { reject(new Error('Không đọc được file')); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function wrInsertHtmlIntoEditor(editorEl, html) {
+    editorEl.focus();
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && editorEl.contains(sel.anchorNode)) {
+      document.execCommand('insertHTML', false, html);
+    } else {
+      editorEl.innerHTML += html;
+    }
+  }
+
+  window.wrInsertImageFromInput = function (inputEl, editorId) {
+    const file = inputEl.files && inputEl.files[0];
+    if (!file) return;
+    const editorEl = document.getElementById(editorId);
+    wrCompressImageFile(file, 900).then(function (dataUrl) {
+      wrInsertHtmlIntoEditor(editorEl, '<br><img src="' + dataUrl + '" style="max-width:100%;border-radius:10px;margin:6px 0;display:block;"><br>');
+      inputEl.value = '';
+    }).catch(function (e) {
+      alert('Không chèn được ảnh: ' + e.message);
+      inputEl.value = '';
+    });
+  };
+
+  function wrAttachPasteImageHandler(editorEl) {
+    editorEl.addEventListener('paste', function (e) {
+      const items = (e.clipboardData && e.clipboardData.items) || [];
+      let imageItem = null;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type && items[i].type.indexOf('image/') === 0) { imageItem = items[i]; break; }
+      }
+      if (!imageItem) return;
+      e.preventDefault();
+      const file = imageItem.getAsFile();
+      if (!file) return;
+      wrCompressImageFile(file, 900).then(function (dataUrl) {
+        wrInsertHtmlIntoEditor(editorEl, '<br><img src="' + dataUrl + '" style="max-width:100%;border-radius:10px;margin:6px 0;display:block;"><br>');
+      }).catch(function (err) { console.error('Không dán được ảnh:', err); });
+    });
+  }
+  (function () {
+    const el = document.getElementById('thPromptEditor');
+    if (el) wrAttachPasteImageHandler(el);
+  })();
+
+  // ==========================================
+  // KHO ĐỀ WRITING (Task 1 / Task 2, chia theo dạng) — DÙNG CHUNG cho MỌI giáo viên: giáo
+  // viên nào cũng thêm/xoá được, tạo thành 1 kho đề chung cho cả trung tâm, lưu VĨNH VIỄN vào
+  // collection 'writingTaskBank' (không có TTL, khác với 'assignments' ở trên). Đề trong kho
+  // có thể: (1) chọn thẳng khi giao bài ở tab "Giao bài mới", hoặc (2) học sinh tự bấm vào
+  // luyện ở dashboard, không cần giáo viên giao trước.
+  // ==========================================
+  const WRITING_BANK_COLLECTION = 'writingTaskBank';
+  const TASK_TYPES = {
+    task1: [
+      { key: 'line_graph', label: '📈 Biểu đồ đường (Line graph)' },
+      { key: 'bar_chart', label: '📊 Biểu đồ cột (Bar chart)' },
+      { key: 'pie_chart', label: '🥧 Biểu đồ tròn (Pie chart)' },
+      { key: 'table', label: '🔢 Bảng số liệu (Table)' },
+      { key: 'process', label: '⚙️ Sơ đồ quy trình (Process)' },
+      { key: 'map', label: '🗺️ Bản đồ (Maps)' },
+      { key: 'mixed', label: '🧩 Kết hợp nhiều dạng (Mixed)' }
+    ],
+    task2: [
+      { key: 'opinion', label: '💭 Quan điểm (Agree/Disagree)' },
+      { key: 'discussion', label: '⚖️ Thảo luận 2 quan điểm (Discussion)' },
+      { key: 'adv_dis', label: '➕➖ Ưu & nhược điểm (Advantages/Disadvantages)' },
+      { key: 'problem_solution', label: '🛠️ Nguyên nhân - Giải pháp (Problem/Solution)' },
+      { key: 'two_part', label: '❓ Câu hỏi 2 phần (Two-part question)' }
+    ]
+  };
+  function taskLabel(task) { return task === 'task1' ? 'Task 1' : 'Task 2'; }
+  function typeLabel(task, key) {
+    const arr = TASK_TYPES[task] || [];
+    const found = arr.find(x => x.key === key);
+    return found ? found.label : (key || '');
+  }
+  function typeLabelShort(task, key) {
+    // Bỏ icon ở đầu để hiện gọn trong tên đề tự động / badge nhỏ.
+    return typeLabel(task, key).replace(/^\S+\s/, '');
+  }
+  function fillTypeSelect(selectEl, task, includeAllOption) {
+    const arr = TASK_TYPES[task] || [];
+    let html = includeAllOption ? '<option value="">-- Tất cả dạng --</option>' : '';
+    html += arr.map(t => '<option value="' + t.key + '">' + t.label + '</option>').join('');
+    selectEl.innerHTML = html;
+  }
+
+  // ---- Tab "Kho đề" của giáo viên: thêm đề mới + xem/xoá đề đã lưu (chung cho mọi GV) ----
+  let __tbAddTask = 'task1';
+  let __tbFilterTask = 'task1';
+  let __tbFilterType = '';
+  let __tbBankInited = false;
+
+  window.setTbAddTask = function (task) {
+    __tbAddTask = task;
+    document.getElementById('tbAddTaskT1Btn').classList.toggle('active', task === 'task1');
+    document.getElementById('tbAddTaskT2Btn').classList.toggle('active', task === 'task2');
+    fillTypeSelect(document.getElementById('tbAddTypeSelect'), task, false);
+  };
+
+  window.setTbFilterTask = function (task) {
+    __tbFilterTask = task;
+    __tbFilterType = '';
+    document.getElementById('tbFilterTaskT1Btn').classList.toggle('active', task === 'task1');
+    document.getElementById('tbFilterTaskT2Btn').classList.toggle('active', task === 'task2');
+    fillTypeSelect(document.getElementById('tbFilterTypeSelect'), task, true);
+    loadTeacherBankList();
+  };
+
+  window.setTbFilterType = function (type) {
+    __tbFilterType = type;
+    loadTeacherBankList();
+  };
+
+  function initTeacherBankTabOnce() {
+    if (__tbBankInited) return;
+    __tbBankInited = true;
+    fillTypeSelect(document.getElementById('tbAddTypeSelect'), __tbAddTask, false);
+    fillTypeSelect(document.getElementById('tbFilterTypeSelect'), __tbFilterTask, true);
+    const el = document.getElementById('tbAddEditor');
+    if (el) wrAttachPasteImageHandler(el);
+  }
+
+  window.submitNewBankItem = async function () {
+    const type = document.getElementById('tbAddTypeSelect').value;
+    const title = document.getElementById('tbAddTitle').value.trim();
+    const editor = document.getElementById('tbAddEditor');
+    const promptHtml = wrStripScripts(editor.innerHTML || '').trim();
+    const promptText = (editor.textContent || '').trim();
+    if (!type) { alert('Vui lòng chọn dạng đề!'); return; }
+    if (!promptText && promptHtml.indexOf('<img') === -1) { alert('Vui lòng nhập hoặc paste nội dung đề!'); return; }
+    if (promptHtml.length > 900000) { alert('Đề (kể cả ảnh) đang quá nặng để lưu. Vui lòng bớt ảnh hoặc dùng ảnh nhỏ/nét thấp hơn.'); return; }
+
+    const btn = document.getElementById('tbAddSubmitBtn');
+    btn.disabled = true; btn.innerText = 'Đang lưu...';
+    try {
+      await addDoc(collection(db, WRITING_BANK_COLLECTION), {
+        task: __tbAddTask,
+        type: type,
+        title: title || (taskLabel(__tbAddTask) + ' - ' + typeLabelShort(__tbAddTask, type)),
+        promptHtml: promptHtml,
+        createdAt: Date.now(),
+        createdBy: (auth.currentUser && auth.currentUser.uid) || null
+      });
+      alert('Đã lưu đề vào kho chung!');
+      document.getElementById('tbAddTitle').value = '';
+      editor.innerHTML = '';
+      if (__tbFilterTask === __tbAddTask && (!__tbFilterType || __tbFilterType === type)) loadTeacherBankList();
+    } catch (e) {
+      alert('Lỗi khi lưu đề: ' + e.message);
+    } finally {
+      btn.disabled = false; btn.innerText = '➕ Lưu vào kho đề';
+    }
+  };
+
+  async function loadTeacherBankList() {
+    const container = document.getElementById('tbListContainer');
+    container.innerHTML = '<p class="font-semibold text-center py-10" style="color:var(--border-color);opacity:.6;">Đang tải...</p>';
+    let items = [];
+    try {
+      const q = query(collection(db, WRITING_BANK_COLLECTION), where('task', '==', __tbFilterTask));
+      const snap = await getDocs(q);
+      snap.forEach(d => items.push(Object.assign({ id: d.id }, d.data())));
+    } catch (e) {
+      container.innerHTML = '<p class="font-bold text-center py-10" style="color:var(--incorrect-color);">Lỗi khi tải kho đề.</p>';
+      return;
+    }
+    if (__tbFilterType) items = items.filter(it => it.type === __tbFilterType);
+    items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+    if (items.length === 0) {
+      container.innerHTML = '<div class="ni-panel text-center py-14"><p class="font-semibold" style="color:var(--border-color);opacity:.7;">Chưa có đề nào trong mục này.</p></div>';
+      return;
+    }
+    container.innerHTML = items.map(renderTbItemRow).join('');
+  }
+
+  function renderTbItemRow(item) {
+    return '<div class="ni-card ni-dash-item">' +
+      '<div class="flex justify-between items-start gap-3 flex-wrap">' +
+        '<div>' +
+          '<p class="font-extrabold" style="color:var(--border-color);">' + escapeHtml(item.title || '(Không tên)') + '</p>' +
+          '<p class="text-xs font-semibold mt-0.5" style="color:var(--border-color);opacity:.65;">' + taskLabel(item.task) + ' · ' + typeLabel(item.task, item.type) + '</p>' +
+        '</div>' +
+        '<button type="button" onclick="deleteBankItemConfirm(\'' + item.id + '\')" class="ni-nav-btn" style="border-color:var(--incorrect-color);color:var(--incorrect-color);"><i class="fa-solid fa-trash"></i></button>' +
+      '</div>' +
+      '<details class="mt-2"><summary class="text-xs font-bold" style="color:var(--border-color);opacity:.7;cursor:pointer;">👁 Xem nội dung đề</summary>' +
+        '<div class="ni-passage mt-2" style="font-size:14px;">' + (item.promptHtml || '') + '</div>' +
+      '</details>' +
+    '</div>';
+  }
+
+  window.deleteBankItemConfirm = async function (id) {
+    const ok = confirm('Xoá VĨNH VIỄN đề này khỏi kho chung? Không thể khôi phục lại.');
+    if (!ok) return;
+    try {
+      await deleteDoc(doc(db, WRITING_BANK_COLLECTION, id));
+      loadTeacherBankList();
+    } catch (e) {
+      alert('Lỗi khi xoá đề: ' + e.message);
+    }
+  };
+
+  // ---- Tab "Giao bài mới": nguồn đề = tự soạn (mặc định, như trước) HOẶC chọn từ kho ----
+  let __thPromptSource = 'custom';
+  let __thBankInited = false;
+  let __thBankTask = 'task1';
+  let __thBankType = '';
+  let __thBankItemsCache = [];
+  let __thBankSelectedItem = null;
+
+  window.setThPromptSource = function (mode) {
+    __thPromptSource = mode;
+    document.getElementById('thPromptSourceCustomBtn').classList.toggle('active', mode === 'custom');
+    document.getElementById('thPromptSourceBankBtn').classList.toggle('active', mode === 'bank');
+    document.getElementById('thPromptCustomBlock').classList.toggle('hidden', mode !== 'custom');
+    document.getElementById('thPromptBankBlock').classList.toggle('hidden', mode !== 'bank');
+    if (mode === 'bank' && !__thBankInited) {
+      __thBankInited = true;
+      fillTypeSelect(document.getElementById('thBankTypeSelect'), __thBankTask, true);
+      loadThBankItemsForPicker();
+    }
+  };
+
+  window.setThBankTask = function (task) {
+    __thBankTask = task;
+    __thBankType = '';
+    __thBankSelectedItem = null;
+    document.getElementById('thBankTaskT1Btn').classList.toggle('active', task === 'task1');
+    document.getElementById('thBankTaskT2Btn').classList.toggle('active', task === 'task2');
+    fillTypeSelect(document.getElementById('thBankTypeSelect'), task, true);
+    loadThBankItemsForPicker();
+  };
+
+  window.setThBankType = function (type) {
+    __thBankType = type;
+    renderThBankItemOptions();
+  };
+
+  async function loadThBankItemsForPicker() {
+    const itemSelect = document.getElementById('thBankItemSelect');
+    itemSelect.innerHTML = '<option value="">Đang tải...</option>';
+    try {
+      const q = query(collection(db, WRITING_BANK_COLLECTION), where('task', '==', __thBankTask));
+      const snap = await getDocs(q);
+      __thBankItemsCache = [];
+      snap.forEach(d => __thBankItemsCache.push(Object.assign({ id: d.id }, d.data())));
+      __thBankItemsCache.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    } catch (e) {
+      __thBankItemsCache = [];
+    }
+    renderThBankItemOptions();
+  }
+
+  function renderThBankItemOptions() {
+    const itemSelect = document.getElementById('thBankItemSelect');
+    const filtered = __thBankType ? __thBankItemsCache.filter(it => it.type === __thBankType) : __thBankItemsCache;
+    __thBankSelectedItem = null;
+    document.getElementById('thBankPreviewBox').innerHTML = '<p style="color:#999;font-style:italic;">Chọn 1 đề trong kho ở trên để xem trước...</p>';
+    if (filtered.length === 0) {
+      itemSelect.innerHTML = '<option value="">-- Chưa có đề nào trong mục này --</option>';
+      return;
+    }
+    itemSelect.innerHTML = '<option value="">-- Chọn 1 đề --</option>' +
+      filtered.map(it => '<option value="' + it.id + '">' + escapeHtml(it.title || '(Không tên)') + '</option>').join('');
+  }
+
+  window.onThBankItemPicked = function (itemId) {
+    __thBankSelectedItem = __thBankItemsCache.find(it => it.id === itemId) || null;
+    document.getElementById('thBankPreviewBox').innerHTML = __thBankSelectedItem
+      ? (__thBankSelectedItem.promptHtml || '')
+      : '<p style="color:#999;font-style:italic;">Chọn 1 đề trong kho ở trên để xem trước...</p>';
+  };
+
+  // ---- Học sinh: kho đề tự luyện (không cần giáo viên giao trước) ----
+  let __pbTask = 'task1';
+  let __pbType = '';
+  let __pbItemsCache = [];
+  let __pcCurrentItem = null;
+
+  window.openPracticeBank = function () {
+    showOnly('practiceBankView');
+    setPracticeTask('task1');
+  };
+
+  window.setPracticeTask = function (task) {
+    __pbTask = task;
+    __pbType = '';
+    document.getElementById('pbTaskT1Btn').classList.toggle('active', task === 'task1');
+    document.getElementById('pbTaskT2Btn').classList.toggle('active', task === 'task2');
+    renderPbTypeChips();
+    loadPracticeBankList();
+  };
+
+  function renderPbTypeChips() {
+    const arr = TASK_TYPES[__pbTask] || [];
+    const chipsEl = document.getElementById('pbTypeChips');
+    let html = '<button type="button" onclick="setPracticeType(\'\')" class="ni-nav-btn" style="' + (!__pbType ? 'background:var(--hover-bg);' : '') + '">Tất cả</button>';
+    html += arr.map(t => '<button type="button" onclick="setPracticeType(\'' + t.key + '\')" class="ni-nav-btn" style="' + (__pbType === t.key ? 'background:var(--hover-bg);' : '') + '">' + t.label + '</button>').join('');
+    chipsEl.innerHTML = html;
+  }
+
+  window.setPracticeType = function (type) {
+    __pbType = type;
+    renderPbTypeChips();
+    renderPbList();
+  };
+
+  async function loadPracticeBankList() {
+    const container = document.getElementById('pbListContainer');
+    container.innerHTML = '<p class="font-semibold text-center py-10" style="color:var(--border-color);opacity:.6;">Đang tải...</p>';
+    try {
+      const q = query(collection(db, WRITING_BANK_COLLECTION), where('task', '==', __pbTask));
+      const snap = await getDocs(q);
+      __pbItemsCache = [];
+      snap.forEach(d => __pbItemsCache.push(Object.assign({ id: d.id }, d.data())));
+      __pbItemsCache.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    } catch (e) {
+      container.innerHTML = '<p class="font-bold text-center py-10" style="color:var(--incorrect-color);">Lỗi khi tải kho đề.</p>';
+      return;
+    }
+    renderPbList();
+  }
+
+  function renderPbList() {
+    const container = document.getElementById('pbListContainer');
+    const filtered = __pbType ? __pbItemsCache.filter(it => it.type === __pbType) : __pbItemsCache;
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="ni-panel text-center py-14"><p class="font-semibold" style="color:var(--border-color);opacity:.7;">Chưa có đề nào trong mục này — quay lại sau nhé!</p></div>';
+      return;
+    }
+    container.innerHTML = filtered.map(it =>
+      '<a href="javascript:void(0)" onclick="openPracticeItem(\'' + it.id + '\')" class="ni-card ni-dash-item">' +
+        '<div class="flex justify-between items-start gap-3 flex-wrap">' +
+          '<p class="font-extrabold" style="color:var(--border-color);">' + escapeHtml(it.title || '(Không tên)') + '</p>' +
+          '<span class="ni-badge ni-badge-neutral">' + typeLabel(it.task, it.type) + '</span>' +
+        '</div>' +
+      '</a>'
+    ).join('');
+  }
+
+  window.openPracticeItem = function (itemId) {
+    const item = __pbItemsCache.find(it => it.id === itemId);
+    if (!item) return;
+    __pcCurrentItem = item;
+    document.getElementById('pageTitle').textContent = item.title || 'Luyện đề Writing';
+    document.getElementById('pcTypeBadge').textContent = taskLabel(item.task) + ' · ' + typeLabel(item.task, item.type);
+    document.getElementById('pcPromptBox').innerHTML = item.promptHtml || '';
+    document.getElementById('pcEditor').innerHTML = '';
+    const btn = document.getElementById('pcSubmitBtn');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1"></i> Gửi giáo viên chấm';
+    showOnly('practiceComposeView');
+    // Nạp danh sách giáo viên vào ô chọn mỗi lần mở 1 đề để luyện — cache sẵn nên lần sau
+    // (đề khác) không phải gọi lại Firestore.
+    const teacherSelect = document.getElementById('pcTeacherSelect');
+    teacherSelect.innerHTML = '<option value="">Đang tải danh sách giáo viên...</option>';
+    loadTeacherOptions().then(list => fillTeacherSelect(teacherSelect, list));
+  };
+
+  window.submitPracticeToTeacher = async function () {
+    if (!__pcCurrentItem) return;
+    const teacherId = document.getElementById('pcTeacherSelect').value;
+    if (!teacherId) { alert('Vui lòng chọn 1 giáo viên để gửi bài chấm nhé.'); return; }
+    const editor = document.getElementById('pcEditor');
+    const html = wrStripScripts(editor.innerHTML || '').trim();
+    const text = (editor.textContent || '').trim();
+    if (!text && html.indexOf('<img') === -1) { alert('Vui lòng viết bài trước khi gửi nhé.'); return; }
+    if (html.length > 900000) { alert('Bài viết đang quá nặng để lưu (có thể do ảnh dán vào). Vui lòng rút gọn.'); return; }
+    const ok = confirm('Gửi bài luyện này cho giáo viên đã chọn chấm? Sau khi gửi bạn sẽ không sửa được nữa cho đến khi được chấm và gửi lại.');
+    if (!ok) return;
+
+    const btn = document.getElementById('pcSubmitBtn');
+    btn.disabled = true; btn.innerText = 'Đang gửi...';
+    try {
+      const user = auth.currentUser;
+      const now = Date.now();
+      await addDoc(collection(db, 'assignments'), {
+        studentId: user.uid,
+        teacherId: teacherId,
+        title: __pcCurrentItem.title || (taskLabel(__pcCurrentItem.task) + ' - ' + typeLabelShort(__pcCurrentItem.task, __pcCurrentItem.type)),
+        kind: 'writing',
+        promptHtml: __pcCurrentItem.promptHtml || '',
+        submissionHtml: html,
+        submittedAt: now,
+        gradedHtml: null,
+        gradedAt: null,
+        status: 'submitted',
+        teacherSeenSubmission: false,
+        studentSeenGraded: false,
+        createdAt: now,
+        deadlineAt: null,
+        expiresAt: now + WRITING_TTL_MS,
+        selfPracticed: true,
+        sourceBankId: __pcCurrentItem.id,
+        sourceTask: __pcCurrentItem.task,
+        sourceType: __pcCurrentItem.type
+      });
+      alert('Đã gửi bài luyện cho giáo viên chấm!');
+      showOnly('dashboardView');
+      renderStudentDashboard(user.uid);
+    } catch (e) {
+      alert('Lỗi khi gửi bài: ' + e.message);
+      btn.disabled = false; btn.innerText = 'Gửi giáo viên chấm';
+    }
+  };
+
+  // ==========================================
+  // GIÁO VIÊN: DASHBOARD TỰ CHỨA (giao bài mới + xem bài đã giao) — không điều hướng ra
+  // trang chủ nữa. Danh sách "Bài đã giao" chỉ gồm bài Writing (kind === 'writing') VÀ do
+  // CHÍNH giáo viên đang đăng nhập giao (teacherId === uid của mình) — mỗi giáo viên chỉ
+  // thấy/chấm được bài của học sinh mà MÌNH đã giao hoặc học sinh tự chọn gửi cho MÌNH,
+  // không thấy bài của giáo viên khác. Danh sách lớp/học sinh để CHỌN người nhận khi giao
+  // bài mới thì vẫn dùng chung cho mọi giáo viên (không giới hạn theo lớp riêng).
+  // ==========================================
+  let __thTargetMode = 'single';
+  let __thClassesMap = {};
+  let __thComposeLoaded = false;
+
+  window.setThTargetMode = function (mode) {
+    __thTargetMode = mode;
+    document.getElementById('thTargetSingleBtn').classList.toggle('active', mode === 'single');
+    document.getElementById('thTargetClassBtn').classList.toggle('active', mode === 'class');
+    document.getElementById('thTargetSingleField').classList.toggle('hidden', mode !== 'single');
+    document.getElementById('thTargetClassField').classList.toggle('hidden', mode !== 'class');
+  };
+
+  window.switchTeacherTab = function (tab) {
+    document.getElementById('thTabComposeBtn').classList.toggle('active', tab === 'compose');
+    document.getElementById('thTabListBtn').classList.toggle('active', tab === 'list');
+    document.getElementById('thTabBankBtn').classList.toggle('active', tab === 'bank');
+    document.getElementById('thTabCompose').classList.toggle('hidden', tab !== 'compose');
+    document.getElementById('thTabList').classList.toggle('hidden', tab !== 'list');
+    document.getElementById('thTabBank').classList.toggle('hidden', tab !== 'bank');
+    if (tab === 'list') loadWritingSubmissionsList();
+    if (tab === 'bank') { initTeacherBankTabOnce(); loadTeacherBankList(); }
+  };
+
+  async function loadTeacherComposeData() {
+    if (__thComposeLoaded) return;
+    __thComposeLoaded = true;
+    const studentSelect = document.getElementById('thStudentSelect');
+    const classSelect = document.getElementById('thClassSelect');
+    try {
+      const q = query(collection(db, 'users'), where('role', '==', 'student'));
+      const snap = await getDocs(q);
+      let opts = '<option value="">-- Chọn học sinh --</option>';
+      snap.forEach(d => {
+        const stu = d.data();
+        opts += '<option value="' + d.id + '">' + escapeHtml(stu.name || '') + ' (' + escapeHtml(stu.email || '') + ')</option>';
+      });
+      studentSelect.innerHTML = opts;
+    } catch (e) {
+      studentSelect.innerHTML = '<option value="">Lỗi tải danh sách học sinh</option>';
+    }
+    try {
+      const classSnap = await getDocs(collection(db, 'classes'));
+      __thClassesMap = {};
+      const rows = [];
+      classSnap.forEach(d => {
+        const c = d.data();
+        __thClassesMap[d.id] = c.studentIds || [];
+        rows.push({ id: d.id, name: c.name || '(Lớp không tên)', count: (c.studentIds || []).length });
+      });
+      rows.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+      classSelect.innerHTML = rows.length === 0
+        ? '<option value="">-- Chưa có lớp nào --</option>'
+        : '<option value="">-- Chọn lớp --</option>' + rows.map(c => '<option value="' + c.id + '">' + escapeHtml(c.name) + ' (' + c.count + ' học sinh)</option>').join('');
+    } catch (e) {
+      classSelect.innerHTML = '<option value="">Lỗi tải danh sách lớp</option>';
+    }
+  }
+
+  window.submitNewWritingTask = async function () {
+    let targetStudentIds = [];
+    if (__thTargetMode === 'class') {
+      const classId = document.getElementById('thClassSelect').value;
+      if (!classId) { alert('Vui lòng chọn một lớp!'); return; }
+      targetStudentIds = __thClassesMap[classId] || [];
+      if (targetStudentIds.length === 0) { alert('Lớp này chưa có học sinh nào!'); return; }
+    } else {
+      const studentId = document.getElementById('thStudentSelect').value;
+      if (!studentId) { alert('Vui lòng chọn học sinh!'); return; }
+      targetStudentIds = [studentId];
+    }
+
+    // Đề bài: hoặc gõ/paste tự do như trước (mặc định), hoặc chọn thẳng 1 đề đã lưu trong kho.
+    let title = document.getElementById('thTaskTitle').value.trim();
+    let promptHtml;
+    let sourceBankFields = {};
+
+    if (__thPromptSource === 'bank') {
+      if (!__thBankSelectedItem) { alert('Vui lòng chọn 1 đề trong kho!'); return; }
+      promptHtml = __thBankSelectedItem.promptHtml || '';
+      if (!title) title = __thBankSelectedItem.title || (taskLabel(__thBankSelectedItem.task) + ' - ' + typeLabelShort(__thBankSelectedItem.task, __thBankSelectedItem.type));
+      sourceBankFields = {
+        sourceBankId: __thBankSelectedItem.id,
+        sourceTask: __thBankSelectedItem.task,
+        sourceType: __thBankSelectedItem.type
+      };
+    } else {
+      const promptEditor = document.getElementById('thPromptEditor');
+      promptHtml = wrStripScripts(promptEditor.innerHTML || '').trim();
+      const promptText = (promptEditor.textContent || '').trim();
+      if (!promptText && promptHtml.indexOf('<img') === -1) { alert('Vui lòng nhập hoặc paste đề bài Writing!'); return; }
+    }
+    if (!title) { alert('Vui lòng đặt tên cho bài Writing!'); return; }
+    if (promptHtml.length > 900000) { alert('Đề bài (kể cả ảnh) đang quá nặng để lưu. Vui lòng bớt ảnh hoặc dùng ảnh nhỏ/nét thấp hơn.'); return; }
+
+    const deadlineStr = document.getElementById('thDeadline').value;
+    const deadlineAt = deadlineStr ? new Date(deadlineStr + 'T23:59:59').getTime() : null;
+    const now = Date.now();
+    // teacherId = giáo viên ĐANG đăng nhập và bấm "Giao Bài" — đây là "chìa khoá" để chỉ đúng
+    // giáo viên này thấy/chấm được bài, xem thêm firestore.rules (isMyWritingDoc()).
+    const payload = Object.assign({
+      title: title,
+      kind: 'writing',
+      teacherId: auth.currentUser.uid,
+      promptHtml: promptHtml,
+      submissionHtml: null,
+      submittedAt: null,
+      gradedHtml: null,
+      gradedAt: null,
+      status: 'assigned',
+      teacherSeenSubmission: false,
+      studentSeenGraded: false,
+      createdAt: now,
+      deadlineAt: deadlineAt,
+      expiresAt: now + WRITING_TTL_MS
+    }, sourceBankFields);
+
+    const btn = document.getElementById('thSubmitBtn');
+    btn.disabled = true; btn.innerText = 'Đang giao...';
+    try {
+      await Promise.all(targetStudentIds.map(sid =>
+        addDoc(collection(db, 'assignments'), Object.assign({ studentId: sid }, payload))
+      ));
+      alert(targetStudentIds.length > 1
+        ? 'Đã giao bài Writing thành công cho ' + targetStudentIds.length + ' học sinh trong lớp! (Bài sẽ tự động biến mất sau 6 tháng)'
+        : 'Đã giao bài Writing thành công! (Bài sẽ tự động biến mất sau 6 tháng)');
+      document.getElementById('thTaskTitle').value = '';
+      document.getElementById('thPromptEditor').innerHTML = '';
+      document.getElementById('thDeadline').value = '';
+      setThPromptSource('custom');
+      __thBankSelectedItem = null;
+      switchTeacherTab('list');
+    } catch (e) {
+      alert('Lỗi khi giao bài: ' + e.message);
+    } finally {
+      btn.disabled = false; btn.innerText = '🚀 Giao Bài';
+    }
+  };
+
+  // Danh sách "Bài đã giao" — CHỈ gồm bài Writing (kind === 'writing') DO CHÍNH giáo viên
+  // đang đăng nhập giao/nhận (teacherId === uid của giáo viên này), không lẫn bài của giáo
+  // viên khác và không lẫn các loại bài khác (từ vựng, reading...). Mỗi dòng bấm vào để mở
+  // writing.html?id=...
+  // LƯU Ý: query where('kind','==','writing').where('teacherId','==', uid) cần 1 composite
+  // index trong Firestore — lần đầu chạy nếu Firebase báo lỗi "The query requires an index",
+  // bấm thẳng vào link trong thông báo lỗi đó (hiện trong Console trình duyệt) để Firebase tự
+  // tạo index, chỉ cần làm 1 lần duy nhất.
+  const __thStudentNameCache = {};
+  async function studentNameFor(sid) {
+    if (__thStudentNameCache[sid]) return __thStudentNameCache[sid];
+    try {
+      const s = await getDoc(doc(db, 'users', sid));
+      const name = s.exists() ? (s.data().name || sid) : sid;
+      __thStudentNameCache[sid] = name;
+      return name;
+    } catch (e) { return sid; }
+  }
+
+  async function loadWritingSubmissionsList() {
+    const container = document.getElementById('thListContainer');
+    container.innerHTML = '<p class="font-semibold text-center py-10" style="color:var(--border-color);opacity:.6;">Đang tải...</p>';
+    const now = Date.now();
+    const myUid = auth.currentUser.uid;
+    let items = [];
+    try {
+      const q = query(collection(db, 'assignments'), where('kind', '==', 'writing'), where('teacherId', '==', myUid));
+      const snap = await getDocs(q);
+      snap.forEach(d => {
+        const a = d.data();
+        const expiresAt = a.expiresAt || (a.createdAt ? a.createdAt + WRITING_TTL_MS : null);
+        if (expiresAt && now > expiresAt) { deleteDoc(doc(db, 'assignments', d.id)).catch(() => {}); return; }
+        items.push(Object.assign({ id: d.id }, a));
+      });
+    } catch (e) {
+      container.innerHTML = '<p class="font-bold text-center py-10" style="color:var(--incorrect-color);">Lỗi khi tải danh sách bài đã giao. Nếu Console trình duyệt báo "requires an index", bấm vào link trong lỗi đó để Firebase tự tạo index (chỉ cần 1 lần).</p>';
+      console.error('loadWritingSubmissionsList error:', e);
+      return;
+    }
+
+    // Đếm số bài đang chờ chấm để hiện chấm đỏ trên tab.
+    const pendingBadge = document.getElementById('thListPendingBadge');
+    const pendingCount = items.filter(a => a.status === 'submitted' && a.teacherSeenSubmission === false).length;
+    if (pendingBadge) {
+      pendingBadge.textContent = String(pendingCount);
+      pendingBadge.classList.toggle('hidden', pendingCount === 0);
+    }
+
+    if (items.length === 0) {
+      container.innerHTML = '<div class="ni-panel text-center py-14"><p class="font-semibold" style="color:var(--border-color);opacity:.7;">Bạn chưa giao bài Writing nào.</p></div>';
+      return;
+    }
+
+    // Ưu tiên hiện bài cần chú ý trước: vừa nộp chưa chấm -> chưa nộp -> đã chấm xong.
+    const statusPriority = { submitted: 0, assigned: 1, graded: 2 };
+    items.sort((a, b) => {
+      const pa = statusPriority[a.status] != null ? statusPriority[a.status] : 3;
+      const pb = statusPriority[b.status] != null ? statusPriority[b.status] : 3;
+      if (pa !== pb) return pa - pb;
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    });
+
+    const names = await Promise.all(items.map(a => studentNameFor(a.studentId)));
+    container.innerHTML = items.map((a, i) => renderWritingRow(a, names[i])).join('');
+  }
+
+  function renderWritingRow(a, studentName) {
+    let statusBadge;
+    if (a.status === 'graded') {
+      statusBadge = '<span class="ni-badge ni-badge-green">✅ Đã chấm</span>';
+    } else if (a.status === 'submitted') {
+      statusBadge = '<span class="ni-badge ' + (a.teacherSeenSubmission === false ? 'ni-badge-red' : 'ni-badge-amber') + '">📩 ' + (a.teacherSeenSubmission === false ? 'Vừa nộp — chưa chấm' : 'Đã nộp — chưa chấm') + '</span>';
+    } else {
+      statusBadge = '<span class="ni-badge ni-badge-neutral">📝 Chưa làm</span>';
+    }
+    return '<a href="writing.html?id=' + a.id + '" class="ni-card ni-dash-item">' +
+      '<div class="flex justify-between items-start gap-3 flex-wrap">' +
+        '<div>' +
+          '<p class="font-extrabold" style="color:var(--border-color);">' + escapeHtml(a.title || '(Không tên)') + '</p>' +
+          '<p class="text-xs font-semibold mt-0.5" style="color:var(--border-color);opacity:.65;"><i class="fa-solid fa-user mr-1"></i>' + escapeHtml(studentName) + (a.selfPracticed ? ' · 🏋️ Tự luyện' : '') + '</p>' +
+        '</div>' +
+        statusBadge +
+      '</div>' +
+    '</a>';
+  }
+
+  async function enterTeacherHub() {
+    document.getElementById('pageTitle').textContent = 'Writing — Quản lý';
+    // Mặc định mở tab "Giao bài mới" — TRỪ khi đến đây từ nút "Danh sách bài đã giao" bên
+    // trong 1 bài đang xem/chấm (writing.html?view=list), hoặc từ 1 link trỏ thẳng tới kho đề
+    // (writing.html?view=bank) — lúc đó phải mở thẳng đúng tab, không bắt giáo viên bấm lại từ đầu.
+    const wantsView = new URLSearchParams(window.location.search).get('view');
+    const wantsList = wantsView === 'list';
+    const wantsBank = wantsView === 'bank';
+    switchTeacherTab(wantsList ? 'list' : (wantsBank ? 'bank' : 'compose'));
+    setThTargetMode('single');
+    setThPromptSource('custom');
+    document.getElementById('thTaskTitle').value = '';
+    document.getElementById('thPromptEditor').innerHTML = '';
+    document.getElementById('thDeadline').value = '';
+    showOnly('teacherHubView');
+    history.replaceState(null, '', window.location.pathname);
+    await loadTeacherComposeData();
+    if (!wantsList && !wantsBank) loadWritingSubmissionsList(); // tải trước để chấm đỏ trên tab hiện đúng ngay cả khi chưa bấm qua tab đó
+  }
+
+  // ==========================================
+  // BOOT
+  // ==========================================
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { showOnly('loginBox'); return; }
+    showOnly('loadingBox');
+
+    let role = 'student';
+    try {
+      const userSnap = await getDoc(doc(db, 'users', user.uid));
+      if (userSnap.exists()) role = userSnap.data().role || 'student';
+    } catch (e) {
+      showError('Lỗi kết nối máy chủ. Kiểm tra lại mạng và thử tải lại trang.');
+      return;
+    }
+
+    // "Giáo viên" ở đây gồm CẢ 3 role dev/head_teacher/teacher — vì ở B's English House cả 3
+    // đều có thể trực tiếp đứng lớp/chấm bài Writing (không riêng gì 'admin' như code cũ).
+    const isTeacherRole = role === 'dev' || role === 'head_teacher' || role === 'teacher';
+
+    if (!taskId) {
+      if (isTeacherRole) { await enterTeacherHub(); }
+      else { await renderStudentDashboard(user.uid); }
+      return;
+    }
+
+    let snap;
+    try {
+      snap = await getDoc(doc(db, 'assignments', taskId));
+    } catch (e) {
+      showError('Lỗi kết nối máy chủ. Kiểm tra lại mạng và thử tải lại trang.');
+      return;
+    }
+    if (!snap.exists()) { showError('Bài Writing không tồn tại hoặc đã bị xoá.'); return; }
+    const data = snap.data();
+    if (data.kind !== 'writing') { showError('Đây không phải bài Writing.'); return; }
+
+    if (isTeacherRole) {
+      if (data.teacherId && data.teacherId !== user.uid) { showError('Bạn không có quyền xem bài này — bài này do 1 giáo viên khác giao/nhận.'); return; }
+      await renderTeacherDetail(snap.ref, data);
+    } else {
+      if (data.studentId !== user.uid) { showError('Bạn không có quyền xem bài này.'); return; }
+      await renderStudentDetail(snap.ref, data);
+    }
+  });
+</script>
+</body>
+</html>
