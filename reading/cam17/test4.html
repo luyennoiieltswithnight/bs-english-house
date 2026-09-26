@@ -810,6 +810,18 @@
     </div>
 
     <!-- Setup Screen -->
+    <!-- Live "làm chung" Session Modal -->
+    <div id="live-session-modal" class="overlay" style="display:none;">
+        <div class="modal-box" style="max-width:480px; text-align:left;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 style="margin:0;">🔴 Làm chung theo thời gian thực</h2>
+                <span class="close-trans" onclick="closeLiveSessionModal()" style="font-size:18px;">✖</span>
+            </div>
+            <div id="live-session-body" style="margin-top:15px;"></div>
+        </div>
+    </div>
+
+    <!-- Setup Screen -->
     <div id="setup-screen" class="overlay">
         <div class="modal-box">
             <h1>IELTS Reading - Cambridge 17 - Test 4</h1>
@@ -869,6 +881,8 @@
             <div class="question-nav" id="q-nav-p3" style="display:none;"></div>
         </div>
         <div class="header-right">
+            <button class="nav-btn" onclick="toggleLiveSessionBox()">🔴 Làm chung</button>
+            <span class="timer" id="live-participant-badge" style="display:none;">👥 <span id="live-participant-count">1</span></span>
             <button class="nav-btn" onclick="openVocabBook()">📖 Sổ từ vựng (<span id="vocab-count">0</span>)</button>
             <div class="timer" id="timer-display" style="display:none;">60:00</div>
             <button class="submit-btn" id="main-submit-btn" onclick="submitTest()">Nộp bài</button>
@@ -1585,6 +1599,11 @@
             });
 
             document.addEventListener('pointercancel', cleanup);
+
+            // Expose để module đồng bộ "Làm chung" (RTDB, xem cuối file) có thể di chuyển đúng chip
+            // kéo-thả khi áp lại đáp án của người khác — không chỉ set giá trị input ẩn.
+            window.fillSlot = fillSlot;
+            window.clearSlot = clearSlot;
         })();
 
         function gradePart(pNum) {
@@ -2061,7 +2080,7 @@
         }
 
         function applyHighlight(range, color, textColor) {
-            wrapRangeNodes(range, () => {
+            return wrapRangeNodes(range, () => {
                 const span = document.createElement('span');
                 span.className = 'user-annotation user-highlight';
                 span.style.backgroundColor = color;
@@ -2073,7 +2092,7 @@
         }
 
         function applyUnderline(range) {
-            wrapRangeNodes(range, () => {
+            return wrapRangeNodes(range, () => {
                 const span = document.createElement('span');
                 span.className = 'user-annotation';
                 span.style.textDecoration = 'underline';
@@ -2084,7 +2103,7 @@
         }
 
         function applyStrike(range) {
-            wrapRangeNodes(range, () => {
+            return wrapRangeNodes(range, () => {
                 const span = document.createElement('span');
                 span.className = 'user-annotation';
                 span.style.textDecoration = 'line-through';
@@ -2094,10 +2113,15 @@
         }
 
         function eraseAnnotations(range) {
-            if (!range) return;
+            if (!range) return [];
+            const removedIds = [];
             document.querySelectorAll('.user-annotation').forEach(el => {
-                if (range.intersectsNode(el)) unwrapElement(el);
+                if (range.intersectsNode(el)) {
+                    if (el.dataset && el.dataset.annotId) removedIds.push(el.dataset.annotId);
+                    unwrapElement(el);
+                }
             });
+            return removedIds;
         }
 
         function unwrapElement(el) {
@@ -2108,6 +2132,100 @@
             parent.normalize();
         }
 
+        // --- Character-offset helpers + hooks dùng để đồng bộ highlight/gạch chân/gạch ngang/note
+        //     theo thời gian thực cho tính năng "Làm chung" (xem <script type="module"> ở cuối file).
+        //     Vị trí annotation được lưu dạng offset ký tự trong TOÀN BỘ text của #passage-N-text
+        //     (tính bằng TreeWalker(SHOW_TEXT)) thay vì lưu trực tiếp DOM Range — vì Range không thể
+        //     gửi qua mạng, còn offset ký tự thì ổn định bất kể có bao nhiêu span/wrapper khác đã bọc
+        //     quanh đoạn văn (bọc span không làm thay đổi độ dài text). window.__onAnnotCreate/
+        //     __onAnnotRemove do module đồng bộ gán vào — nếu module đó chưa chạy (vd mất mạng) thì
+        //     các hàm dưới đây chỉ đơn giản không làm gì thêm, tính năng ghi chú/tô màu vẫn hoạt động
+        //     bình thường như cũ. ---
+        let __annotSeq = 0;
+        function __newAnnotId() {
+            return 'a' + Date.now().toString(36) + '_' + (__annotSeq++).toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+        }
+        function findPassageContainer(node) {
+            let el = node && node.nodeType === 3 ? node.parentElement : node;
+            while (el && el !== document.body) {
+                if (el.id && /^passage-\d-text$/.test(el.id)) return el;
+                el = el.parentElement;
+            }
+            return null;
+        }
+        function getTextOffsets(container, range) {
+            const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
+            let offset = 0, start = -1, end = -1, node;
+            while (node = walker.nextNode()) {
+                const len = node.nodeValue.length;
+                if (start === -1 && node === range.startContainer) start = offset + range.startOffset;
+                if (node === range.endContainer) end = offset + range.endOffset;
+                offset += len;
+            }
+            if (start === -1 || end === -1) return null;
+            return { start, end };
+        }
+        function rangeFromTextOffsets(container, start, end) {
+            const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
+            let offset = 0, node, range = document.createRange(), startSet = false, endSet = false;
+            while (node = walker.nextNode()) {
+                const len = node.nodeValue.length;
+                if (!startSet && offset + len >= start) { range.setStart(node, Math.max(0, start - offset)); startSet = true; }
+                if (!endSet && offset + len >= end) { range.setEnd(node, Math.max(0, end - offset)); endSet = true; break; }
+                offset += len;
+            }
+            if (!startSet || !endSet) return null;
+            return range;
+        }
+        function __captureAnnotContext(range) {
+            if (!range) return null;
+            const container = findPassageContainer(range.commonAncestorContainer);
+            if (!container) return null;
+            const offsets = getTextOffsets(container, range);
+            if (!offsets) return null;
+            return { passageId: container.id, start: offsets.start, end: offsets.end };
+        }
+        function __finishAnnotCreate(info, wrappers, type, extra) {
+            if (!info || !wrappers || !wrappers.length) return;
+            const annotId = __newAnnotId();
+            wrappers.forEach(w => { w.dataset.annotId = annotId; });
+            if (typeof window.__onAnnotCreate === 'function') {
+                try { window.__onAnnotCreate(annotId, type, info.passageId, info.start, info.end, extra === undefined ? null : extra); } catch (e) {}
+            }
+        }
+        // Áp lại (từ RTDB) 1 annotation do người khác vừa tạo — dùng lại chính applyHighlight/
+        // applyUnderline/applyStrike ở trên nên style ra y hệt annotation tạo tại chỗ.
+        window.__replayAnnotCreate = function (annotId, type, passageId, start, end, extra) {
+            if (document.querySelector('[data-annot-id="' + annotId + '"]')) return; // đã có (vd chính client này vừa tạo) -> bỏ qua
+            const container = document.getElementById(passageId);
+            if (!container) return;
+            const range = rangeFromTextOffsets(container, start, end);
+            if (!range) return;
+            let wrappers = [];
+            if (type === 'highlight') wrappers = applyHighlight(range, extra && extra.color, extra && extra.textColor) || [];
+            else if (type === 'underline') wrappers = applyUnderline(range) || [];
+            else if (type === 'strike') wrappers = applyStrike(range) || [];
+            else if (type === 'note') {
+                wrappers = wrapRangeNodes(range, () => {
+                    const b = document.createElement('b');
+                    b.className = 'user-annotation user-note-phrase';
+                    return b;
+                });
+                if (wrappers.length) {
+                    const noteSpan = document.createElement('span');
+                    noteSpan.className = 'user-annotation reading-note';
+                    noteSpan.textContent = ' [' + extra + ']';
+                    const last = wrappers[wrappers.length - 1];
+                    last.parentNode.insertBefore(noteSpan, last.nextSibling);
+                    wrappers = wrappers.concat([noteSpan]);
+                }
+            }
+            wrappers.forEach(w => { w.dataset.annotId = annotId; });
+        };
+        window.__replayAnnotRemove = function (annotId) {
+            document.querySelectorAll('[data-annot-id="' + annotId + '"]').forEach(el => unwrapElement(el));
+        };
+
         function cleanupAfterAnnotate() {
             annotToolbar.style.display = 'none';
             window.getSelection().removeAllRanges();
@@ -2116,20 +2234,29 @@
 
         document.querySelectorAll('.annot-color').forEach(btn => {
             btn.addEventListener('click', () => {
-                applyHighlight(savedRange, btn.dataset.color, btn.dataset.textColor || null);
+                const info = __captureAnnotContext(savedRange);
+                const wrappers = applyHighlight(savedRange, btn.dataset.color, btn.dataset.textColor || null);
+                __finishAnnotCreate(info, wrappers, 'highlight', { color: btn.dataset.color, textColor: btn.dataset.textColor || null });
                 cleanupAfterAnnotate();
             });
         });
         document.getElementById('annot-underline').addEventListener('click', () => {
-            applyUnderline(savedRange);
+            const info = __captureAnnotContext(savedRange);
+            const wrappers = applyUnderline(savedRange);
+            __finishAnnotCreate(info, wrappers, 'underline');
             cleanupAfterAnnotate();
         });
         document.getElementById('annot-strike').addEventListener('click', () => {
-            applyStrike(savedRange);
+            const info = __captureAnnotContext(savedRange);
+            const wrappers = applyStrike(savedRange);
+            __finishAnnotCreate(info, wrappers, 'strike');
             cleanupAfterAnnotate();
         });
         document.getElementById('annot-erase').addEventListener('click', () => {
-            eraseAnnotations(savedRange);
+            const removedIds = eraseAnnotations(savedRange);
+            if (typeof window.__onAnnotRemove === 'function') {
+                removedIds.forEach(id => { try { window.__onAnnotRemove(id); } catch (e) {} });
+            }
             cleanupAfterAnnotate();
         });
 
@@ -2141,9 +2268,11 @@
         //     Xác nhận thì lớp tạm này được "chốt" thành in đậm + note đỏ; Huỷ thì gỡ ra, trả nguyên
         //     trạng đoạn chữ. ---
         let pendingNoteWrappers = [];
+        let pendingNoteAnnotInfo = null;
 
         document.getElementById('annot-note-btn').addEventListener('click', () => {
             if (!savedRange) return;
+            pendingNoteAnnotInfo = __captureAnnotContext(savedRange);
             const wrappers = wrapRangeNodes(savedRange, () => {
                 const span = document.createElement('span');
                 span.className = 'note-pending-highlight';
@@ -2193,6 +2322,16 @@
             noteSpan.className = 'user-annotation reading-note';
             noteSpan.textContent = ` [${noteText}]`;
             lastWrapper.parentNode.insertBefore(noteSpan, lastWrapper.nextSibling);
+
+            if (pendingNoteAnnotInfo) {
+                const annotId = __newAnnotId();
+                finalWrappers.forEach(w => { w.dataset.annotId = annotId; });
+                noteSpan.dataset.annotId = annotId;
+                if (typeof window.__onAnnotCreate === 'function') {
+                    try { window.__onAnnotCreate(annotId, 'note', pendingNoteAnnotInfo.passageId, pendingNoteAnnotInfo.start, pendingNoteAnnotInfo.end, noteText); } catch (e) {}
+                }
+            }
+            pendingNoteAnnotInfo = null;
             closeNoteInput(true);
         }
 
@@ -2200,6 +2339,7 @@
             // Gỡ lớp highlight tạm, trả đoạn chữ về nguyên trạng ban đầu (chưa note gì cả).
             pendingNoteWrappers.forEach(span => unwrapElement(span));
             pendingNoteWrappers = [];
+            pendingNoteAnnotInfo = null;
             closeNoteInput(true);
         }
 
@@ -2257,9 +2397,13 @@
         noteDeleteBtn.addEventListener('click', () => {
             if (!noteDeleteTarget) return;
             const { bold, noteSpan } = noteDeleteTarget;
+            const annotId = (noteSpan && noteSpan.dataset && noteSpan.dataset.annotId) || (bold && bold.dataset && bold.dataset.annotId) || null;
             if (noteSpan && noteSpan.parentNode) noteSpan.parentNode.removeChild(noteSpan);
             if (bold) unwrapElement(bold);
             hideNoteDeleteBox();
+            if (annotId && typeof window.__onAnnotRemove === 'function') {
+                try { window.__onAnnotRemove(annotId); } catch (e) {}
+            }
         });
 
         // --- Translation (real free API: Google Translate unofficial endpoint,
@@ -2503,6 +2647,325 @@
                     }, { merge: true }).catch(function (e) { console.warn('BSEH: submissions write failed', e); });
                 }
             }).catch(function (e) { console.warn('BSEH: firebase init failed', e); });
+        })();
+    </script>
+    <script type="module">
+        (function () {
+            var FB_CONFIG = {
+                apiKey: "AIzaSyCmeN49M4oI78ZPWDhMlbisDOLaMJp2mb8",
+                authDomain: "night-ielts-land.firebaseapp.com",
+                databaseURL: "https://night-ielts-land-default-rtdb.firebaseio.com",
+                projectId: "night-ielts-land",
+                storageBucket: "night-ielts-land.firebasestorage.app",
+                messagingSenderId: "408519436407",
+                appId: "1:408519436407:web:a9f0b9ba23368b54427e72",
+                measurementId: "G-H3P14NJR76"
+            };
+
+            var db = null, dbMod = null;
+            var sessionId = null;
+            var clientId = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+            var applyingRemote = false; // đang áp dụng thay đổi từ xa -> không ghi ngược lại RTDB (chặn vòng lặp)
+            var syncStarted = false;
+            var currentParticipantCount = 1;
+
+            function loadFirebase() {
+                return Promise.all([
+                    import('https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js'),
+                    import('https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js')
+                ]).then(function (mods) {
+                    var appMod = mods[0]; dbMod = mods[1];
+                    var app = appMod.initializeApp(FB_CONFIG, 'night-ielts-reading-live-' + Date.now());
+                    db = dbMod.getDatabase(app);
+                });
+            }
+
+            function randomSessionId() {
+                var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+                var out = '';
+                for (var i = 0; i < 6; i++) out += chars[Math.floor(Math.random() * chars.length)];
+                return out;
+            }
+
+            function shareUrl(id) {
+                var url = new URL(location.href);
+                url.searchParams.set('liveSession', id);
+                return url.toString();
+            }
+
+            // --- UI: hộp thoại "🔴 Làm chung" (dùng lại đúng .overlay/.modal-box đã có cho
+            //     vocab-modal/setup-screen/results-modal ở trên để đồng bộ style, không cần CSS mới) ---
+            window.toggleLiveSessionBox = function () {
+                var modal = document.getElementById('live-session-modal');
+                if (!modal) return;
+                var opening = modal.style.display !== 'flex';
+                modal.style.display = opening ? 'flex' : 'none';
+                if (opening) renderModalBody();
+            };
+            window.closeLiveSessionModal = function () {
+                var modal = document.getElementById('live-session-modal');
+                if (modal) modal.style.display = 'none';
+            };
+
+            function renderModalBody() {
+                var body = document.getElementById('live-session-body');
+                if (!body) return;
+                if (!sessionId) {
+                    body.innerHTML =
+                        '<p style="margin:0 0 12px 0;">Tạo link để làm bài này cùng lúc với người khác — đáp án, highlight, note sẽ tự đồng bộ theo thời gian thực.</p>' +
+                        '<button class="submit-btn" id="live-session-create-btn">Tạo link làm chung</button>' +
+                        '<p style="margin:12px 0 0 0; font-size:12.5px; color:#888;">⚠️ Cần bài test đã được xuất bản lên 1 trang web (vd GitHub Pages) thì học sinh ở máy khác mới mở link được — mở trực tiếp file trên máy sẽ không dùng được.</p>';
+                    var btn = document.getElementById('live-session-create-btn');
+                    if (btn) btn.addEventListener('click', function () { createSession(); });
+                } else {
+                    var url = shareUrl(sessionId);
+                    body.innerHTML =
+                        '<p style="margin:0 0 10px 0;">👥 Đang tham gia: <strong id="live-participant-count-modal">' + currentParticipantCount + '</strong> người</p>' +
+                        '<div style="display:flex; gap:8px;">' +
+                        '<input type="text" id="live-session-link-input" readonly value="' + url.replace(/"/g, '&quot;') + '" style="flex:1; padding:8px; border-radius:6px; border:2px solid var(--border-color);">' +
+                        '<button class="nav-btn" id="live-session-copy-btn">📋 Copy</button>' +
+                        '</div>' +
+                        '<p style="margin:12px 0 0 0; font-size:12.5px; color:#888;">Gửi link này cho học sinh — ai mở cũng làm chung 1 bài, đáp án/note/highlight của người này người kia đều thấy.</p>';
+                    var copyBtn = document.getElementById('live-session-copy-btn');
+                    if (copyBtn) copyBtn.addEventListener('click', function () {
+                        var input = document.getElementById('live-session-link-input');
+                        if (input) input.select();
+                        if (navigator.clipboard) navigator.clipboard.writeText(url).catch(function () {});
+                        copyBtn.textContent = '✅ Đã copy';
+                        setTimeout(function () { copyBtn.textContent = '📋 Copy'; }, 1500);
+                    });
+                }
+            }
+
+            function updateParticipantBadge(count) {
+                currentParticipantCount = count;
+                var badge = document.getElementById('live-participant-badge');
+                var countEl = document.getElementById('live-participant-count');
+                if (badge) badge.style.display = sessionId ? '' : 'none';
+                if (countEl) countEl.textContent = String(count);
+                var modalCount = document.getElementById('live-participant-count-modal');
+                if (modalCount) modalCount.textContent = String(count);
+            }
+
+            function createSession() {
+                sessionId = randomSessionId();
+                loadFirebase().then(function () {
+                    dbMod.set(dbMod.ref(db, 'liveSessions/' + sessionId + '/meta'), {
+                        createdAt: Date.now(),
+                        title: document.title || ''
+                    });
+                    history.replaceState(null, '', shareUrl(sessionId));
+                    startSyncing();
+                    renderModalBody();
+                }).catch(function (e) {
+                    console.warn('Night IELTS: không tạo được phiên làm chung', e);
+                    alert('Không tạo được phiên làm chung — kiểm tra kết nối mạng rồi thử lại.');
+                });
+            }
+
+            var SESSION_TTL_MS = 3 * 24 * 60 * 60 * 1000; // 3 ngày — phiên "Làm chung" mở sau mốc này tự bị xoá sạch
+
+            function checkExpiryThenProceed(done) {
+                var metaRef = dbMod.ref(db, 'liveSessions/' + sessionId + '/meta');
+                dbMod.get(metaRef).then(function (snap) {
+                    var meta = snap.val();
+                    var isExpired = !meta || !meta.createdAt || (Date.now() - meta.createdAt > SESSION_TTL_MS);
+                    if (!isExpired) { done(); return; }
+                    var sessRef = dbMod.ref(db, 'liveSessions/' + sessionId);
+                    dbMod.remove(sessRef).then(function () {
+                        return dbMod.set(dbMod.ref(db, 'liveSessions/' + sessionId + '/meta'), {
+                            createdAt: Date.now(),
+                            title: document.title || ''
+                        });
+                    }).then(done).catch(done);
+                }).catch(function (e) {
+                    console.warn('Night IELTS: không kiểm tra được hạn phiên làm chung', e);
+                    done();
+                });
+            }
+
+            function joinSessionFromUrl() {
+                var params = new URLSearchParams(location.search);
+                var id = params.get('liveSession');
+                if (!id) return;
+                sessionId = id;
+                loadFirebase().then(function () {
+                    checkExpiryThenProceed(function () { startSyncing(); });
+                }).catch(function (e) { console.warn('Night IELTS: không tham gia được phiên làm chung', e); });
+            }
+
+            // Trì hoãn gắn listener đồng bộ tới khi giao diện làm bài đã dựng xong (startTest() đã
+            // chạy) — trước đó các input q1..qN/slot kéo-thả chưa tồn tại trong DOM.
+            function startSyncing() {
+                if (syncStarted || !sessionId || !db) return;
+                var setup = document.getElementById('setup-screen');
+                if (!setup || setup.style.display !== 'none') return; // chưa bấm "Bắt đầu làm bài"
+                syncStarted = true;
+                setupPresence();
+                setupAnswerSync();
+                setupMultiGroupSync();
+                setupAnnotationSync();
+                updateParticipantBadge(currentParticipantCount);
+            }
+
+            function setupPresence() {
+                var myRef = dbMod.ref(db, 'liveSessions/' + sessionId + '/presence/' + clientId);
+                var presenceRoot = dbMod.ref(db, 'liveSessions/' + sessionId + '/presence');
+                dbMod.onValue(dbMod.ref(db, '.info/connected'), function (snap) {
+                    if (snap.val() === true) {
+                        dbMod.onDisconnect(myRef).remove();
+                        dbMod.set(myRef, true);
+                    }
+                });
+                dbMod.onValue(presenceRoot, function (snap) {
+                    var val = snap.val() || {};
+                    updateParticipantBadge(Object.keys(val).length || 1);
+                });
+            }
+
+            // --- Đồng bộ đáp án dùng CHUNG quy ước name="qN" có sẵn cho MỌI loại câu hỏi (xem
+            //     gradeQuestionRange/setupInputListeners ở script chính) — nên chỉ cần nghe
+            //     'input'/'change' là bắt được mọi dạng (trắc nghiệm/TFNG/điền từ/dropdown/kéo-thả)
+            //     mà không cần biết dạng câu cụ thể. Riêng checkbox "Choose N of M" tách đồng bộ
+            //     riêng ở setupMultiGroupSync() vì value của hidden input đó bị lossy khi chọn sai. ---
+            function currentQValue(el) {
+                if (el.type === 'radio') {
+                    var group = document.getElementsByName(el.name);
+                    var val = '';
+                    group.forEach(function (r) { if (r.checked) val = r.value; });
+                    return val;
+                }
+                return el.value;
+            }
+
+            function setupAnswerSync() {
+                var answersRef = dbMod.ref(db, 'liveSessions/' + sessionId + '/answers');
+
+                function maybeSyncAnswer(target) {
+                    if (applyingRemote || !target || !target.name || target.name.charAt(0) !== 'q') return;
+                    if (target.classList && target.classList.contains('multi-check')) return;
+                    var qNum = target.name.substring(1);
+                    if (!/^\d+$/.test(qNum)) return;
+                    dbMod.set(dbMod.child(answersRef, qNum), currentQValue(target));
+                }
+                document.addEventListener('input', function (e) { maybeSyncAnswer(e.target); });
+                document.addEventListener('change', function (e) { maybeSyncAnswer(e.target); });
+
+                dbMod.onValue(answersRef, function (snap) {
+                    var answers = snap.val() || {};
+                    applyingRemote = true;
+                    try {
+                        Object.keys(answers).forEach(function (qNum) { applyRemoteAnswer(qNum, answers[qNum]); });
+                    } finally { applyingRemote = false; }
+                });
+            }
+
+            function applyRemoteAnswer(qNum, value) {
+                var inputs = document.getElementsByName('q' + qNum);
+                if (!inputs || !inputs.length) return;
+                var first = inputs[0];
+                if (first.classList && first.classList.contains('multi-check')) return; // xử lý ở setupMultiGroupSync()
+                if (first.type === 'radio') {
+                    var changed = false;
+                    inputs.forEach(function (r) {
+                        var shouldCheck = (r.value === value);
+                        if (r.checked !== shouldCheck) { r.checked = shouldCheck; changed = true; }
+                    });
+                    if (changed) first.dispatchEvent(new Event('change', { bubbles: true }));
+                    return;
+                }
+                if (first.value === (value || '')) return;
+                // Ô ẩn của câu kéo-thả (Matching/Heading): set thẳng value sẽ chấm đúng nhưng KHÔNG di
+                // chuyển hình chip trực quan -> phải gọi fillSlot/clearSlot (exposed ở initMatchingDnD).
+                var slot = document.getElementById('slot-' + qNum);
+                if (slot && typeof window.fillSlot === 'function' && typeof window.clearSlot === 'function') {
+                    if (!value) { window.clearSlot(slot); return; }
+                    var chip = document.getElementById('chip-' + slot.dataset.group + '-' + value);
+                    window.fillSlot(slot, value, chip ? chip.textContent : value);
+                    return;
+                }
+                first.value = value || '';
+                first.dispatchEvent(new Event(first.tagName === 'SELECT' ? 'change' : 'input', { bubbles: true }));
+            }
+
+            // --- "Choose N of M": đồng bộ THẲNG trạng thái tick/bỏ tick từng checkbox (không dùng
+            //     value của hidden input vì nó lossy khi chọn sai — xem genMulti/initMultiSelect). ---
+            function setupMultiGroupSync() {
+                var groupsRef = dbMod.ref(db, 'liveSessions/' + sessionId + '/multiGroups');
+
+                document.addEventListener('change', function (e) {
+                    if (applyingRemote) return;
+                    if (!e.target.classList || !e.target.classList.contains('multi-check')) return;
+                    var container = e.target.closest('.multi-group');
+                    if (!container) return;
+                    var groupId = container.dataset.multiGroup;
+                    var checked = Array.from(container.querySelectorAll('.multi-check'))
+                        .filter(function (c) { return c.checked; })
+                        .map(function (c) { return c.value; });
+                    dbMod.set(dbMod.child(groupsRef, groupId), checked);
+                });
+
+                dbMod.onValue(groupsRef, function (snap) {
+                    var groups = snap.val() || {};
+                    applyingRemote = true;
+                    try {
+                        Object.keys(groups).forEach(function (groupId) {
+                            var container = document.querySelector('.multi-group[data-multi-group="' + groupId + '"]');
+                            if (!container) return;
+                            var wanted = groups[groupId] || [];
+                            var checks = container.querySelectorAll('.multi-check');
+                            var changedAny = false;
+                            checks.forEach(function (c) {
+                                var should = wanted.indexOf(c.value) !== -1;
+                                if (c.checked !== should) { c.checked = should; changedAny = true; }
+                            });
+                            if (changedAny && checks.length) checks[0].dispatchEvent(new Event('change', { bubbles: true }));
+                        });
+                    } finally { applyingRemote = false; }
+                });
+            }
+
+            // --- Đồng bộ highlight/gạch chân/gạch ngang/note: script chính đã gọi sẵn 2 hook
+            //     window.__onAnnotCreate/__onAnnotRemove ngay khi người dùng tạo/xoá 1 định dạng —
+            //     module này chỉ ghi/đọc RTDB rồi "replay" lại bằng window.__replayAnnotCreate/
+            //     __replayAnnotRemove (cũng đã định nghĩa sẵn ở script chính). ---
+            function setupAnnotationSync() {
+                var annotRef = dbMod.ref(db, 'liveSessions/' + sessionId + '/annotations');
+
+                window.__onAnnotCreate = function (annotId, type, passageId, start, end, extra) {
+                    dbMod.set(dbMod.child(annotRef, annotId), {
+                        type: type, passageId: passageId, start: start, end: end,
+                        extra: extra === undefined ? null : extra, ts: Date.now()
+                    });
+                };
+                window.__onAnnotRemove = function (annotId) {
+                    dbMod.remove(dbMod.child(annotRef, annotId));
+                };
+
+                dbMod.onChildAdded(annotRef, function (snap) {
+                    var data = snap.val();
+                    if (!data) return;
+                    if (typeof window.__replayAnnotCreate === 'function') {
+                        try { window.__replayAnnotCreate(snap.key, data.type, data.passageId, data.start, data.end, data.extra); } catch (e) {}
+                    }
+                });
+                dbMod.onChildRemoved(annotRef, function (snap) {
+                    if (typeof window.__replayAnnotRemove === 'function') {
+                        try { window.__replayAnnotRemove(snap.key); } catch (e) {}
+                    }
+                });
+            }
+
+            joinSessionFromUrl();
+
+            // startTest() được gán lên window bởi script chính (function khai báo top-level ở
+            // <script> thường tự lên window) — bọc thêm để bắt đúng thời điểm giao diện làm bài đã
+            // dựng xong (input q1..qN/slot kéo-thả chỉ tồn tại SAU khi startTest() chạy).
+            var origStartTest = window.startTest;
+            window.startTest = function () {
+                if (typeof origStartTest === 'function') origStartTest();
+                try { startSyncing(); } catch (e) { console.warn('Night IELTS: live-session sync lỗi', e); }
+            };
         })();
     </script>
 </body>
