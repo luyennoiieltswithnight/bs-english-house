@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B's English House - Học thuật & Tương tác</title>
-    
+
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/luyennoiieltswithnight/bs-english-house/main/4EDC5E88-8FD2-42F4-B86B-F248A692A37A.PNG">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Quicksand:wght@500;600;700;800&display=swap" rel="stylesheet">
-    
+
     <style>
         :root {
-            --hero-bg: #7A9051; 
+            --hero-bg: #7A9051;
             --grid-line: rgba(255, 255, 255, 0.15);
             --dark-green: #2B4214;
             --card-read: #64A05B;
@@ -24,11 +24,11 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body { 
-            font-family: 'Quicksand', sans-serif; 
-            background-color: var(--bg-light); 
-            overflow-x: hidden; 
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: var(--bg-light);
+            overflow-x: hidden;
             scroll-behavior: smooth;
         }
 
@@ -43,7 +43,7 @@
         }
 
         .logo { font-size: 26px; font-weight: 900; color: white; display: flex; align-items: center; gap: 10px; }
-        
+
         .nav-actions { display: flex; gap: 15px; align-items: center; }
 
         /* Nút Bảng điều khiển (Mặc định ẩn, chỉ hiện cho Dev/Teacher) */
@@ -73,7 +73,7 @@
         .hero {
             position: relative; min-height: 100vh; background-color: var(--hero-bg);
             background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-            background-size: 40px 40px; display: flex; align-items: center; 
+            background-size: 40px 40px; display: flex; align-items: center;
             justify-content: flex-start; padding: 0 10%; overflow: hidden; color: white;
         }
 
@@ -84,7 +84,7 @@
 
         .cta-btn {
             background: white; color: var(--hero-bg); padding: 16px 45px;
-            border-radius: 50px; font-size: 20px; font-weight: 700; text-decoration: none; 
+            border-radius: 50px; font-size: 20px; font-weight: 700; text-decoration: none;
             transition: all 0.3s; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer; border: none;
         }
         .cta-btn:hover { background: var(--dark-green); color: white; transform: translateY(-3px); }
@@ -129,7 +129,7 @@
             justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;
         }
         .modal-overlay.show { display: flex; opacity: 1; }
-        
+
         .modal-box {
             background: white; width: 90%; max-width: 650px; border-radius: 24px;
             padding: 40px; position: relative; transform: translateY(50px);
@@ -149,13 +149,13 @@
         .course-group > summary::after { content: '▼'; font-size: 14px; transition: transform 0.3s; }
         .course-group[open] > summary::after { transform: rotate(180deg); }
         .course-items { padding: 15px; display: flex; flex-direction: column; gap: 12px; background: #fff; border-top: 3px solid #111; }
-        
+
         .book-group { border: 2px solid #ccc; border-radius: 12px; overflow: hidden; transition: 0.3s;}
         .book-group[open] { border-color: var(--hero-bg); box-shadow: 0 0 0 2px rgba(122,144,81,0.2); }
         .book-group > summary { padding: 12px 16px; font-weight: 700; font-size: 16px; cursor: pointer; background: #fafafa; display: flex; justify-content: space-between; align-items: center; }
         .book-group > summary::after { content: '+'; font-size: 22px; font-weight: bold; transition: transform 0.3s; color: var(--hero-bg); }
         .book-group[open] > summary::after { content: '−'; }
-        
+
         .test-links { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; background: #fff; border-top: 2px solid #ccc; }
         .test-link-item { padding: 10px 5px; background: #fff; border-radius: 8px; text-align: center; text-decoration: none; color: var(--text-dark); font-weight: 800; font-size: 14px; transition: 0.2s; border: 2px solid #111; box-shadow: 2px 2px 0px #111; }
         .test-link-item:hover { background: var(--hero-bg); color: white; transform: translateY(-2px); box-shadow: 4px 4px 0px #111; }
@@ -169,7 +169,7 @@
         .dash-panel { display: none; margin-bottom: 25px; padding: 20px; border-radius: 16px; border: 2px solid #eee; background: #fafafa; }
         .dash-panel.active { display: block; }
         .dash-panel h3 { font-size: 20px; margin-bottom: 15px; color: var(--hero-bg); border-bottom: 2px solid #eee; padding-bottom: 10px;}
-        
+
         .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .action-btn { padding: 15px; background: white; border: 2px solid #111; border-radius: 12px; font-weight: 800; text-align: center; cursor: pointer; transition: 0.2s; box-shadow: 3px 3px 0px #111; }
         .action-btn:hover { background: #f0f0f0; transform: translateY(-2px); box-shadow: 5px 5px 0px #111; }
@@ -337,7 +337,7 @@
             <p>Hệ thống học tập chuyên sâu được thiết kế cá nhân hóa. Vượt qua giới hạn điểm số với lộ trình rõ ràng, giao diện thân thiện và nguồn tài liệu được tuyển chọn khắt khe.</p>
             <button onclick="checkAuthAndScroll()" class="cta-btn">Bắt đầu ôn luyện ➔</button>
         </div>
-        
+
         <div class="mascot-wrapper">
             <img class="mascot-cat" src="https://raw.githubusercontent.com/luyennoiieltswithnight/bs-english-house/main/4EDC5E88-8FD2-42F4-B86B-F248A692A37A.PNG" alt="Mèo mở mắt">
             <img class="mascot-cat cat-blink" id="catBlinkImg" src="https://raw.githubusercontent.com/luyennoiieltswithnight/bs-english-house/main/F1566185-4DE5-4D10-9C3E-7F15B6C8A6F7.PNG" alt="Mèo nhắm mắt">
@@ -377,7 +377,7 @@
         <div class="modal-box">
             <span class="close-btn" onclick="closeModal('courseModal')">&times;</span>
             <div class="modal-header"><h2 id="modalTitle" class="brand-font">Kỹ năng</h2></div>
-            
+
             <div id="content-listening" class="skill-content">
                 <details class="course-group"><summary>📚 Bộ Cambridge (10-20)</summary><div class="course-items"><div id="cambridge-listening-container"></div></div></details>
                 <details class="course-group"><summary>🎯 Bộ VOL</summary><div class="course-items"><div id="real-listening-container"></div></div></details>
@@ -390,7 +390,7 @@
                 <details class="course-group"><summary>🗣️ Speaking Forecast 2024</summary><div class="course-items"><div class="book-group" style="padding:15px;"><a href="#" class="test-link-item" style="display:block;">Tải tài liệu ➔</a></div></div></details>
             </div>
             <div id="content-writing" class="skill-content">
-                <details class="course-group"><summary>✍️ Writing Task 1 & 2</summary><div class="course-items"><div class="book-group" style="padding:15px;"><a href="#" class="test-link-item" style="display:block;">Vào thư viện ➔</a></div></div></details>
+                <details class="course-group" open><summary>✍️ Writing Task 1 & 2</summary><div class="course-items"><div class="book-group" style="padding:15px;"><a href="writing.html" class="test-link-item" style="display:block;">Vào thư viện ➔</a></div></div></details>
             </div>
         </div>
     </div>
@@ -400,7 +400,7 @@
         <div class="modal-box" style="max-width: 800px;">
             <span class="close-btn" onclick="closeModal('dashboardModal')">&times;</span>
             <div class="modal-header"><h2 class="brand-font">Bảng Điều Khiển Hệ Thống</h2></div>
-            
+
             <!-- Khu vực của DEV -->
             <div id="panel-dev" class="dash-panel">
                 <h3>⚙️ Developer Tools</h3>
@@ -932,7 +932,7 @@
             setTimeout(() => { modal.style.display = 'none'; }, 300);
         }
 
-        window.onclick = function(event) { 
+        window.onclick = function(event) {
             if (event.target.classList.contains('modal-overlay')) {
                 event.target.classList.remove('show');
                 setTimeout(() => { event.target.style.display = 'none'; }, 300);
