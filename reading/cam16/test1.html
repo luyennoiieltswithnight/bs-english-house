@@ -2653,33 +2653,37 @@
     <script type="module">
         (function () {
             var FB_CONFIG = {
-                apiKey: "AIzaSyCmeN49M4oI78ZPWDhMlbisDOLaMJp2mb8",
-                authDomain: "night-ielts-land.firebaseapp.com",
-                databaseURL: "https://night-ielts-land-default-rtdb.firebaseio.com",
-                projectId: "night-ielts-land",
-                storageBucket: "night-ielts-land.firebasestorage.app",
-                messagingSenderId: "408519436407",
-                appId: "1:408519436407:web:a9f0b9ba23368b54427e72",
-                measurementId: "G-H3P14NJR76"
+                apiKey: "AIzaSyDuoosjvJe3EoF22h9UJ6M95os5s_boQ-o",
+                authDomain: "b-s-english-house.firebaseapp.com",
+                projectId: "b-s-english-house",
+                storageBucket: "b-s-english-house.firebasestorage.app",
+                messagingSenderId: "946574286636",
+                appId: "1:946574286636:web:44624fb938e6b5dc961689",
+                measurementId: "G-YZR2QFWQGR"
             };
 
-            var db = null, dbMod = null;
+            var db = null, fsMod = null;
             var sessionId = null;
             var clientId = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-            var applyingRemote = false; // đang áp dụng thay đổi từ xa -> không ghi ngược lại RTDB (chặn vòng lặp)
+            var applyingRemote = false; // đang áp dụng thay đổi từ xa -> không ghi ngược lại Firestore (chặn vòng lặp)
             var syncStarted = false;
             var currentParticipantCount = 1;
+            var lastPresenceDocs = []; // cache để tính lại số người đang tham gia theo nhịp tim, không chỉ khi có thay đổi
 
             function loadFirebase() {
                 return Promise.all([
                     import('https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js'),
-                    import('https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js')
+                    import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js')
                 ]).then(function (mods) {
-                    var appMod = mods[0]; dbMod = mods[1];
-                    var app = appMod.initializeApp(FB_CONFIG, 'night-ielts-reading-live-' + Date.now());
-                    db = dbMod.getDatabase(app);
+                    var appMod = mods[0]; fsMod = mods[1];
+                    var app = appMod.initializeApp(FB_CONFIG, 'bs-english-house-reading-live-' + Date.now());
+                    db = fsMod.getFirestore(app);
                 });
             }
+
+            function sessionDocRef() { return fsMod.doc(db, 'liveSessions', sessionId); }
+            function presenceColRef() { return fsMod.collection(db, 'liveSessions', sessionId, 'presence'); }
+            function annotColRef() { return fsMod.collection(db, 'liveSessions', sessionId, 'annotations'); }
 
             function randomSessionId() {
                 var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -2751,10 +2755,13 @@
             function createSession() {
                 sessionId = randomSessionId();
                 loadFirebase().then(function () {
-                    dbMod.set(dbMod.ref(db, 'liveSessions/' + sessionId + '/meta'), {
+                    return fsMod.setDoc(sessionDocRef(), {
                         createdAt: Date.now(),
-                        title: document.title || ''
+                        title: document.title || '',
+                        answers: {},
+                        multiGroups: {}
                     });
+                }).then(function () {
                     history.replaceState(null, '', shareUrl(sessionId));
                     startSyncing();
                     renderModalBody();
@@ -2766,17 +2773,32 @@
 
             var SESSION_TTL_MS = 3 * 24 * 60 * 60 * 1000; // 3 ngày — phiên "Làm chung" mở sau mốc này tự bị xoá sạch
 
+            // Firestore không tự xoá subcollection khi xoá document cha -> phải tự liệt kê rồi xoá
+            // từng doc con (presence/annotations) trước khi ghi đè lại document phiên.
+            function wipeSessionSubcollections() {
+                return Promise.all([
+                    fsMod.getDocs(presenceColRef()),
+                    fsMod.getDocs(annotColRef())
+                ]).then(function (snaps) {
+                    var deletes = [];
+                    snaps.forEach(function (qs) {
+                        qs.forEach(function (d) { deletes.push(fsMod.deleteDoc(d.ref)); });
+                    });
+                    return Promise.all(deletes);
+                });
+            }
+
             function checkExpiryThenProceed(done) {
-                var metaRef = dbMod.ref(db, 'liveSessions/' + sessionId + '/meta');
-                dbMod.get(metaRef).then(function (snap) {
-                    var meta = snap.val();
+                fsMod.getDoc(sessionDocRef()).then(function (snap) {
+                    var meta = snap.exists() ? snap.data() : null;
                     var isExpired = !meta || !meta.createdAt || (Date.now() - meta.createdAt > SESSION_TTL_MS);
                     if (!isExpired) { done(); return; }
-                    var sessRef = dbMod.ref(db, 'liveSessions/' + sessionId);
-                    dbMod.remove(sessRef).then(function () {
-                        return dbMod.set(dbMod.ref(db, 'liveSessions/' + sessionId + '/meta'), {
+                    wipeSessionSubcollections().then(function () {
+                        return fsMod.setDoc(sessionDocRef(), {
                             createdAt: Date.now(),
-                            title: document.title || ''
+                            title: document.title || '',
+                            answers: {},
+                            multiGroups: {}
                         });
                     }).then(done).catch(done);
                 }).catch(function (e) {
@@ -2809,26 +2831,49 @@
                 updateParticipantBadge(currentParticipantCount);
             }
 
+            // Firestore không có API kiểu ".info/connected" + "onDisconnect()" như Realtime Database
+            // -> giả lập "đang online" bằng nhịp tim: mỗi client tự ghi lastSeen mỗi 15s, ai không
+            // ghi được nữa quá 30s (đóng tab, mất mạng, sập máy...) bị coi như đã rời phiên khi đếm
+            // số người tham gia, dù bản ghi Firestore của họ vẫn còn tồn tại tạm thời.
+            var PRESENCE_HEARTBEAT_MS = 15 * 1000;
+            var PRESENCE_STALE_MS = 30 * 1000;
+
             function setupPresence() {
-                var myRef = dbMod.ref(db, 'liveSessions/' + sessionId + '/presence/' + clientId);
-                var presenceRoot = dbMod.ref(db, 'liveSessions/' + sessionId + '/presence');
-                dbMod.onValue(dbMod.ref(db, '.info/connected'), function (snap) {
-                    if (snap.val() === true) {
-                        dbMod.onDisconnect(myRef).remove();
-                        dbMod.set(myRef, true);
-                    }
+                var myRef = fsMod.doc(presenceColRef(), clientId);
+
+                function heartbeat() {
+                    fsMod.setDoc(myRef, { lastSeen: Date.now() }).catch(function () {});
+                }
+                heartbeat();
+                setInterval(heartbeat, PRESENCE_HEARTBEAT_MS);
+                window.addEventListener('beforeunload', function () {
+                    fsMod.deleteDoc(myRef).catch(function () {});
                 });
-                dbMod.onValue(presenceRoot, function (snap) {
-                    var val = snap.val() || {};
-                    updateParticipantBadge(Object.keys(val).length || 1);
+
+                function recomputeCount() {
+                    var now = Date.now();
+                    var count = 0;
+                    lastPresenceDocs.forEach(function (data) {
+                        if (data && data.lastSeen && (now - data.lastSeen) < PRESENCE_STALE_MS) count++;
+                    });
+                    updateParticipantBadge(count || 1);
+                }
+
+                fsMod.onSnapshot(presenceColRef(), function (snap) {
+                    lastPresenceDocs = [];
+                    snap.forEach(function (d) { lastPresenceDocs.push(d.data()); });
+                    recomputeCount();
                 });
+                setInterval(recomputeCount, 10 * 1000); // để badge tự giảm ngay cả khi không ai ghi thêm dữ liệu mới
             }
 
             // --- Đồng bộ đáp án dùng CHUNG quy ước name="qN" có sẵn cho MỌI loại câu hỏi (xem
             //     gradeQuestionRange/setupInputListeners ở script chính) — nên chỉ cần nghe
             //     'input'/'change' là bắt được mọi dạng (trắc nghiệm/TFNG/điền từ/dropdown/kéo-thả)
             //     mà không cần biết dạng câu cụ thể. Riêng checkbox "Choose N of M" tách đồng bộ
-            //     riêng ở setupMultiGroupSync() vì value của hidden input đó bị lossy khi chọn sai. ---
+            //     riêng ở setupMultiGroupSync() vì value của hidden input đó bị lossy khi chọn sai.
+            //     Firestore không có "child path" ghi lẻ như RTDB nên dùng updateDoc với field path
+            //     kiểu "answers.<qNum>" để chỉ cập nhật đúng 1 câu, không đụng câu khác. ---
             function currentQValue(el) {
                 if (el.type === 'radio') {
                     var group = document.getElementsByName(el.name);
@@ -2840,20 +2885,21 @@
             }
 
             function setupAnswerSync() {
-                var answersRef = dbMod.ref(db, 'liveSessions/' + sessionId + '/answers');
-
                 function maybeSyncAnswer(target) {
                     if (applyingRemote || !target || !target.name || target.name.charAt(0) !== 'q') return;
                     if (target.classList && target.classList.contains('multi-check')) return;
                     var qNum = target.name.substring(1);
                     if (!/^\d+$/.test(qNum)) return;
-                    dbMod.set(dbMod.child(answersRef, qNum), currentQValue(target));
+                    var field = {};
+                    field['answers.' + qNum] = currentQValue(target);
+                    fsMod.updateDoc(sessionDocRef(), field).catch(function () {});
                 }
                 document.addEventListener('input', function (e) { maybeSyncAnswer(e.target); });
                 document.addEventListener('change', function (e) { maybeSyncAnswer(e.target); });
 
-                dbMod.onValue(answersRef, function (snap) {
-                    var answers = snap.val() || {};
+                fsMod.onSnapshot(sessionDocRef(), function (snap) {
+                    var data = snap.data() || {};
+                    var answers = data.answers || {};
                     applyingRemote = true;
                     try {
                         Object.keys(answers).forEach(function (qNum) { applyRemoteAnswer(qNum, answers[qNum]); });
@@ -2892,8 +2938,6 @@
             // --- "Choose N of M": đồng bộ THẲNG trạng thái tick/bỏ tick từng checkbox (không dùng
             //     value của hidden input vì nó lossy khi chọn sai — xem genMulti/initMultiSelect). ---
             function setupMultiGroupSync() {
-                var groupsRef = dbMod.ref(db, 'liveSessions/' + sessionId + '/multiGroups');
-
                 document.addEventListener('change', function (e) {
                     if (applyingRemote) return;
                     if (!e.target.classList || !e.target.classList.contains('multi-check')) return;
@@ -2903,11 +2947,14 @@
                     var checked = Array.from(container.querySelectorAll('.multi-check'))
                         .filter(function (c) { return c.checked; })
                         .map(function (c) { return c.value; });
-                    dbMod.set(dbMod.child(groupsRef, groupId), checked);
+                    var field = {};
+                    field['multiGroups.' + groupId] = checked;
+                    fsMod.updateDoc(sessionDocRef(), field).catch(function () {});
                 });
 
-                dbMod.onValue(groupsRef, function (snap) {
-                    var groups = snap.val() || {};
+                fsMod.onSnapshot(sessionDocRef(), function (snap) {
+                    var data = snap.data() || {};
+                    var groups = data.multiGroups || {};
                     applyingRemote = true;
                     try {
                         Object.keys(groups).forEach(function (groupId) {
@@ -2928,32 +2975,36 @@
 
             // --- Đồng bộ highlight/gạch chân/gạch ngang/note: script chính đã gọi sẵn 2 hook
             //     window.__onAnnotCreate/__onAnnotRemove ngay khi người dùng tạo/xoá 1 định dạng —
-            //     module này chỉ ghi/đọc RTDB rồi "replay" lại bằng window.__replayAnnotCreate/
-            //     __replayAnnotRemove (cũng đã định nghĩa sẵn ở script chính). ---
+            //     module này chỉ ghi/đọc Firestore (subcollection "annotations") rồi "replay" lại
+            //     bằng window.__replayAnnotCreate/__replayAnnotRemove (cũng đã định nghĩa sẵn ở
+            //     script chính). onSnapshot(...).docChanges() thay cho onChildAdded/onChildRemoved
+            //     của RTDB — lần đầu gắn listener, MỌI annotation có sẵn cũng tự về dưới dạng
+            //     change.type === 'added', giống hệt hành vi onChildAdded lúc mới join phiên. ---
             function setupAnnotationSync() {
-                var annotRef = dbMod.ref(db, 'liveSessions/' + sessionId + '/annotations');
-
                 window.__onAnnotCreate = function (annotId, type, passageId, start, end, extra) {
-                    dbMod.set(dbMod.child(annotRef, annotId), {
+                    fsMod.setDoc(fsMod.doc(annotColRef(), annotId), {
                         type: type, passageId: passageId, start: start, end: end,
                         extra: extra === undefined ? null : extra, ts: Date.now()
-                    });
+                    }).catch(function () {});
                 };
                 window.__onAnnotRemove = function (annotId) {
-                    dbMod.remove(dbMod.child(annotRef, annotId));
+                    fsMod.deleteDoc(fsMod.doc(annotColRef(), annotId)).catch(function () {});
                 };
 
-                dbMod.onChildAdded(annotRef, function (snap) {
-                    var data = snap.val();
-                    if (!data) return;
-                    if (typeof window.__replayAnnotCreate === 'function') {
-                        try { window.__replayAnnotCreate(snap.key, data.type, data.passageId, data.start, data.end, data.extra); } catch (e) {}
-                    }
-                });
-                dbMod.onChildRemoved(annotRef, function (snap) {
-                    if (typeof window.__replayAnnotRemove === 'function') {
-                        try { window.__replayAnnotRemove(snap.key); } catch (e) {}
-                    }
+                fsMod.onSnapshot(annotColRef(), function (snap) {
+                    snap.docChanges().forEach(function (change) {
+                        var data = change.doc.data();
+                        if (change.type === 'added') {
+                            if (!data) return;
+                            if (typeof window.__replayAnnotCreate === 'function') {
+                                try { window.__replayAnnotCreate(change.doc.id, data.type, data.passageId, data.start, data.end, data.extra); } catch (e) {}
+                            }
+                        } else if (change.type === 'removed') {
+                            if (typeof window.__replayAnnotRemove === 'function') {
+                                try { window.__replayAnnotRemove(change.doc.id); } catch (e) {}
+                            }
+                        }
+                    });
                 });
             }
 
