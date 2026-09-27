@@ -992,6 +992,11 @@
             }
             const options = roleOptions.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${roleLabel(r)}</option>`).join('');
             const headClass = u.role === 'head_teacher' ? ' user-row-head' : '';
+            // Không cho xoá CHÍNH TÀI KHOẢN đang đăng nhập qua nút này (tránh tự khoá mình ra khỏi
+            // hệ thống) — khớp với điều kiện request.auth.uid != userId ở firestore.rules.
+            const isSelf = currentUser && u.uid === currentUser.uid;
+            const deleteBtnHtml = isSelf ? '' : `
+                    <button class="save-role-btn" style="background:#c62828;" data-uid="${u.uid}" data-name="${escapeHtmlIndex(u.name || u.email || u.uid)}" onclick="deleteUserAccountFromBtn(this)" title="Xoá hồ sơ/quyền của tài khoản này khỏi Firestore">🗑️ Xoá</button>`;
             return `
                 <div class="user-row${headClass}" id="user-row-${u.uid}">
                     <img src="${u.photo || ''}" alt="">
@@ -1000,9 +1005,31 @@
                         <div class="u-email">${escapeHtmlIndex(u.email || '')}</div>
                     </div>
                     <select id="role-select-${u.uid}">${options}</select>
-                    <button class="save-role-btn" onclick="saveUserRole('${u.uid}')">Lưu</button>
+                    <button class="save-role-btn" onclick="saveUserRole('${u.uid}')">Lưu</button>${deleteBtnHtml}
                 </div>
             `;
+        }
+
+        // Xoá hồ sơ users/{uid} khỏi Firestore — CHỈ xoá quyền/hồ sơ (role/name/photo...) của tài
+        // khoản đó trong hệ thống, KHÔNG xoá được tài khoản Google thật của họ (việc đó cần Admin
+        // SDK/Cloud Function ở backend, không làm được từ trình duyệt). Nếu người đó đăng nhập lại
+        // sau khi bị xoá, ensureUserDoc() sẽ tạo hồ sơ MỚI cho họ ở trạng thái "Chưa phân quyền"
+        // (không tự khôi phục lại role cũ, coi như 1 tài khoản mới hoàn toàn).
+        async function deleteUserAccountFromBtn(btn) {
+            const uid = btn.dataset.uid;
+            const name = btn.dataset.name || uid;
+            if (!confirm(`Xoá hồ sơ/quyền của "${name}" khỏi hệ thống?\n\nLưu ý: chỉ xoá dữ liệu trong Firestore (role, lớp đang gán...), KHÔNG xoá được tài khoản Google của họ. Nếu họ đăng nhập lại, họ sẽ quay về trạng thái "Chưa phân quyền" như tài khoản mới.`)) return;
+            btn.disabled = true;
+            btn.textContent = 'Đang xoá...';
+            try {
+                await deleteDoc(doc(db, 'users', uid));
+                const row = document.getElementById('user-row-' + uid);
+                if (row) row.remove();
+            } catch (e) {
+                alert('Xoá thất bại: ' + e.message);
+                btn.disabled = false;
+                btn.textContent = '🗑️ Xoá';
+            }
         }
 
         async function saveUserRole(uid) {
@@ -1589,7 +1616,7 @@
             acSetTargetType, acOpenReadingPicker, acOpenListeningGenerator, acBackToChoices,
             acRefreshReadingBooks, acRefreshReadingTests, acSubmitReadingAssignment,
             toggleCreateClassForm, submitNewClass, deleteClass, toggleEditClass, saveClassStudents,
-            saveUserRole, openAssignmentByIndex
+            saveUserRole, deleteUserAccountFromBtn, openAssignmentByIndex
         });
     </script>
 </body>
