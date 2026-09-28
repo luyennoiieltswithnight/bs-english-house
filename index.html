@@ -688,14 +688,16 @@
         }
 
         // Tạo link tự động
-        // readingManifest được nạp từ reading/manifest.json (do công cụ Test Builder tự
-        // cập nhật mỗi khi xuất bản 1 đề Reading mới) — dùng để tự hiện link Test thật
-        // thay cho link placeholder "nhap_link_..." bên dưới. Các kỹ năng khác (listening/
-        // speaking/writing) chưa có manifest nên vẫn giữ nguyên hành vi placeholder cũ.
+        // readingManifest/listeningManifest được nạp từ reading/manifest.json và
+        // listening/manifest.json (do 2 công cụ Test Builder tương ứng tự cập nhật mỗi khi
+        // xuất bản 1 đề mới) — dùng để tự hiện link Test thật thay cho link placeholder
+        // "nhap_link_..." trước đây. Speaking/Writing chưa có manifest nên Speaking vẫn giữ
+        // hành vi placeholder cũ (Writing đã có thư viện riêng ở writing.html).
         let readingManifest = null;
+        let listeningManifest = null;
 
-        // Listening (and speaking/writing) don't have a manifest yet, so those keep
-        // the old fixed-range placeholder-link behaviour untouched.
+        // Speaking (and writing, before it got its own library page) don't have a
+        // manifest yet, so those keep the old fixed-range placeholder-link behaviour.
         function generateTestLinksPlaceholder(prefix, start, end, skill) {
             let html = '';
             for (let i = start; i <= end; i++) {
@@ -713,12 +715,12 @@
             return html;
         }
 
-        // Reading is fully manifest-driven: renders exactly the books/tests that
-        // exist in reading/manifest.json (written by Test Builder on every publish).
-        // No fixed book-count/test-count assumption — publish a new test and a new
-        // button just appears here on next page load, nothing to hand-wire.
-        function generateTestLinksFromManifest(prefix, bookLabel, emoji) {
-            const booksObj = readingManifest && readingManifest.reading && readingManifest.reading[prefix];
+        // Reading và Listening đều fully manifest-driven: hiện đúng những quyển/test có
+        // trong <skillKey>/manifest.json (do Test Builder tương ứng tự ghi mỗi lần xuất
+        // bản). Không giả định trước số quyển/số test cố định — xuất bản đề mới là nút mới
+        // tự hiện ở đây ngay lần tải trang tiếp theo, không cần tay chỉnh index.html.
+        function generateTestLinksFromManifest(manifestObj, skillKey, prefix, bookLabel, emoji) {
+            const booksObj = manifestObj && manifestObj[skillKey] && manifestObj[skillKey][prefix];
             if (!booksObj || Object.keys(booksObj).length === 0) {
                 return '<p style="padding:10px; color:#888; font-weight:600;">Chưa có đề nào được xuất bản.</p>';
             }
@@ -728,7 +730,11 @@
                 const testsObj = booksObj[bookNum] || {};
                 const testNums = Object.keys(testsObj).map(Number).filter(n => !isNaN(n)).sort((a, b) => a - b);
                 if (testNums.length === 0) return;
-                const linksHtml = testNums.map(n => `<a href="${testsObj[n]}" class="test-link-item">Test ${n}</a>`).join('');
+                const linksHtml = testNums.map(n => {
+                    const entry = testsObj[n];
+                    const url = (entry && typeof entry === 'object') ? entry.path : entry;
+                    return `<a href="${url}" class="test-link-item">Test ${n}</a>`;
+                }).join('');
                 html += `
                 <details class="book-group">
                     <summary>${emoji} ${bookLabel} ${bookNum}</summary>
@@ -739,22 +745,27 @@
         }
 
         function renderAllTestLinks() {
-            document.getElementById('cambridge-listening-container').innerHTML = generateTestLinksPlaceholder('cam', 10, 20, 'listening');
-            document.getElementById('real-listening-container').innerHTML = generateTestLinksPlaceholder('real', 8, 15, 'listening');
-            document.getElementById('cambridge-reading-container').innerHTML = generateTestLinksFromManifest('cam', 'Cambridge', '📘');
-            document.getElementById('real-reading-container').innerHTML = generateTestLinksFromManifest('real', 'VOL', '🎯');
+            document.getElementById('cambridge-listening-container').innerHTML = generateTestLinksFromManifest(listeningManifest, 'listening', 'cam', 'Cambridge', '📘');
+            document.getElementById('real-listening-container').innerHTML = generateTestLinksFromManifest(listeningManifest, 'listening', 'real', 'VOL', '🎯');
+            document.getElementById('cambridge-reading-container').innerHTML = generateTestLinksFromManifest(readingManifest, 'reading', 'cam', 'Cambridge', '📘');
+            document.getElementById('real-reading-container').innerHTML = generateTestLinksFromManifest(readingManifest, 'reading', 'real', 'VOL', '🎯');
         }
 
         document.addEventListener("DOMContentLoaded", function() {
-            renderAllTestLinks(); // hiện ngay (Reading sẽ hiện "chưa có" cho tới khi manifest tải xong)
+            renderAllTestLinks(); // hiện ngay ("chưa có" cho tới khi các manifest tải xong)
 
             // Cache-bust CẢ ở tầng trình duyệt lẫn CDN của GitHub Pages ({cache:'no-store'} + query
             // string đổi mỗi lần tải) — nếu không, sau khi giáo viên xuất bản đề mới, nhiều trình
-            // duyệt vẫn hiện danh sách Test CŨ trong menu Reading vì tự cache file JSON tĩnh này lại
+            // duyệt vẫn hiện danh sách Test CŨ trong menu vì tự cache file JSON tĩnh này lại
             // (không liên quan gì tới việc file trên GitHub đã cập nhật đúng hay chưa).
             fetch('reading/manifest.json?v=' + Date.now(), { cache: 'no-store' })
                 .then(res => res.ok ? res.json() : null)
                 .then(data => { readingManifest = data; renderAllTestLinks(); })
+                .catch(() => { /* chưa có manifest (chưa xuất bản đề nào) — giữ trạng thái "chưa có" */ });
+
+            fetch('listening/manifest.json?v=' + Date.now(), { cache: 'no-store' })
+                .then(res => res.ok ? res.json() : null)
+                .then(data => { listeningManifest = data; renderAllTestLinks(); })
                 .catch(() => { /* chưa có manifest (chưa xuất bản đề nào) — giữ trạng thái "chưa có" */ });
         });
 
