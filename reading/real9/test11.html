@@ -2627,15 +2627,19 @@
     <!-- ============ BÁO CÁO KẾT QUẢ VỀ FIRESTORE (chỉ chạy khi bài test này được mở từ 1 bài
          tập được giao qua "Bài tập" trên trang chủ — tức URL có ?assignmentId=). Tách riêng thành
          1 <script type="module"> độc lập, KHÔNG đụng vào script chính ở trên, để không phải gắn
-         lại hàng loạt hàm lên window. Script này chỉ đọc kết quả grading có sẵn (submitTest()) rồi
-         cập nhật THẲNG vào đúng document assignments/{assignmentId} — CÙNG 1 collection mà trang
-         chủ (index.html) dùng để hiện "Bài Tập Được Giao" và mục Tiến Độ Học Sinh cho giáo viên,
-         thay vì 1 collection "submissions" riêng mà trang chủ không biết đọc. -->
+         lại hàng loạt hàm lên window. Script này đọc kết quả grading có sẵn (submitTest()) rồi ghi
+         vào CẢ 2 nơi: (1) document assignments/{assignmentId} (giữ lại để tương thích ngược), và
+         (2) submissions/{assignmentId}_{uid} — đây mới là nơi DUY NHẤT mà trang chủ (index.html,
+         xem loadAssignmentsManager()/loadMyAssignments()) đọc để biết CHÍNH XÁC học sinh nào đã
+         làm xong/chưa trong 1 bài giao (đặc biệt khi giao theo CẢ LỚP — nhiều học sinh cùng 1
+         assignmentId nhưng mỗi người 1 submissions riêng). Thiếu bước (2) thì giáo viên sẽ
+         KHÔNG BAO GIỜ thấy bài được đánh dấu "Đã xong" dù (1) đã cập nhật thành công. -->
     <script type="module">
         (function () {
             var params = new URLSearchParams(location.search);
             var assignmentId = params.get('assignmentId');
             var scope = params.get('scope') || 'all';
+            var reportUid = params.get('uid') || null;
             if (!assignmentId) return; // mở bài test bình thường (không phải bài được giao) -> bỏ qua
 
             // PHẢI giống hệt khối firebaseConfig trong index.html của B's English House
@@ -2690,12 +2694,26 @@
                     }
 
                     var percent = reportTotal > 0 ? Math.round(reportCorrect / reportTotal * 100) : 0;
+                    var scoreText = reportCorrect + '/' + reportTotal;
                     fsMod.updateDoc(assignmentRef, {
                         percent: percent,
                         completed: true,
-                        scoreText: reportCorrect + '/' + reportTotal,
+                        scoreText: scoreText,
                         lastPlayedAt: Date.now()
                     }).catch(function (e) { console.warn('Night IELTS: cập nhật assignments thất bại', e); });
+
+                    // Ghi THÊM vào đúng submissions/{assignmentId}_{uid} của học sinh này — bắt
+                    // buộc phải có reportUid (đọc từ ?uid=... do index.html gắn sẵn khi mở bài giao,
+                    // xem openAssignment() ở index.html) vì 1 assignmentId có thể có NHIỀU học sinh
+                    // (giao theo lớp) nên không thể suy luận ngược uid từ assignmentId.
+                    if (reportUid) {
+                        fsMod.updateDoc(fsMod.doc(db, 'submissions', assignmentId + '_' + reportUid), {
+                            status: 'done',
+                            percent: percent,
+                            scoreText: scoreText,
+                            completedAt: Date.now()
+                        }).catch(function (e) { console.warn('Night IELTS: cập nhật submissions thất bại', e); });
+                    }
                 }
             }).catch(function (e) { console.warn('Night IELTS: không tải được hệ thống báo cáo', e); });
         })();
