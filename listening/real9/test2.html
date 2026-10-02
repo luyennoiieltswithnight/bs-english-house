@@ -1103,6 +1103,10 @@
         const ASSIGNED_ID = new URLSearchParams(location.search).get('assignmentId') || null;
         const ASSIGNED_SCOPE_RAW = new URLSearchParams(location.search).get('scope');
         const ASSIGNED_SCOPE = (ASSIGNED_SCOPE_RAW && /^[1-4]$/.test(ASSIGNED_SCOPE_RAW)) ? parseInt(ASSIGNED_SCOPE_RAW, 10) : null;
+        // uid của đúng học sinh đang làm bài (gắn sẵn trong link bởi openAssignment() ở index.html)
+        // — bắt buộc để biết ghi kết quả vào ĐÚNG submissions/{ASSIGNED_ID}_{uid} nào, vì 1
+        // assignmentId có thể được giao cho NHIỀU học sinh cùng lúc (giao theo cả lớp).
+        const ASSIGNED_UID = new URLSearchParams(location.search).get('uid') || null;
 
         // =====================================================================
         // Dữ liệu câu hỏi + đáp án, dựng từ questionsData (bơm vào bởi Test
@@ -1528,12 +1532,24 @@
                 };
                 const app = appMod.initializeApp(FB_CONFIG, 'bs-english-house-listening-report-' + Date.now());
                 const db = fsMod.getFirestore(app);
-                return fsMod.updateDoc(fsMod.doc(db, 'assignments', ASSIGNED_ID), {
+                const updates = [fsMod.updateDoc(fsMod.doc(db, 'assignments', ASSIGNED_ID), {
                     completed: true,
                     percent: percent,
                     scoreText: scoreText,
                     lastPlayedAt: Date.now()
-                });
+                })];
+                // Ghi THÊM vào đúng submissions/{ASSIGNED_ID}_{ASSIGNED_UID} — đây mới là nơi
+                // index.html (loadAssignmentsManager/loadMyAssignments) đọc để biết CHÍNH XÁC học
+                // sinh nào đã xong, nhất là khi giao theo cả lớp (nhiều học sinh cùng assignmentId).
+                if (ASSIGNED_UID) {
+                    updates.push(fsMod.updateDoc(fsMod.doc(db, 'submissions', ASSIGNED_ID + '_' + ASSIGNED_UID), {
+                        status: 'done',
+                        percent: percent,
+                        scoreText: scoreText,
+                        completedAt: Date.now()
+                    }));
+                }
+                return Promise.all(updates);
             }).then(() => {
                 if (noteEl) { noteEl.className = 'assign-report-note ok'; noteEl.textContent = '✅ Đã gửi kết quả về cho Thầy/Cô.'; }
             }).catch(err => {
