@@ -62,6 +62,16 @@
         }
         #btnMyStuff:hover { background: #eef5ea; transform: translateY(-2px); }
 
+        /* Nút "Bài Đã Giao" (Mặc định ẩn, chỉ hiện cho Dev/Head Teacher/Giáo viên) — tách riêng
+           khỏi Bảng Điều Khiển vì đây là việc giáo viên dùng hàng ngày, không nên chôn trong
+           menu quản trị chung. */
+        #btnAssignmentsManager {
+            display: none; padding: 10px 20px; background: var(--card-list); color: white;
+            border-radius: 30px; font-weight: 800; cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 2px solid #111; transition: 0.2s;
+        }
+        #btnAssignmentsManager:hover { background: #3457b8; transform: translateY(-2px); }
+
         .btn-google {
             display: flex; align-items: center; gap: 10px; background: white; color: var(--text-dark);
             padding: 10px 20px; border-radius: 30px; text-decoration: none; font-weight: 700;
@@ -182,6 +192,46 @@
         .progress-table th { background-color: #f4f7f6; font-weight: 800; color: var(--dark-green); }
         .status-done { color: #2e7d32; font-weight: 700; background: #c8e6c9; padding: 3px 8px; border-radius: 10px; font-size: 12px;}
         .status-pending { color: #c62828; font-weight: 700; background: #ffcdd2; padding: 3px 8px; border-radius: 10px; font-size: 12px;}
+
+        /* --- "QUẢN LÝ BÀI ĐÃ GIAO" (am = Assignments Manager) --- */
+        .am-stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+        .am-stat-chip { flex: 1; min-width: 110px; background: #f4f7f6; border: 2px solid #eee; border-radius: 12px; padding: 10px 8px; text-align: center; }
+        .am-stat-chip .am-stat-num { font-size: 22px; font-weight: 900; color: var(--dark-green); line-height: 1.2; }
+        .am-stat-chip .am-stat-label { font-size: 11px; color: #777; font-weight: 700; }
+
+        .am-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 15px; }
+        .am-toolbar input[type="text"] {
+            flex: 1; min-width: 180px; padding: 10px 16px; border-radius: 30px; border: 2px solid #ccc;
+            font-family: 'Quicksand', sans-serif; font-size: 14px;
+        }
+        .am-toolbar input[type="text"]:focus { outline: none; border-color: var(--hero-bg); }
+        .am-filter-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .am-filter-btn {
+            padding: 9px 14px; border-radius: 20px; border: 2px solid #ccc; background: white;
+            font-weight: 800; cursor: pointer; font-size: 12.5px; font-family: 'Quicksand', sans-serif; transition: 0.2s;
+        }
+        .am-filter-btn.active { border-color: var(--hero-bg); background: var(--hero-bg); color: white; }
+
+        .am-card { border: 2px solid #eee; border-radius: 14px; margin-bottom: 10px; overflow: hidden; background: #fff; transition: 0.2s; }
+        .am-card.am-type-class { border-left: 6px solid var(--card-list); }
+        .am-card.am-type-student { border-left: 6px solid var(--card-read); }
+        .am-card-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
+        .am-card.am-type-class .am-card-header { cursor: pointer; }
+        .am-card.am-type-class .am-card-header:hover { background: #fafafa; }
+        .am-card-icon { font-size: 20px; flex-shrink: 0; }
+        .am-card-main { flex: 1; min-width: 0; }
+        .am-card-title { font-weight: 800; color: var(--dark-green); font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .am-card-meta { font-size: 12px; color: #888; margin-top: 2px; }
+        .am-card-summary { font-size: 12.5px; font-weight: 800; color: var(--card-list); white-space: nowrap; flex-shrink: 0; }
+        .am-card-chevron { font-size: 13px; color: #999; transition: transform 0.25s; flex-shrink: 0; }
+        .am-card.am-expanded .am-card-chevron { transform: rotate(180deg); }
+        .am-card-del { background: none; border: none; font-size: 15px; cursor: pointer; color: #c62828; flex-shrink: 0; padding: 4px; opacity: 0.6; transition: 0.2s; }
+        .am-card-del:hover { opacity: 1; transform: scale(1.1); }
+        .am-sub-list { display: none; border-top: 2px dashed #eee; background: #fafbfa; padding: 6px 16px; }
+        .am-card.am-expanded .am-sub-list { display: block; }
+        .am-sub-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 2px; border-bottom: 1px solid #eee; font-size: 13.5px; }
+        .am-sub-row:last-child { border-bottom: none; }
+        .am-sub-row-name { font-weight: 700; color: #444; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         .reveal { opacity: 0; transform: translateY(60px); transition: all 1s cubic-bezier(0.16, 1, 0.3, 1); }
         .reveal.active { opacity: 1; transform: translateY(0); }
@@ -323,6 +373,7 @@
         <div class="logo brand-font">🐾 B's English House</div>
         <div class="nav-actions">
             <button id="btnAssignments" onclick="openAssignmentsInbox()">📚 Bài tập<span id="hwPendingDot" class="hw-count-dot" style="display:none;">0</span></button>
+            <button id="btnAssignmentsManager" onclick="openAssignmentsManager()">📋 Bài Đã Giao</button>
             <button id="btnMyStuff" onclick="openMyStuff()">📊 Của Tôi</button>
             <button id="btnDashboard" onclick="openDashboard()">Bảng Điều Khiển</button>
             <a href="login.html" class="btn-google" id="mainLoginBtn">Đăng nhập Google</a>
@@ -430,17 +481,6 @@
                 <div id="classes-list"><p class="empty-hint">Đang tải danh sách lớp...</p></div>
             </div>
 
-            <!-- Khu vực TEACHER-tier: Giao bài + tiến độ thật -->
-            <div id="panel-teacher" class="dash-panel">
-                <h3>👨‍🏫 Bài Tập Đã Giao</h3>
-                <div class="action-grid" style="grid-template-columns: 1fr; margin-bottom: 20px;">
-                    <div class="action-btn primary" onclick="openAssignmentComposer()">📚 Giao Bài Tập</div>
-                </div>
-
-                <h4 style="margin-bottom: 10px;">📊 Tiến độ học sinh (chỉ hiện học sinh bạn đã giao bài)</h4>
-                <div id="teacher-progress-list"><p class="empty-hint">Đang tải tiến độ...</p></div>
-            </div>
-
         </div>
     </div>
 
@@ -509,6 +549,33 @@
                 <button class="action-btn primary" style="width:100%;" onclick="acSubmitReadingAssignment()">🚀 Giao bài</button>
                 <div id="ac-reading-msg" style="margin-top:10px;"></div>
             </div>
+        </div>
+    </div>
+
+    <!-- POPUP QUẢN LÝ BÀI ĐÃ GIAO (dành riêng cho Giáo viên/Head Teacher/Dev — tách khỏi Bảng
+         Điều Khiển vì đây là việc dùng hàng ngày: giao bài, xem ai đã làm/chưa làm, xoá bài giao
+         nhầm. Bài giao cho 1 học sinh lẻ hiện thẳng kết quả; bài giao cho CẢ LỚP gộp lại thành 1
+         thẻ, bấm vào mới xổ ra kết quả từng học sinh trong lớp đó — xem buildAssignmentManagerCard()). -->
+    <div id="assignmentsManagerModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 820px;">
+            <span class="close-btn" onclick="closeModal('assignmentsManagerModal')">&times;</span>
+            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                <h2 class="brand-font" style="margin:0; border:none; padding:0;">Quản Lý Bài Đã Giao</h2>
+                <div class="action-btn primary" style="padding:10px 18px; white-space:nowrap;" onclick="openAssignmentComposer()">📚 Giao Bài Mới</div>
+            </div>
+
+            <div id="am-stats" class="am-stats"></div>
+
+            <div class="am-toolbar">
+                <input type="text" id="am-search-input" placeholder="🔎 Tìm theo tên học sinh / lớp / tên bài..." oninput="amOnSearchInput(this.value)">
+                <div class="am-filter-group">
+                    <button id="am-filter-all" class="am-filter-btn active" onclick="amSetFilter('all')">Tất cả</button>
+                    <button id="am-filter-class" class="am-filter-btn" onclick="amSetFilter('class')">🏫 Theo lớp</button>
+                    <button id="am-filter-student" class="am-filter-btn" onclick="amSetFilter('student')">🧑 Học sinh lẻ</button>
+                </div>
+            </div>
+
+            <div id="assignments-manager-list"><p class="empty-hint">Đang tải...</p></div>
         </div>
     </div>
 
@@ -655,6 +722,7 @@
             const btnDashboard = document.getElementById('btnDashboard');
             const btnMyStuff = document.getElementById('btnMyStuff');
             const btnAssignments = document.getElementById('btnAssignments');
+            const btnAssignmentsManager = document.getElementById('btnAssignmentsManager');
 
             if (!userDoc) {
                 loginBtn.innerHTML = 'Đăng nhập Google';
@@ -663,6 +731,7 @@
                 btnDashboard.style.display = 'none';
                 btnMyStuff.style.display = 'none';
                 btnAssignments.style.display = 'none';
+                btnAssignmentsManager.style.display = 'none';
                 return;
             }
 
@@ -681,6 +750,7 @@
             };
 
             btnDashboard.style.display = isStaffRole(userDoc.role) ? 'block' : 'none';
+            btnAssignmentsManager.style.display = isStaffRole(userDoc.role) ? 'block' : 'none';
             btnMyStuff.style.display = 'block';
             btnAssignments.style.display = userDoc.role === 'student' ? 'block' : 'none';
 
@@ -914,7 +984,7 @@
             if (!currentUserDoc || !isStaffRole(currentUserDoc.role)) return;
             const role = currentUserDoc.role;
 
-            ['panel-dev', 'panel-roles', 'panel-classes', 'panel-teacher'].forEach(id => {
+            ['panel-dev', 'panel-roles', 'panel-classes'].forEach(id => {
                 document.getElementById(id).classList.remove('active');
             });
 
@@ -927,9 +997,7 @@
             }
             if (isStaffRole(role)) {
                 document.getElementById('panel-classes').classList.add('active');
-                document.getElementById('panel-teacher').classList.add('active');
                 loadClassesList();
-                loadTeacherProgress();
             }
 
             const modal = document.getElementById('dashboardModal');
@@ -1564,59 +1632,208 @@
             } catch (e) { console.warn('refreshAssignmentsBadge', e); }
         }
 
-        // ============ TIẾN ĐỘ HỌC SINH THẬT (chỉ hiện học sinh giáo viên này đã giao bài) ============
-        async function loadTeacherProgress() {
-            const el = document.getElementById('teacher-progress-list');
-            el.innerHTML = '<p class="empty-hint">Đang tải tiến độ...</p>';
-            try {
-                const snap = await getDocs(query(collection(db, 'submissions'), where('teacherId', '==', currentUser.uid)));
-                const allSubs = []; snap.forEach(d => allSubs.push({ id: d.id, ...d.data() }));
+        // ============ QUẢN LÝ BÀI ĐÃ GIAO (am = Assignments Manager) ============
+        // Gom theo TỪNG LẦN GIAO BÀI (1 doc assignments) thay vì liệt kê phẳng từng submission như
+        // bảng cũ — bài giao cho 1 học sinh lẻ hiện thẳng kết quả ngay trên thẻ; bài giao cho CẢ
+        // LỚP gộp thành 1 thẻ (👥 N học sinh · ✔ x/N · TB y%), bấm vào mới xổ ra từng học sinh.
+        let amAssignmentsCache = [];   // [{ assignment, subs: [...] }]
+        let amNamesMap = {};
+        let amFilterType = 'all';      // 'all' | 'class' | 'student'
+        let amSearchQuery = '';
+        let amExpandedIds = new Set();
 
-                const subs = [];
-                const expiredSubs = [];
-                allSubs.forEach(s => {
-                    if (typeof s.expiresAt === 'number' && s.expiresAt > 0 && Date.now() > s.expiresAt) expiredSubs.push(s);
-                    else subs.push(s);
-                });
-                if (expiredSubs.length) {
-                    Promise.all(expiredSubs.map(s => Promise.all([
-                        deleteDoc(doc(db, 'submissions', s.id)),
-                        deleteDoc(doc(db, 'assignments', s.assignmentId))
-                    ]))).catch(() => {});
+        async function openAssignmentsManager() {
+            const modal = document.getElementById('assignmentsManagerModal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+            loadAssignmentsManager();
+        }
+
+        function amAssignmentIcon(type) {
+            return type === 'listening' ? '🎧' : type === 'writing' ? '✍️' : '📖';
+        }
+
+        // Xoá 1 bài đã giao: xoá doc assignments + MỌI submissions con của từng học sinh trong đó
+        // (khác cleanupExpiredAssignment() cũ chỉ xoá đúng 1 submission — ở đây 1 assignment có
+        // thể có cả chục học sinh nếu giao theo lớp).
+        async function amDeleteAssignmentData(assignmentId, studentIds) {
+            const deletes = [deleteDoc(doc(db, 'assignments', assignmentId)).catch(() => {})];
+            (studentIds || []).forEach(uid => {
+                deletes.push(deleteDoc(doc(db, 'submissions', assignmentId + '_' + uid)).catch(() => {}));
+            });
+            return Promise.all(deletes);
+        }
+
+        async function loadAssignmentsManager() {
+            const el = document.getElementById('assignments-manager-list');
+            el.innerHTML = '<p class="empty-hint">Đang tải...</p>';
+            document.getElementById('am-stats').innerHTML = '';
+            try {
+                const [assignSnap, subSnap] = await Promise.all([
+                    getDocs(query(collection(db, 'assignments'), where('createdBy', '==', currentUser.uid))),
+                    getDocs(query(collection(db, 'submissions'), where('teacherId', '==', currentUser.uid)))
+                ]);
+                const allAssignments = []; assignSnap.forEach(d => allAssignments.push({ id: d.id, ...d.data() }));
+                const allSubs = []; subSnap.forEach(d => allSubs.push({ id: d.id, ...d.data() }));
+
+                // Dọn bài hết hạn (10 ngày, xem isAssignmentExpired()) — xoá cả assignment lẫn mọi
+                // submission con của nó, không chỉ 1 submission như cleanupExpiredAssignment() cũ.
+                const activeAssignments = [];
+                const expiredAssignments = [];
+                allAssignments.forEach(a => (isAssignmentExpired(a) ? expiredAssignments : activeAssignments).push(a));
+                if (expiredAssignments.length) {
+                    Promise.all(expiredAssignments.map(a => amDeleteAssignmentData(a.id, a.studentIds || []))).catch(() => {});
                 }
-                if (subs.length === 0) { el.innerHTML = '<p class="empty-hint">Bạn chưa giao bài tập nào.</p>'; return; }
+                const expiredIds = new Set(expiredAssignments.map(a => a.id));
+                const subs = allSubs.filter(s => !expiredIds.has(s.assignmentId));
+
+                if (activeAssignments.length === 0) {
+                    el.innerHTML = '<p class="empty-hint">Bạn chưa giao bài tập nào. Bấm "📚 Giao Bài Mới" để bắt đầu!</p>';
+                    amAssignmentsCache = [];
+                    return;
+                }
+
+                const subsByAssignment = {};
+                subs.forEach(s => { (subsByAssignment[s.assignmentId] = subsByAssignment[s.assignmentId] || []).push(s); });
 
                 const studentIds = [...new Set(subs.map(s => s.studentId))];
-                const namesMap = {};
+                amNamesMap = {};
                 await Promise.all(studentIds.map(async uid => {
-                    try { const snap2 = await getDoc(doc(db, 'users', uid)); if (snap2.exists()) namesMap[uid] = snap2.data().name; } catch (e) {}
+                    try { const snap2 = await getDoc(doc(db, 'users', uid)); if (snap2.exists()) amNamesMap[uid] = snap2.data().name || snap2.data().email || uid; }
+                    catch (e) {}
                 }));
 
-                subs.sort((a, b) => {
-                    const aTime = toMillisSafe(a.createdAt);
-                    const bTime = toMillisSafe(b.createdAt);
-                    return bTime - aTime;
-                });
+                activeAssignments.sort((a, b) => toMillisSafe(b.createdAt) - toMillisSafe(a.createdAt));
+                amAssignmentsCache = activeAssignments.map(a => ({ assignment: a, subs: subsByAssignment[a.id] || [] }));
 
-                el.innerHTML = `
-                    <table class="progress-table">
-                        <thead><tr><th>Học sinh</th><th>Bài tập</th><th>Tiến độ</th></tr></thead>
-                        <tbody>
-                            ${subs.map(s => `
-                                <tr>
-                                    <td>${escapeHtmlIndex(namesMap[s.studentId] || s.studentId)}</td>
-                                    <td>${escapeHtmlIndex(s.assignmentTitle || '')}</td>
-                                    <td>${s.status === 'done'
-                                        ? `<span class="status-done">✔ Xong (${s.percent ?? 100}%)</span>`
-                                        : `<span class="status-pending">${s.percent ? s.percent + '%' : 'Chưa làm'}</span>`}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `;
+                renderAssignmentsManagerStats();
+                renderAssignmentsManagerList();
             } catch (e) {
-                el.innerHTML = '<p class="empty-hint">Không tải được tiến độ.</p>';
-                console.warn('loadTeacherProgress', e);
+                el.innerHTML = '<p class="empty-hint">Không tải được danh sách bài đã giao.</p>';
+                console.warn('loadAssignmentsManager', e);
+            }
+        }
+
+        function renderAssignmentsManagerStats() {
+            const total = amAssignmentsCache.length;
+            const classCount = amAssignmentsCache.filter(x => x.assignment.targetType === 'class').length;
+            let doneAll = 0, totalAll = 0;
+            amAssignmentsCache.forEach(x => x.subs.forEach(s => { totalAll++; if (s.status === 'done') doneAll++; }));
+            const pct = totalAll > 0 ? Math.round(doneAll / totalAll * 100) : 0;
+            document.getElementById('am-stats').innerHTML = `
+                <div class="am-stat-chip"><div class="am-stat-num">${total}</div><div class="am-stat-label">Bài đã giao</div></div>
+                <div class="am-stat-chip"><div class="am-stat-num">${classCount}</div><div class="am-stat-label">🏫 Theo lớp</div></div>
+                <div class="am-stat-chip"><div class="am-stat-num">${total - classCount}</div><div class="am-stat-label">🧑 Học sinh lẻ</div></div>
+                <div class="am-stat-chip"><div class="am-stat-num">${pct}%</div><div class="am-stat-label">✔ Đã hoàn thành</div></div>
+            `;
+        }
+
+        function amSetFilter(type) {
+            amFilterType = type;
+            ['all', 'class', 'student'].forEach(t => document.getElementById('am-filter-' + t).classList.toggle('active', t === type));
+            renderAssignmentsManagerList();
+        }
+
+        function amOnSearchInput(value) {
+            amSearchQuery = (value || '').trim().toLowerCase();
+            renderAssignmentsManagerList();
+        }
+
+        function amMatchesSearch(item) {
+            if (!amSearchQuery) return true;
+            const a = item.assignment;
+            const haystacks = [a.title, a.targetLabel, ...item.subs.map(s => amNamesMap[s.studentId] || '')];
+            return haystacks.some(h => (h || '').toLowerCase().includes(amSearchQuery));
+        }
+
+        function renderAssignmentsManagerList() {
+            const el = document.getElementById('assignments-manager-list');
+            const filtered = amAssignmentsCache.filter(item => {
+                if (amFilterType !== 'all' && (item.assignment.targetType || 'student') !== amFilterType) return false;
+                return amMatchesSearch(item);
+            });
+            if (filtered.length === 0) {
+                el.innerHTML = '<p class="empty-hint">Không tìm thấy bài tập nào khớp.</p>';
+                return;
+            }
+            el.innerHTML = filtered.map(item => buildAssignmentManagerCard(item)).join('');
+        }
+
+        function buildAssignmentManagerCard(item) {
+            const a = item.assignment, subs = item.subs;
+            const isClass = a.targetType === 'class';
+            const icon = amAssignmentIcon(a.type);
+            const deadlineTxt = a.deadline ? ` · Hạn: ${a.deadline}` : '';
+            const statusPill = s => s.status === 'done'
+                ? `<span class="hw-status done">✔ Xong (${s.percent ?? 100}%)</span>`
+                : `<span class="hw-status pending">${s.percent ? s.percent + '%' : 'Chưa làm'}</span>`;
+
+            if (!isClass) {
+                // Giao cho 1 học sinh lẻ -> hiện thẳng kết quả ngay trên thẻ, không cần xổ ra.
+                const sub = subs[0] || {};
+                const studentName = amNamesMap[a.targetId] || a.targetLabel || sub.studentId || '';
+                return `
+                    <div class="am-card am-type-student">
+                        <div class="am-card-header">
+                            <div class="am-card-icon">${icon}</div>
+                            <div class="am-card-main">
+                                <div class="am-card-title">${escapeHtmlIndex(studentName)} — ${escapeHtmlIndex(a.title || 'Bài tập')}</div>
+                                <div class="am-card-meta">🧑 Học sinh lẻ${deadlineTxt}</div>
+                            </div>
+                            ${statusPill(sub)}
+                            <button class="am-card-del" title="Xoá bài đã giao" onclick="amDeleteAssignment('${a.id}')">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const doneCount = subs.filter(s => s.status === 'done').length;
+            const totalCount = subs.length;
+            const avgPercent = totalCount > 0 ? Math.round(subs.reduce((sum, s) => sum + (s.percent || 0), 0) / totalCount) : 0;
+            const expanded = amExpandedIds.has(a.id);
+            const subRows = subs.slice()
+                .sort((x, y) => (amNamesMap[x.studentId] || '').localeCompare(amNamesMap[y.studentId] || ''))
+                .map(s => `
+                    <div class="am-sub-row">
+                        <span class="am-sub-row-name">${escapeHtmlIndex(amNamesMap[s.studentId] || s.studentId)}</span>
+                        ${statusPill(s)}
+                    </div>
+                `).join('');
+
+            return `
+                <div class="am-card am-type-class ${expanded ? 'am-expanded' : ''}">
+                    <div class="am-card-header" onclick="amToggleCard('${a.id}')">
+                        <div class="am-card-icon">${icon}</div>
+                        <div class="am-card-main">
+                            <div class="am-card-title">🏫 ${escapeHtmlIndex(a.targetLabel || 'Lớp')} — ${escapeHtmlIndex(a.title || 'Bài tập')}</div>
+                            <div class="am-card-meta">👥 ${totalCount} học sinh${deadlineTxt}</div>
+                        </div>
+                        <div class="am-card-summary">✔ ${doneCount}/${totalCount} · TB ${avgPercent}%</div>
+                        <div class="am-card-chevron">▼</div>
+                        <button class="am-card-del" title="Xoá bài đã giao" onclick="event.stopPropagation(); amDeleteAssignment('${a.id}')">🗑️</button>
+                    </div>
+                    <div class="am-sub-list">${subRows || '<p class="empty-hint">Chưa có học sinh nào.</p>'}</div>
+                </div>
+            `;
+        }
+
+        function amToggleCard(assignmentId) {
+            if (amExpandedIds.has(assignmentId)) amExpandedIds.delete(assignmentId);
+            else amExpandedIds.add(assignmentId);
+            renderAssignmentsManagerList();
+        }
+
+        async function amDeleteAssignment(assignmentId) {
+            const item = amAssignmentsCache.find(x => x.assignment.id === assignmentId);
+            const studentIds = item ? (item.assignment.studentIds || []) : [];
+            const label = item ? (item.assignment.title || 'bài tập này') : 'bài tập này';
+            if (!confirm(`Xoá "${label}" khỏi hệ thống?\n\nToàn bộ kết quả làm bài liên quan của học sinh cũng sẽ bị xoá theo, không thể khôi phục.`)) return;
+            try {
+                await amDeleteAssignmentData(assignmentId, studentIds);
+                amExpandedIds.delete(assignmentId);
+                loadAssignmentsManager();
+            } catch (e) {
+                alert('Xoá thất bại: ' + e.message);
             }
         }
 
@@ -1628,7 +1845,8 @@
             acSetTargetType, acOpenReadingPicker, acOpenListeningGenerator, acBackToChoices,
             acRefreshReadingBooks, acRefreshReadingTests, acSubmitReadingAssignment,
             toggleCreateClassForm, submitNewClass, deleteClass, toggleEditClass, saveClassStudents,
-            saveUserRole, deleteUserAccountFromBtn, openAssignmentByIndex
+            saveUserRole, deleteUserAccountFromBtn, openAssignmentByIndex,
+            openAssignmentsManager, amSetFilter, amOnSearchInput, amToggleCard, amDeleteAssignment
         });
     </script>
 </body>
