@@ -1866,6 +1866,7 @@ VỀ ẢNH (đề dạng type=planlabel — Plan/Map/Diagram labelling — thư�
         async function ghGetFile(owner, repo, path, token, branch) {
             const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${encodeURIComponent(branch)}`, {
                 headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' },
+                cache: 'no-store', // KHÔNG dùng bản cache của trình duyệt — sha cũ sẽ làm GitHub báo HTTP 409 khi ghi
             });
             if (res.status === 404) return null;
             if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(`Không đọc được ${path}: HTTP ${res.status} ${j.message || ''}`); }
