@@ -1369,7 +1369,8 @@ function logPublish(msg, append = true) {
 
 async function ghGetFile(owner, repo, path, token, branch) {
   const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${encodeURIComponent(branch)}`, {
-    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
+    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' },
+    cache: 'no-store' // KHÔNG dùng bản cache của trình duyệt — sha cũ sẽ làm GitHub báo HTTP 409 khi ghi
   });
   if (res.status === 404) return null;
   if (!res.ok) {
@@ -1849,19 +1850,34 @@ async function rebuildOneOldTestOnGithub(row, logFn) {
       logFn(`❌ Không tìm thấy file ${row.testPath} trên GitHub (có thể vừa bị xoá) — bỏ qua ${label}.`);
       return { ok: false, fatal: true };
     }
-    const oldHtml = b64ToUtf8(file.content);
-    if (isOnLatestEngine(oldHtml)) {
-      logFn(`ℹ️ ${label} đã ở khung mới nhất — không cần nâng cấp.`);
-      return { ok: true };
+    let current = file;
+    // Thử tối đa 3 lần: nếu GitHub báo 409 (sha vừa đổi / bản đọc bị cũ) thì đọc lại bản MỚI NHẤT
+    // của file rồi dựng lại + ghi lại, thay vì dừng hẳn.
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const oldHtml = b64ToUtf8(current.content);
+      if (isOnLatestEngine(oldHtml)) {
+        logFn(`ℹ️ ${label} đã ở khung mới nhất — không cần nâng cấp.`);
+        return { ok: true };
+      }
+      const built = rebuildPublishedTestHtml(oldHtml);
+      if (!built.ok) {
+        logFn(`⚠️ ${label}: không dựng lại được trên khung mới — ${built.reason} Chuyển sang vá từng phần...`);
+        return { ok: false };
+      }
+      try {
+        await ghPutFile(owner, repo, row.testPath, token, branch, built.html, `Upgrade ${row.testPath} to latest reading engine`, current.sha);
+        logFn(`✅ Đã nâng cấp ${label} lên khung mới (giữ nguyên nội dung đề).`);
+        return { ok: true };
+      } catch (putErr) {
+        const isConflict = putErr.status === 409 || putErr.status === 422;
+        if (!isConflict || attempt === 3) throw putErr;
+        logFn(`⚠️ ${label}: GitHub báo file vừa thay đổi (lần ${attempt}/3) — đang tải lại bản mới nhất và thử lại...`);
+        await new Promise(r => setTimeout(r, 1500));
+        current = await ghGetFile(owner, repo, row.testPath, token, branch);
+        if (!current) { logFn(`❌ File ${row.testPath} không còn trên GitHub — bỏ qua ${label}.`); return { ok: false, fatal: true }; }
+      }
     }
-    const built = rebuildPublishedTestHtml(oldHtml);
-    if (!built.ok) {
-      logFn(`⚠️ ${label}: không dựng lại được trên khung mới — ${built.reason} Chuyển sang vá từng phần...`);
-      return { ok: false };
-    }
-    await ghPutFile(owner, repo, row.testPath, token, branch, built.html, `Upgrade ${row.testPath} to latest reading engine`, file.sha);
-    logFn(`✅ Đã nâng cấp ${label} lên khung mới (giữ nguyên nội dung đề).`);
-    return { ok: true };
+    return { ok: false, fatal: true };
   } catch (err) {
     logFn(`❌ Lỗi khi nâng cấp ${label}: ${err.message}`);
     return { ok: false, fatal: true };
