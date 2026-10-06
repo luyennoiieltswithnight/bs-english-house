@@ -1870,7 +1870,19 @@ VỀ ẢNH (đề dạng type=planlabel — Plan/Map/Diagram labelling — thư�
             });
             if (res.status === 404) return null;
             if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(`Không đọc được ${path}: HTTP ${res.status} ${j.message || ''}`); }
-            return res.json();
+            const data = await res.json();
+            // File > 1MB: API "contents" trả content rỗng -> lấy qua API "git blobs" theo sha.
+            if (data && data.sha && (!data.content || data.encoding === 'none')) {
+                const blobRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/blobs/${data.sha}`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' },
+                    cache: 'no-store',
+                });
+                if (!blobRes.ok) throw new Error(`Không đọc được ${path} (file lớn): HTTP ${blobRes.status}`);
+                const blob = await blobRes.json();
+                data.content = blob.content || '';
+                data.encoding = blob.encoding || 'base64';
+            }
+            return data;
         }
         async function ghPutFile(owner, repo, path, token, branch, contentUtf8, message, existingSha) {
             const body = { message, content: utf8ToB64(contentUtf8), branch };
