@@ -139,6 +139,9 @@
             justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;
         }
         .modal-overlay.show { display: flex; opacity: 1; }
+        /* Các hộp mở ĐÈ LÊN 1 hộp khác (Giao Bài Mới mở từ "Bài Đã Giao", Kết quả bài làm...) phải
+           nằm lớp trên — nếu không, chúng hiện ra PHÍA SAU hộp đang mở và phải đóng hộp kia mới thấy. */
+        #assignmentComposerModal, #studentResultModal { z-index: 1000; }
 
         .modal-box {
             background: white; width: 90%; max-width: 650px; border-radius: 24px;
@@ -1479,6 +1482,8 @@
                 })));
                 msgEl.innerHTML = '<span style="color:#2e7d32; font-weight:700;">✅ Đã giao bài cho ' + target.studentIds.length + ' học sinh!</span>';
                 setTimeout(() => closeModal('assignmentComposerModal'), 1200);
+                // Đang mở "Bài Đã Giao" ở phía sau thì tải lại danh sách để thấy ngay bài vừa giao
+                if (document.getElementById('assignmentsManagerModal').classList.contains('show')) loadAssignmentsManager();
             } catch (e) {
                 msgEl.innerHTML = '<span style="color:#c62828; font-weight:700;">Giao bài thất bại: ' + e.message + '</span>';
             }
