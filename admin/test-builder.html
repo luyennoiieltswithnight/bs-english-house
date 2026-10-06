@@ -1377,7 +1377,20 @@ async function ghGetFile(owner, repo, path, token, branch) {
     const j = await res.json().catch(() => ({}));
     throw new Error(`Không đọc được ${path}: HTTP ${res.status} ${j.message || ''}`);
   }
-  return res.json();
+  const data = await res.json();
+  // File > 1MB (vd đề có ảnh nhúng): GitHub KHÔNG trả nội dung qua API "contents" (content rỗng,
+  // encoding "none") — phải lấy riêng qua API "git blobs" theo sha (hỗ trợ tới 100MB).
+  if (data && data.sha && (!data.content || data.encoding === 'none')) {
+    const blobRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/blobs/${data.sha}`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' },
+      cache: 'no-store'
+    });
+    if (!blobRes.ok) throw new Error(`Không đọc được ${path} (file lớn): HTTP ${blobRes.status}`);
+    const blob = await blobRes.json();
+    data.content = blob.content || '';
+    data.encoding = blob.encoding || 'base64';
+  }
+  return data;
 }
 
 async function ghPutFile(owner, repo, path, token, branch, contentUtf8, message, existingSha) {
