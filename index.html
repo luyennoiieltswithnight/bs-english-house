@@ -231,6 +231,23 @@
         .am-card.am-expanded .am-sub-list { display: block; }
         .am-sub-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 2px; border-bottom: 1px solid #eee; font-size: 13.5px; }
         .am-sub-row:last-child { border-bottom: none; }
+        .am-clickable { cursor: pointer; transition: 0.15s; }
+        .am-sub-row.am-clickable:hover { background: #eef5ea; }
+        .am-card-header.am-clickable:hover { background: #fafafa; }
+        .am-view-hint { font-size: 11px; color: var(--card-list); font-weight: 800; margin-left: 6px; white-space: nowrap; }
+
+        /* --- XEM KẾT QUẢ BÀI LÀM CỦA HỌC SINH (lưu 14 ngày) --- */
+        .rs-summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+        .rs-chip { flex: 1; min-width: 100px; background: #f4f7f6; border: 2px solid #eee; border-radius: 12px; padding: 10px; text-align: center; }
+        .rs-chip b { display: block; font-size: 22px; color: var(--dark-green); }
+        .rs-chip span { font-size: 11px; color: #777; font-weight: 700; }
+        .rs-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .rs-table th, .rs-table td { border: 1px solid #e5e5e5; padding: 8px 10px; text-align: left; }
+        .rs-table th { background: #f4f7f6; color: var(--dark-green); font-weight: 800; }
+        .rs-table tr.rs-ok td:last-child { color: #2e7d32; font-weight: 900; }
+        .rs-table tr.rs-bad { background: #fff5f5; }
+        .rs-table tr.rs-bad td:last-child { color: #c62828; font-weight: 900; }
+        .rs-note { font-size: 12px; color: #888; margin-top: 12px; text-align: center; }
         .am-sub-row-name { font-weight: 700; color: #444; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         .reveal { opacity: 0; transform: translateY(60px); transition: all 1s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -502,10 +519,15 @@
 
                 <h4 style="margin-bottom:10px;">2. Chọn loại bài tập</h4>
                 <div class="assign-choice-grid">
-                    <div class="assign-choice-card" onclick="acOpenReadingPicker()">
+                    <div class="assign-choice-card" onclick="acOpenTestPicker('reading')">
                         <div class="ac-icon">📖</div>
                         <div class="ac-title">Đề Reading có sẵn</div>
                         <div class="ac-desc">Chọn từ các đề Cambridge/VOL đã xuất bản, có thể giao cả đề hoặc 1 Passage</div>
+                    </div>
+                    <div class="assign-choice-card" onclick="acOpenTestPicker('listening')">
+                        <div class="ac-icon">🎧</div>
+                        <div class="ac-title">Đề Listening có sẵn</div>
+                        <div class="ac-desc">Chọn từ các đề Listening Cambridge/VOL đã xuất bản, có thể giao cả đề hoặc 1 Part</div>
                     </div>
                     <div class="assign-choice-card" onclick="acOpenListeningGenerator()">
                         <div class="ac-icon">🎧</div>
@@ -517,7 +539,7 @@
 
             <div id="ac-step-reading" style="display:none;">
                 <button class="btn-sm-back" onclick="acBackToChoices()" style="background:none;border:none;color:var(--hero-bg);font-weight:800;cursor:pointer;margin-bottom:10px;">← Quay lại</button>
-                <h4 style="margin-bottom:10px;">Chọn đề Reading</h4>
+                <h4 style="margin-bottom:10px;" id="ac-picker-title">Chọn đề Reading</h4>
                 <div class="field" style="margin-bottom:10px;">
                     <label style="font-size:12px;font-weight:700;color:#777;">Bộ đề</label>
                     <select id="ac-reading-source" style="width:100%; padding:10px; border-radius:8px; border:2px solid #ccc;" onchange="acRefreshReadingBooks()">
@@ -534,13 +556,8 @@
                     <select id="ac-reading-test" style="width:100%; padding:10px; border-radius:8px; border:2px solid #ccc;"></select>
                 </div>
                 <div class="field" style="margin-bottom:15px;">
-                    <label style="font-size:12px;font-weight:700;color:#777;">Phạm vi giao (thường 1 giáo viên chỉ giao 1 Passage)</label>
-                    <select id="ac-reading-scope" style="width:100%; padding:10px; border-radius:8px; border:2px solid #ccc;">
-                        <option value="all">Cả đề (3 Passage)</option>
-                        <option value="1">Chỉ Passage 1</option>
-                        <option value="2">Chỉ Passage 2</option>
-                        <option value="3">Chỉ Passage 3</option>
-                    </select>
+                    <label style="font-size:12px;font-weight:700;color:#777;" id="ac-scope-label">Phạm vi giao (thường 1 giáo viên chỉ giao 1 Passage)</label>
+                    <select id="ac-reading-scope" style="width:100%; padding:10px; border-radius:8px; border:2px solid #ccc;"></select>
                 </div>
                 <div class="field" style="margin-bottom:15px;">
                     <label style="font-size:12px;font-weight:700;color:#777;">Hạn nộp (không bắt buộc)</label>
@@ -576,6 +593,16 @@
             </div>
 
             <div id="assignments-manager-list"><p class="empty-hint">Đang tải...</p></div>
+        </div>
+    </div>
+
+    <!-- POPUP KẾT QUẢ BÀI LÀM CỦA 1 HỌC SINH (giáo viên bấm vào dòng tiến độ để mở).
+         Kết quả chi tiết được lưu 14 ngày kể từ lúc nộp rồi tự xoá — xem RESULT_TTL_MS. -->
+    <div id="studentResultModal" class="modal-overlay">
+        <div class="modal-box" style="max-width: 720px;">
+            <span class="close-btn" onclick="closeModal('studentResultModal')">&times;</span>
+            <div class="modal-header"><h2 class="brand-font" id="rs-title">Kết quả bài làm</h2></div>
+            <div id="rs-body"></div>
         </div>
     </div>
 
@@ -615,7 +642,7 @@
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import {
             getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where,
-            getDocs, addDoc, deleteDoc, serverTimestamp, orderBy
+            getDocs, addDoc, deleteDoc, serverTimestamp, orderBy, deleteField
         } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         // TODO(night): dán đúng firebaseConfig của project "b-s-english-house" vào đây
@@ -1342,18 +1369,46 @@
             document.getElementById('ac-step-target').style.display = 'block';
         }
 
-        function acOpenReadingPicker() {
+        // ---- Chọn đề có sẵn (dùng chung cho Reading & Listening) ----
+        // acPickerSkill = 'reading' | 'listening' — quyết định đọc manifest nào và giao loại bài gì.
+        let acPickerSkill = 'reading';
+
+        // Manifest có thể lưu mỗi test dưới dạng chuỗi URL hoặc object { path } — chuẩn hoá về URL.
+        function manifestEntryUrl(entry) {
+            if (!entry) return '';
+            return typeof entry === 'object' ? (entry.path || entry.url || '') : String(entry);
+        }
+        function acCurrentManifestBooks(source) {
+            const m = acPickerSkill === 'listening' ? listeningManifest : readingManifest;
+            return (m && m[acPickerSkill] && m[acPickerSkill][source]) || {};
+        }
+
+        function acOpenTestPicker(skill) {
             const target = acResolveStudentIds();
             if (target.studentIds.length === 0) { alert('Chọn lớp/học sinh có ít nhất 1 người trước đã'); return; }
+            acPickerSkill = skill === 'listening' ? 'listening' : 'reading';
+            const isL = acPickerSkill === 'listening';
+            document.getElementById('ac-picker-title').textContent = isL ? '🎧 Chọn đề Listening' : '📖 Chọn đề Reading';
+            document.getElementById('ac-scope-label').textContent = isL
+                ? 'Phạm vi giao (có thể giao cả đề hoặc 1 Part)'
+                : 'Phạm vi giao (thường 1 giáo viên chỉ giao 1 Passage)';
+            const unit = isL ? 'Part' : 'Passage';
+            const count = isL ? 4 : 3;
+            let opts = `<option value="all">Cả đề (${count} ${unit})</option>`;
+            for (let i = 1; i <= count; i++) opts += `<option value="${i}">Chỉ ${unit} ${i}</option>`;
+            document.getElementById('ac-reading-scope').innerHTML = opts;
+            document.getElementById('ac-reading-msg').innerHTML = '';
             document.getElementById('ac-step-target').style.display = 'none';
             document.getElementById('ac-step-reading').style.display = 'block';
             acRefreshReadingBooks();
         }
+        // Giữ tên cũ để không vỡ chỗ nào khác còn gọi
+        function acOpenReadingPicker() { acOpenTestPicker('reading'); }
 
         function acRefreshReadingBooks() {
             const source = document.getElementById('ac-reading-source').value;
             const bookSel = document.getElementById('ac-reading-book');
-            const booksObj = (readingManifest && readingManifest.reading && readingManifest.reading[source]) || {};
+            const booksObj = acCurrentManifestBooks(source);
             const bookNums = Object.keys(booksObj).map(Number).filter(n => !isNaN(n)).sort((a, b) => a - b);
             if (bookNums.length === 0) {
                 bookSel.innerHTML = '<option value="">-- Chưa có đề nào --</option>';
@@ -1368,7 +1423,7 @@
             const source = document.getElementById('ac-reading-source').value;
             const book = document.getElementById('ac-reading-book').value;
             const testSel = document.getElementById('ac-reading-test');
-            const testsObj = (readingManifest && readingManifest.reading && readingManifest.reading[source] && readingManifest.reading[source][book]) || {};
+            const testsObj = acCurrentManifestBooks(source)[book] || {};
             const testNums = Object.keys(testsObj).map(Number).filter(n => !isNaN(n)).sort((a, b) => a - b);
             testSel.innerHTML = testNums.length
                 ? testNums.map(n => `<option value="${n}">Test ${n}</option>`).join('')
@@ -1378,6 +1433,7 @@
         async function acSubmitReadingAssignment() {
             const target = acResolveStudentIds();
             if (target.studentIds.length === 0) { alert('Chưa chọn lớp/học sinh'); return; }
+            const isL = acPickerSkill === 'listening';
             const source = document.getElementById('ac-reading-source').value;
             const book = document.getElementById('ac-reading-book').value;
             const testNum = document.getElementById('ac-reading-test').value;
@@ -1385,23 +1441,28 @@
             const deadline = document.getElementById('ac-reading-deadline').value || null;
             const msgEl = document.getElementById('ac-reading-msg');
 
-            const url = readingManifest && readingManifest.reading && readingManifest.reading[source] &&
-                readingManifest.reading[source][book] && readingManifest.reading[source][book][testNum];
+            const url = manifestEntryUrl(acCurrentManifestBooks(source)[book] && acCurrentManifestBooks(source)[book][testNum]);
             if (!url) { msgEl.innerHTML = '<span style="color:#c62828; font-weight:700;">Chưa chọn được đề hợp lệ.</span>'; return; }
 
-            const title = `${source === 'cam' ? 'Cambridge' : 'VOL'} ${book} - Test ${testNum}` + (scope !== 'all' ? ` (Passage ${scope})` : '');
+            const unit = isL ? 'Part' : 'Passage';
+            const title = `${isL ? 'Listening' : 'Reading'} · ${source === 'cam' ? 'Cambridge' : 'VOL'} ${book} - Test ${testNum}` + (scope !== 'all' ? ` (${unit} ${scope})` : '');
+            // Bài Listening có sẵn dùng type 'listening_test' để không lẫn với bài Listening
+            // tuỳ chỉnh (type 'listening', nội dung vocabList nằm ngay trong doc).
+            const assignType = isL ? 'listening_test' : 'reading';
             msgEl.innerHTML = 'Đang giao bài...';
             try {
-                // "Yêu cầu giao bài" (bản ghi assignments/submissions) tự hết hạn sau 10 ngày — xem
-                // cleanupExpiredAssignment() bên dưới. Với bài Reading có sẵn (tham chiếu qua readingUrl),
-                // chỉ bản ghi giao bài này bị xoá; đề đọc gốc (file HTML riêng) KHÔNG hề bị đụng tới.
+                // "Yêu cầu giao bài" tự hết hạn sau 10 ngày (ẩn khỏi hộp thư học sinh). Kết quả làm
+                // bài thì lưu riêng 14 ngày — xem RESULT_TTL_MS.
                 const now = Date.now();
                 const expiresAt = now + 10 * 24 * 60 * 60 * 1000;
                 const assignRef = await addDoc(collection(db, 'assignments'), {
-                    type: 'reading',
+                    type: assignType,
                     title,
-                    readingUrl: url,
-                    readingSource: source, readingBook: Number(book), readingTest: Number(testNum), scope,
+                    testUrl: url,
+                    readingUrl: url, // giữ field cũ cho các trang đọc bản cũ
+                    skill: acPickerSkill,
+                    testSource: source, testBook: Number(book), testNumber: Number(testNum), scope,
+                    readingSource: source, readingBook: Number(book), readingTest: Number(testNum),
                     createdBy: currentUser.uid, createdByName: currentUserDoc.name || '',
                     targetType: target.targetType, targetId: target.targetId, targetLabel: target.targetLabel,
                     studentIds: target.studentIds,
@@ -1411,7 +1472,7 @@
                 });
                 await Promise.all(target.studentIds.map(uid => setDoc(doc(db, 'submissions', assignRef.id + '_' + uid), {
                     assignmentId: assignRef.id, studentId: uid, teacherId: currentUser.uid,
-                    assignmentTitle: title, assignmentType: 'reading',
+                    assignmentTitle: title, assignmentType: assignType,
                     status: 'pending', percent: 0, score: null,
                     expiresAt,
                     createdAt: serverTimestamp(),
@@ -1451,6 +1512,20 @@
         function isAssignmentExpired(a) {
             return typeof a.expiresAt === 'number' && a.expiresAt > 0 && Date.now() > a.expiresAt;
         }
+
+        // ---- KẾT QUẢ BÀI LÀM: lưu 14 ngày kể từ lúc học sinh nộp, sau đó tự xoá ----
+        // Trang làm bài ghi vào submissions/{assignmentId}_{uid}:
+        //   result: { score, total, band, timeSpentSec, answers:[{ q, user, correct, ok, by }] }
+        //   resultExpiresAt: (ms) = lúc nộp + 14 ngày
+        // Bài giao (assignments) chỉ bị xoá hẳn khi đã quá hạn 10 ngày VÀ không còn kết quả nào
+        // đang trong 14 ngày lưu — để giáo viên vẫn bấm xem được kết quả tới hết ngày 14.
+        const RESULT_TTL_MS = 14 * 24 * 60 * 60 * 1000;
+        function hasLiveResult(sub) {
+            return !!(sub && sub.result && typeof sub.resultExpiresAt === 'number' && Date.now() <= sub.resultExpiresAt);
+        }
+        function isResultExpired(sub) {
+            return !!(sub && sub.result && typeof sub.resultExpiresAt === 'number' && Date.now() > sub.resultExpiresAt);
+        }
         async function cleanupExpiredAssignment(assignmentId, uid) {
             try {
                 await deleteDoc(doc(db, 'assignments', assignmentId));
@@ -1481,15 +1556,9 @@
                 const assignments = []; assignSnap.forEach(d => assignments.push({ id: d.id, ...d.data() }));
                 const subsById = {}; subSnap.forEach(d => { const data = d.data(); subsById[data.assignmentId] = data; });
 
-                const activeAssignments = [];
-                const expiredIds = [];
-                assignments.forEach(a => {
-                    if (isAssignmentExpired(a)) expiredIds.push(a.id);
-                    else activeAssignments.push(a);
-                });
-                if (expiredIds.length) {
-                    Promise.all(expiredIds.map(id => cleanupExpiredAssignment(id, currentUser.uid))).catch(() => {});
-                }
+                // Bài quá hạn 10 ngày chỉ bị ẨN khỏi hộp thư học sinh — việc xoá hẳn để giáo viên
+                // làm (loadAssignmentsManager), vì kết quả bài làm còn phải giữ đủ 14 ngày.
+                const activeAssignments = assignments.filter(a => !isAssignmentExpired(a));
 
                 const merged = activeAssignments.map(a => ({ assignment: a, submission: subsById[a.id] || { status: 'pending', percent: 0 } }));
                 merged.sort((a, b) => {
@@ -1510,7 +1579,7 @@
 
         function buildHwItem(a, sub, idx) {
             const done = sub.status === 'done';
-            const typeIcon = a.type === 'listening' ? '🎧' : '📖';
+            const typeIcon = (a.type === 'listening' || a.type === 'listening_test') ? '🎧' : '📖';
             const deadlineTxt = a.deadline ? ` · Hạn: ${a.deadline}` : '';
             const scoreTxt = sub.percent ? ` · ${sub.percent}%` : '';
             return `
@@ -1530,10 +1599,12 @@
         }
 
         function openAssignment(a) {
-            if (a.type === 'reading') {
+            if (a.type === 'reading' || a.type === 'listening_test') {
+                const url = a.testUrl || a.readingUrl;
+                if (!url) { alert('Bài tập này thiếu đường dẫn đề.'); return; }
                 const params = new URLSearchParams({ assignmentId: a.id, uid: currentUser.uid, scope: a.scope || 'all' });
-                const sep = a.readingUrl.includes('?') ? '&' : '?';
-                window.open(a.readingUrl + sep + params.toString(), '_blank');
+                const sep = url.includes('?') ? '&' : '?';
+                window.open(url + sep + params.toString(), '_blank');
             } else if (a.type === 'listening') {
                 openListeningAssignment(a);
             }
@@ -1570,7 +1641,7 @@
                 html = html.replace('%%CHAR_TYPED_BORDER%%', palette[600]);
                 html = html.replace('%%SPARK_COLORS_JSON%%', sparkJson);
                 html = html.replace('%%LESSON_DATA_JSON%%', dataJson);
-                html = html.replace('</body>', buildListeningReportScript(a.id, currentUser.uid, items.length) + '\n</body>');
+                html = html.replace('</body>', buildListeningReportScript(a.id, currentUser.uid, items.length, items.map(it => (it && (it.word || it.text || it.en || it.answer)) || '')) + '\n</body>');
                 const blob = new Blob([html], { type: 'text/html' });
                 window.open(URL.createObjectURL(blob), '_blank');
             } catch (e) {
@@ -1584,11 +1655,13 @@
         // thẳng vào Firestore submissions/{assignmentId}_{uid}. Escape "</" thành "<\/" ở JSON đã
         // xử lý ở trên; ở đây tự escape luôn thẻ đóng script (kèm backslash) bên trong template string,
         // nếu không trình duyệt sẽ hiểu nhầm là kết thúc SỚM khối <script type="module"> đang chứa hàm này.
-        function buildListeningReportScript(assignmentId, uid, itemCount) {
+        function buildListeningReportScript(assignmentId, uid, itemCount, itemLabels) {
             const cfgJson = JSON.stringify(firebaseConfig);
+            const labelsJson = JSON.stringify(itemLabels || []).replace(/<\//g, '<\\/');
             return `<script type="module">
 (function(){
   var ITEM_COUNT = ${itemCount};
+  var ITEM_LABELS = ${labelsJson};
   var ASSIGNMENT_ID = ${JSON.stringify(assignmentId)};
   var STUDENT_UID = ${JSON.stringify(uid)};
   var FB_CONFIG = ${cfgJson};
@@ -1607,7 +1680,15 @@
       if (percent === lastPercent) return;
       lastPercent = percent;
       var payload = { percent: percent, updatedAt: fsMod.serverTimestamp() };
-      if (percent >= 100) { payload.status = 'done'; payload.completedAt = fsMod.serverTimestamp(); }
+      if (percent >= 100) {
+        payload.status = 'done'; payload.completedAt = fsMod.serverTimestamp();
+        payload.score = reported.size;
+        payload.result = {
+          score: reported.size, total: ITEM_COUNT, kind: 'listening_custom',
+          answers: ITEM_LABELS.map(function(w, i){ return { q: String(i + 1), user: reported.has(i) ? w : '', correct: w, ok: reported.has(i) }; })
+        };
+        payload.resultExpiresAt = Date.now() + 14 * 24 * 60 * 60 * 1000;
+      }
       fsMod.setDoc(subRef, payload, { merge: true }).catch(function(e){ console.warn('BSEH report failed', e); });
     }
     var origFireworks = window.fireworks;
@@ -1650,7 +1731,7 @@
         }
 
         function amAssignmentIcon(type) {
-            return type === 'listening' ? '🎧' : type === 'writing' ? '✍️' : '📖';
+            return (type === 'listening' || type === 'listening_test') ? '🎧' : type === 'writing' ? '✍️' : '📖';
         }
 
         // Xoá 1 bài đã giao: xoá doc assignments + MỌI submissions con của từng học sinh trong đó
@@ -1678,9 +1759,25 @@
 
                 // Dọn bài hết hạn (10 ngày, xem isAssignmentExpired()) — xoá cả assignment lẫn mọi
                 // submission con của nó, không chỉ 1 submission như cleanupExpiredAssignment() cũ.
+                // 1) Kết quả nào đã quá 14 ngày -> xoá phần kết quả chi tiết cho nhẹ dữ liệu
+                //    (giữ lại trạng thái xong/chưa xong để vẫn thấy tiến độ).
+                allSubs.forEach(s => {
+                    if (isResultExpired(s)) {
+                        updateDoc(doc(db, 'submissions', s.id), { result: deleteField(), resultExpiresAt: deleteField() }).catch(() => {});
+                        delete s.result; delete s.resultExpiresAt;
+                    }
+                });
+                const allSubsByAssignment = {};
+                allSubs.forEach(s => { (allSubsByAssignment[s.assignmentId] = allSubsByAssignment[s.assignmentId] || []).push(s); });
+
+                // 2) Bài giao chỉ bị xoá hẳn khi đã quá hạn 10 ngày VÀ không còn kết quả nào trong
+                //    14 ngày lưu — nếu còn, vẫn giữ để giáo viên bấm xem kết quả.
                 const activeAssignments = [];
                 const expiredAssignments = [];
-                allAssignments.forEach(a => (isAssignmentExpired(a) ? expiredAssignments : activeAssignments).push(a));
+                allAssignments.forEach(a => {
+                    const stillHasResults = (allSubsByAssignment[a.id] || []).some(hasLiveResult);
+                    (isAssignmentExpired(a) && !stillHasResults ? expiredAssignments : activeAssignments).push(a);
+                });
                 if (expiredAssignments.length) {
                     Promise.all(expiredAssignments.map(a => amDeleteAssignmentData(a.id, a.studentIds || []))).catch(() => {});
                 }
@@ -1774,14 +1871,14 @@
                 const studentName = amNamesMap[a.targetId] || a.targetLabel || sub.studentId || '';
                 return `
                     <div class="am-card am-type-student">
-                        <div class="am-card-header">
+                        <div class="am-card-header am-clickable" title="Bấm để xem kết quả bài làm" onclick="amShowResult('${a.id}', '${sub.studentId || a.targetId}')">
                             <div class="am-card-icon">${icon}</div>
                             <div class="am-card-main">
                                 <div class="am-card-title">${escapeHtmlIndex(studentName)} — ${escapeHtmlIndex(a.title || 'Bài tập')}</div>
                                 <div class="am-card-meta">🧑 Học sinh lẻ${deadlineTxt}</div>
                             </div>
-                            ${statusPill(sub)}
-                            <button class="am-card-del" title="Xoá bài đã giao" onclick="amDeleteAssignment('${a.id}')">🗑️</button>
+                            ${statusPill(sub)}${hasLiveResult(sub) ? '<span class="am-view-hint">👁 Xem</span>' : ''}
+                            <button class="am-card-del" title="Xoá bài đã giao" onclick="event.stopPropagation(); amDeleteAssignment('${a.id}')">🗑️</button>
                         </div>
                     </div>
                 `;
@@ -1794,9 +1891,9 @@
             const subRows = subs.slice()
                 .sort((x, y) => (amNamesMap[x.studentId] || '').localeCompare(amNamesMap[y.studentId] || ''))
                 .map(s => `
-                    <div class="am-sub-row">
+                    <div class="am-sub-row am-clickable" title="Bấm để xem kết quả bài làm" onclick="amShowResult('${a.id}', '${s.studentId}')">
                         <span class="am-sub-row-name">${escapeHtmlIndex(amNamesMap[s.studentId] || s.studentId)}</span>
-                        ${statusPill(s)}
+                        <span>${statusPill(s)}${hasLiveResult(s) ? '<span class="am-view-hint">👁 Xem</span>' : ''}</span>
                     </div>
                 `).join('');
 
@@ -1837,13 +1934,76 @@
             }
         }
 
+        // Mở bảng kết quả chi tiết của 1 học sinh cho 1 bài đã giao. Đọc LIVE từ Firestore để luôn
+        // thấy kết quả mới nhất (học sinh có thể vừa nộp xong khi giáo viên đang mở bảng).
+        async function amShowResult(assignmentId, studentId) {
+            const item = amAssignmentsCache.find(x => x.assignment.id === assignmentId);
+            const a = item ? item.assignment : {};
+            const name = amNamesMap[studentId] || studentId;
+            document.getElementById('rs-title').textContent = `${name} — ${a.title || 'Bài tập'}`;
+            const body = document.getElementById('rs-body');
+            body.innerHTML = '<p class="empty-hint">Đang tải kết quả...</p>';
+            const modal = document.getElementById('studentResultModal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+
+            let sub = null;
+            try {
+                const snap = await getDoc(doc(db, 'submissions', assignmentId + '_' + studentId));
+                if (snap.exists()) sub = snap.data();
+            } catch (e) { console.warn('amShowResult', e); }
+
+            if (!sub || !hasLiveResult(sub)) {
+                const why = !sub || sub.status !== 'done'
+                    ? 'Học sinh chưa nộp bài này' + (sub && sub.percent ? ` (đang làm được ${sub.percent}%)` : '') + '.'
+                    : 'Kết quả chi tiết không còn (đã quá 14 ngày, hoặc bài được nộp từ trang làm bài phiên bản cũ chưa gửi kết quả chi tiết).';
+                body.innerHTML = `<p class="empty-hint">${why}</p>`;
+                return;
+            }
+
+            const r = sub.result || {};
+            const answers = Array.isArray(r.answers) ? r.answers : [];
+            const score = r.score ?? sub.score ?? answers.filter(x => x.ok).length;
+            const total = r.total ?? answers.length;
+            const submitted = toMillisSafe(sub.completedAt) || toMillisSafe(r.submittedAt);
+            const fmtDate = ms => ms ? new Date(ms).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+            const mins = r.timeSpentSec ? Math.round(r.timeSpentSec / 60) + ' phút' : '';
+            const hasBy = answers.some(x => x.by);
+
+            const chips = [
+                `<div class="rs-chip"><b>${score}/${total}</b><span>Số câu đúng</span></div>`,
+                r.band ? `<div class="rs-chip"><b>${escapeHtmlIndex(r.band)}</b><span>Band</span></div>` : '',
+                `<div class="rs-chip"><b>${total ? Math.round(score / total * 100) : (sub.percent || 0)}%</b><span>Tỉ lệ đúng</span></div>`,
+                mins ? `<div class="rs-chip"><b>${mins}</b><span>Thời gian làm</span></div>` : ''
+            ].join('');
+
+            const rows = answers.map(x => `
+                <tr class="${x.ok ? 'rs-ok' : 'rs-bad'}">
+                    <td>${escapeHtmlIndex(x.q)}</td>
+                    <td>${x.user ? escapeHtmlIndex(x.user) : '<i style="color:#aaa;">(bỏ trống)</i>'}</td>
+                    <td>${escapeHtmlIndex(x.correct || '')}</td>
+                    ${hasBy ? `<td>${escapeHtmlIndex(x.by || '')}</td>` : ''}
+                    <td>${x.ok ? '✔' : '✘'}</td>
+                </tr>`).join('');
+
+            body.innerHTML = `
+                <div class="rs-summary">${chips}</div>
+                ${answers.length ? `
+                <table class="rs-table">
+                    <thead><tr><th>Câu</th><th>Học sinh trả lời</th><th>Đáp án</th>${hasBy ? '<th>Người điền</th>' : ''}<th></th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>` : '<p class="empty-hint">Bài này chỉ có điểm tổng, không có chi tiết từng câu.</p>'}
+                <p class="rs-note">Nộp lúc ${fmtDate(submitted)} · Kết quả tự xoá vào ${fmtDate(sub.resultExpiresAt)}</p>
+            `;
+        }
+
         // Expose các hàm được gọi từ onclick/onchange trong HTML — bắt buộc phải làm thế này vì
         // <script type="module"> có scope riêng, KHÔNG tự gắn function lên window như script thường.
         Object.assign(window, {
             checkAuthAndOpen, checkAuthAndScroll, closeModal, deleteMyWord, openMyStuff, switchMyStuffTab,
             openDashboard, openAssignmentsInbox, openAssignmentComposer,
             acSetTargetType, acOpenReadingPicker, acOpenListeningGenerator, acBackToChoices,
-            acRefreshReadingBooks, acRefreshReadingTests, acSubmitReadingAssignment,
+            acRefreshReadingBooks, acRefreshReadingTests, acSubmitReadingAssignment, acOpenTestPicker, amShowResult,
             toggleCreateClassForm, submitNewClass, deleteClass, toggleEditClass, saveClassStudents,
             saveUserRole, deleteUserAccountFromBtn, openAssignmentByIndex,
             openAssignmentsManager, amSetFilter, amOnSearchInput, amToggleCard, amDeleteAssignment
