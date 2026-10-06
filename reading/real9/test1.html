@@ -292,6 +292,14 @@
             margin-bottom: 10px;
         }
         .inline-blank-wrap { display: inline-block; }
+        /* "Complete the notes" dạng khối ghi chú/outline (có tiêu đề, gạch đầu dòng, thụt lề...) —
+           giữ nguyên xuống dòng + khoảng trắng gốc y hệt giáo viên đã gõ (xem genNotesFromTemplate()),
+           KHÔNG gộp thành 1 đoạn văn chảy liên tục như .inline-summary thường (dùng cho câu văn thật). */
+        .inline-summary.notes-template {
+            white-space: pre-wrap;
+            line-height: 2.1;
+            font-family: inherit;
+        }
         .inline-blank {
             width: 130px;
             text-align: center;
@@ -410,6 +418,39 @@
         }
         table.match-grid input.grid-radio { width: 18px; height: 18px; cursor: pointer; }
 
+        /* --- Table Completion ("Complete the table below") — bảng thật có cột/hàng, khác với
+           "Complete the notes" (khối ghi chú chảy liên tục) vì đề gốc TRÌNH BÀY dạng bảng thật,
+           mất cấu trúc cột/hàng nếu render như 1 đoạn văn — xem genTableGroup() bên dưới. */
+        .data-table-scroll-wrap { overflow-x: auto; margin: 10px 0; }
+        table.data-table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 14px;
+        }
+        table.data-table th, table.data-table td {
+            border: 1px solid #ddd;
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        table.data-table thead th { background: #f5f5f5; font-weight: 800; }
+        table.data-table .inline-blank { width: 110px; }
+
+        /* --- Summary/Sentence completion CÓ danh sách từ cho chọn (word bank) — select gọn nằm
+           giữa dòng chữ, khác .lettered-select thường (dùng cho list_match, rộng 220px cố định) --- */
+        .inline-select {
+            width: auto;
+            min-width: 110px;
+            max-width: 220px;
+            padding: 4px 6px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        /* --- Ghi chú/note giáo viên thêm vào bài đọc (chọn 1 đoạn chữ -> in đậm + note đỏ trong
+           ngoặc [ ] ngay bên phải) — xem cú pháp {{đoạn chữ|nội dung note}} ở công cụ soạn đề. --- */
+        .reading-note { color: var(--incorrect-color); font-weight: 700; font-size: 0.92em; }
+
         /* --- "Choose N of M" multi-select checkboxes --- */
         .multi-group .multi-hint {
             margin: 0 0 10px 0; font-style: italic; font-weight: 600; color: #666;
@@ -503,10 +544,72 @@
             color: #1a73e8;
         }
 
+        .annot-note-btn { color: var(--incorrect-color); font-weight: 700; }
+
         .user-annotation.user-highlight {
             border-radius: 2px;
             padding: 1px 0;
         }
+
+        /* Note input popup — hiện thay chỗ #annot-toolbar khi bấm nút "📝 Note" */
+        #note-input-box {
+            position: absolute;
+            display: none;
+            align-items: center;
+            gap: 4px;
+            background: white;
+            border-radius: 30px;
+            padding: 5px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            z-index: 1000;
+            font-family: 'Inter', sans-serif;
+            border: 1px solid #e5e5e5;
+        }
+        #note-input-field {
+            border: none;
+            outline: none;
+            font-size: 13px;
+            padding: 6px 10px;
+            width: 200px;
+            font-family: 'Inter', sans-serif;
+        }
+        #note-input-ok, #note-input-cancel {
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        #note-input-ok { color: #2e7d32; font-weight: 700; }
+        #note-input-cancel { color: var(--incorrect-color); font-weight: 700; }
+        #note-input-ok:hover, #note-input-cancel:hover { background: #f0f0f0; }
+
+        /* Highlight tạm thời trong lúc đang gõ note (giữ cho người dùng vẫn thấy rõ đoạn chữ mình vừa
+           chọn, vì mở ô nhập note sẽ làm trình duyệt tự huỷ vùng bôi đen xanh mặc định) */
+        .note-pending-highlight { background: #fff3b0; border-radius: 2px; padding: 1px 0; }
+
+        /* Nút nổi "🗑 Xóa note" khi bấm trực tiếp vào 1 note đã có sẵn */
+        #note-delete-box {
+            position: absolute;
+            display: none;
+            z-index: 1000;
+        }
+        #note-delete-btn {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 30px;
+            padding: 8px 14px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--incorrect-color);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        #note-delete-btn:hover { background: #fdecea; }
 
         /* Translation Popup */
         #trans-box {
@@ -658,8 +761,25 @@
         <button class="annot-btn" id="annot-underline" title="Gạch chân"><u>U</u></button>
         <button class="annot-btn" id="annot-strike" title="Gạch ngang"><s>abc</s></button>
         <button class="annot-btn" id="annot-erase" title="Xóa định dạng">🧹</button>
+        <button class="annot-btn annot-note-btn" id="annot-note-btn" title="Thêm note">📝 Note</button>
         <span class="annot-divider"></span>
         <button class="annot-btn annot-translate" id="annot-translate-btn" title="Dịch">🌐 Dịch</button>
+    </div>
+
+    <!-- Note input popup (bôi đen chữ -> bấm "📝 Note" trên thanh nổi -> gõ note ở đây -> đoạn đã
+         chọn được IN ĐẬM, note hiện chữ ĐỎ trong ngoặc [ ] ngay bên phải. Chỉ là ghi chú cá nhân của
+         người đang làm bài trên máy/trình duyệt này lúc đó — giống hệt highlight/gạch chân/gạch ngang
+         ở trên, không lưu lại qua lần tải trang sau, không đồng bộ giữa các người dùng khác nhau. -->
+    <div id="note-input-box">
+        <input type="text" id="note-input-field" placeholder="Nhập nội dung note…" maxlength="200" />
+        <button type="button" id="note-input-ok" title="Thêm note">✓</button>
+        <button type="button" id="note-input-cancel" title="Huỷ">✕</button>
+    </div>
+
+    <!-- Bấm trực tiếp vào 1 note đã có (chữ in đậm hoặc phần [note] đỏ) -> nút này nổi lên để xoá riêng
+         note đó, không cần bôi đen lại. -->
+    <div id="note-delete-box">
+        <button type="button" id="note-delete-btn">🗑 Xóa note</button>
     </div>
 
     <!-- Translation Popup -->
@@ -689,7 +809,6 @@
         </div>
     </div>
 
-    <!-- Setup Screen -->
     <!-- Live "làm chung" Session Modal -->
     <div id="live-session-modal" class="overlay" style="display:none;">
         <div class="modal-box" style="max-width:480px; text-align:left;">
@@ -761,9 +880,9 @@
             <div class="question-nav" id="q-nav-p3" style="display:none;"></div>
         </div>
         <div class="header-right">
+            <button class="nav-btn" onclick="openVocabBook()">📖 Sổ từ vựng (<span id="vocab-count">0</span>)</button>
             <button class="nav-btn" onclick="toggleLiveSessionBox()">🔴 Làm chung</button>
             <span class="timer" id="live-participant-badge" style="display:none;">👥 <span id="live-participant-count">1</span></span>
-            <button class="nav-btn" onclick="openVocabBook()">📖 Sổ từ vựng (<span id="vocab-count">0</span>)</button>
             <div class="timer" id="timer-display" style="display:none;">60:00</div>
             <button class="submit-btn" id="main-submit-btn" onclick="submitTest()">Nộp bài</button>
         </div>
@@ -841,9 +960,8 @@
         // (1 Passage hay cả bài) mà giáo viên đã giao, thay vì luôn mở full 3 Passage mập mờ.
         const __assignParams = new URLSearchParams(location.search);
         const ASSIGN_ID = __assignParams.get('assignmentId') || '';
-        const ASSIGN_UID = __assignParams.get('uid') || '';
         const ASSIGN_SCOPE = __assignParams.get('scope') || 'all'; // 'all' | '1' | '2' | '3'
-        const IS_ASSIGNMENT_MODE = !!(ASSIGN_ID && ASSIGN_UID);
+        const IS_ASSIGNMENT_MODE = !!ASSIGN_ID;
         function assignmentScopeLabel() {
             return (ASSIGN_SCOPE === '1' || ASSIGN_SCOPE === '2' || ASSIGN_SCOPE === '3')
                 ? `Passage ${ASSIGN_SCOPE}` : 'Cả bài (3 Passage)';
@@ -955,11 +1073,27 @@
                         // tục (giống summary thật), không tách mỗi câu ra 1 dòng riêng có số tròn to.
                         html += genInlineGroup(g.questions);
                     } else if (g.type === 'text') {
-                        // Complete the notes/table (điền từ): CÙNG 1 cách render như 'inline' ở trên
-                        // — gộp cả nhóm thành 1 khối chảy liên tục, số câu nằm trong ô nhập liệu.
-                        // Khác 1 chỗ: 'text' không có sẵn pre/post tách riêng — tự tách bằng cách tìm
-                        // dấu gạch chân/chấm lửng (___, ...) trong q.text (xem splitBlankMarker()).
-                        html += genNotesGroup(g.questions);
+                        // Complete the notes: 2 kiểu nội dung khác nhau, KHÔNG dùng chung 1 cách render —
+                        // xem genNotesFromTemplate()/genNotesGroup() bên dưới để biết vì sao phải phân biệt.
+                        // - Có g.notesTemplate (giáo viên dán nguyên khối ghi chú/outline, có tiêu đề, gạch
+                        //   đầu dòng...): giữ NGUYÊN 100% chữ gốc, chỉ thay mỗi dấu "_____" bằng 1 ô nhập.
+                        // - Không có (nhóm chỉ là 1 đoạn văn liền mạch, câu nào cũng có blank riêng): dùng
+                        //   cách cũ — tự ghép pre/post của từng câu lại thành 1 khối chảy liên tục.
+                        html += (g.notesTemplate && g.notesTemplate.trim())
+                            ? genNotesFromTemplate(g.notesTemplate, g.questions)
+                            : genNotesGroup(g.questions);
+                    } else if (g.type === 'table') {
+                        // Complete the table below: đề gốc là 1 BẢNG THẬT có cột/hàng (vd Stepwells |
+                        // Date | Features | Other notes) — khác "Complete the notes" (khối ghi chú chảy
+                        // liên tục), nên render đúng thành <table> giữ nguyên cột/hàng, xem genTableGroup().
+                        html += genTableGroup(g.tableColumns || [], g.tableRows || [], g.questions);
+                    } else if (g.type === 'wordbank') {
+                        // Summary/Sentence completion CÓ SẴN danh sách từ (word list/box) — khác "text"
+                        // (điền từ tự gõ, lấy nguyên văn từ bài đọc): ở đây học sinh CHỌN đúng từ trong
+                        // 1 ngân hàng cho sẵn (thường NHIỀU từ hơn số chỗ trống), không được gõ tự do.
+                        // Vẫn là 1 đoạn văn chảy liên tục (dùng g.notesTemplate y hệt "text" (b)), chỉ
+                        // khác chỗ mỗi blank là 1 <select> thay vì <input> tự gõ — xem genWordBankGroup().
+                        html += genWordBankGroup(g.notesTemplate || '', g.options || [], g.questions);
                     } else {
                         g.questions.forEach(q => {
                             if (g.type === 'tfng') {
@@ -1051,6 +1185,126 @@
                 const { pre, post } = splitBlankMarker(q.text || '');
                 return { qNum: q.qNum, pre, post };
             }));
+        }
+
+        // "Complete the notes" khi đề KHÔNG phải 1 đoạn văn liền mạch mà là 1 khối ghi chú/outline có
+        // tiêu đề, gạch đầu dòng, các dòng con thụt lề... (vd lịch sử cuộc đời theo từng mốc thời gian).
+        // Ghép từng câu riêng lẻ như genNotesGroup() sẽ làm MẤT toàn bộ cấu trúc đó (tiêu đề, những dòng
+        // không có chỗ trống...). Ở đây ngược lại: giáo viên dán NGUYÊN VĂN cả khối ghi chú vào 1 ô duy
+        // nhất (template, giữ nguyên xuống dòng), đánh dấu mỗi chỗ trống bằng ___/..../… theo ĐÚNG thứ tự
+        // câu hỏi trong nhóm — hàm này CHỈ thay từng dấu đó bằng 1 ô nhập, còn lại giữ y nguyên 100% (kể
+        // cả tiêu đề, gạch đầu dòng, những dòng không có chỗ trống nào) nhờ escapeHtml() + white-space:
+        // pre-wrap (xem CSS .notes-template) để xuống dòng/khoảng trắng gốc hiển thị đúng như đã gõ.
+        function genNotesFromTemplate(template, questions) {
+            const re = /_{2,}|\.{4,}|…+/g;
+            const segments = [];
+            let lastIndex = 0, qi = 0, m;
+            while (qi < questions.length && (m = re.exec(template)) !== null) {
+                segments.push({ text: template.slice(lastIndex, m.index) });
+                segments.push({ q: questions[qi] });
+                lastIndex = m.index + m[0].length;
+                qi++;
+            }
+            segments.push({ text: template.slice(lastIndex) });
+            // Nếu template có ÍT dấu chỗ trống hơn số câu trong nhóm (giáo viên gõ thiếu ___), vẫn
+            // thêm ô nhập cho các câu còn lại vào cuối cùng để không mất câu hỏi nào.
+            for (; qi < questions.length; qi++) segments.push({ q: questions[qi] });
+
+            const bodyHtml = segments.map(seg => {
+                if (seg.q) {
+                    return `<span class="inline-blank-wrap" id="q-container-${seg.q.qNum}"><input type="text" class="text-input inline-blank" name="q${seg.q.qNum}" placeholder="${seg.q.qNum}"></span>`;
+                }
+                return escapeHtml(seg.text);
+            }).join('');
+            const feedbackHtml = questions.map(q => `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `<div class="inline-summary notes-template">${bodyHtml}</div>${feedbackHtml}`;
+        }
+
+        // Thay lần lượt từng dấu chỗ trống (___/..../…) trong 1 đoạn text bằng 1 ô nhập, bắt đầu từ
+        // questions[startQi] — dùng CHUNG logic với genNotesFromTemplate() nhưng nhận thêm "con trỏ"
+        // startQi vì genTableGroup() cần đánh số blank xuyên suốt NHIỀU Ô của bảng theo đúng thứ tự
+        // đọc trái-qua-phải, trên-xuống-dưới (không reset lại mỗi ô như genNotesFromTemplate làm với
+        // mỗi khối text riêng biệt). Trả về {html, qi} để caller biết đã dùng tới câu hỏi thứ mấy.
+        function fillBlanksInText(text, questions, startQi) {
+            const re = /_{2,}|\.{4,}|…+/g;
+            let qi = startQi, lastIndex = 0, m;
+            let out = '';
+            while (qi < questions.length && (m = re.exec(text)) !== null) {
+                out += escapeHtml(text.slice(lastIndex, m.index));
+                const q = questions[qi];
+                out += `<span class="inline-blank-wrap" id="q-container-${q.qNum}"><input type="text" class="text-input inline-blank" name="q${q.qNum}" placeholder="${q.qNum}"></span>`;
+                lastIndex = m.index + m[0].length;
+                qi++;
+            }
+            out += escapeHtml(text.slice(lastIndex));
+            return { html: out, qi };
+        }
+
+        // "Complete the table below": đề gốc là 1 bảng THẬT có cột/hàng (test-builder đã tách sẵn
+        // thành columns[] + rows[][] khi xuất bản — xem currentTestPaths()/buildTestHTML() phía tool
+        // soạn đề). Ô nào KHÔNG có chỗ trống thì hiện nguyên văn; ô nào có 1+ dấu ___ thì thay bằng ô
+        // nhập, đánh số blank LIÊN TỤC theo thứ tự đọc bảng (trái→phải, trên→dưới) khớp đúng thứ tự
+        // các câu hỏi trong nhóm — giữ được cấu trúc cột/hàng thật thay vì dồn hết thành 1 đoạn văn
+        // chảy liên tục như "Complete the notes" (xem genNotesFromTemplate).
+        function genTableGroup(columns, rows, questions) {
+            let qi = 0;
+            const theadHtml = (columns && columns.length)
+                ? `<thead><tr>${columns.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr></thead>`
+                : '';
+            const tbodyHtml = (rows || []).map(row => {
+                const cellsHtml = (row || []).map(cellText => {
+                    const filled = fillBlanksInText(cellText || '', questions, qi);
+                    qi = filled.qi;
+                    return `<td>${filled.html}</td>`;
+                }).join('');
+                return `<tr>${cellsHtml}</tr>`;
+            }).join('');
+            // Nếu bảng có ÍT chỗ trống hơn số câu trong nhóm, vẫn thêm ô nhập cho các câu còn lại
+            // (không mất câu hỏi nào) — dồn vào cuối dòng cuối bảng dưới dạng 1 hàng phụ.
+            let extraRowHtml = '';
+            if (qi < questions.length) {
+                const remaining = questions.slice(qi);
+                const spans = remaining.map(q => `<span class="inline-blank-wrap" id="q-container-${q.qNum}"><input type="text" class="text-input inline-blank" name="q${q.qNum}" placeholder="${q.qNum}"></span>`).join(' ');
+                extraRowHtml = `<tr><td colspan="${Math.max(1, (columns || []).length)}">${spans}</td></tr>`;
+            }
+            const feedbackHtml = questions.map(q => `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `<div class="data-table-scroll-wrap"><table class="data-table">${theadHtml}<tbody>${tbodyHtml}${extraRowHtml}</tbody></table></div>${feedbackHtml}`;
+        }
+
+        // Summary/Sentence completion CÓ SẴN danh sách từ (word list/box) — khác genNotesFromTemplate
+        // (điền tự gõ): ở đây mỗi chỗ trống là 1 <select> chọn từ ngân hàng chung "options" (thường
+        // NHIỀU lựa chọn hơn số chỗ trống, đúng chuẩn IELTS thật — học sinh phải loại trừ bớt). Ngân
+        // hàng hiện 1 lần dạng "chip" phía trên (giống genLettered), select mặc định hiện SỐ THỨ TỰ
+        // câu hỏi (option value="") để học sinh biết đang ở câu mấy trước khi chọn — cùng quy ước với
+        // mọi loại "điền chỗ trống" khác trong bài (xem fillBlanksInText/genNotesFromTemplate).
+        function genWordBankGroup(template, options, questions) {
+            const legendHtml = `<div class="match-bank match-legend">${options.map(opt =>
+                `<div class="match-chip match-chip-static">${opt}</div>`).join('')}</div>`;
+
+            const re = /_{2,}|\.{4,}|…+/g;
+            const segments = [];
+            let lastIndex = 0, qi = 0, m;
+            while (qi < questions.length && (m = re.exec(template)) !== null) {
+                segments.push({ text: template.slice(lastIndex, m.index) });
+                segments.push({ q: questions[qi] });
+                lastIndex = m.index + m[0].length;
+                qi++;
+            }
+            segments.push({ text: template.slice(lastIndex) });
+            for (; qi < questions.length; qi++) segments.push({ q: questions[qi] });
+
+            const bodyHtml = segments.map(seg => {
+                if (seg.q) {
+                    const optHtml = options.map(opt => {
+                        const letter = (opt.split('.')[0] || '').trim();
+                        return `<option value="${letter}">${opt}</option>`;
+                    }).join('');
+                    return `<span class="inline-blank-wrap" id="q-container-${seg.q.qNum}"><select name="q${seg.q.qNum}" class="lettered-select inline-select"><option value="">${seg.q.qNum}</option>${optHtml}</select></span>`;
+                }
+                return escapeHtml(seg.text);
+            }).join('');
+            const feedbackHtml = questions.map(q => `<div class="feedback-box" id="fb-${q.qNum}" style="margin-top:6px;"></div>`).join('');
+            return `${legendHtml}<div class="inline-summary notes-template">${bodyHtml}</div>${feedbackHtml}`;
         }
 
         // Matching / drag-drop question type: a bank of draggable option chips
@@ -1596,6 +1850,34 @@
             return score;
         }
 
+        // ---- KẾT QUẢ CHI TIẾT gửi về cho giáo viên (index.html → "Bài Đã Giao" → bấm vào học sinh).
+        //      Lưu 14 ngày rồi index.html tự xoá. `by` = nickname người điền câu đó khi "Làm chung". ----
+        function buildBsehResultDetail(startQ, endQ, score, total, band) {
+            const by = window.__bsehLiveBy || {};
+            const answers = [];
+            for (let i = startQ; i <= endQ; i++) {
+                let uAns = '';
+                const inputs = document.getElementsByName(`q${i}`);
+                if (inputs.length > 0) {
+                    if (inputs[0].type === 'radio') inputs.forEach(r => { if (r.checked) uAns = r.value; });
+                    else uAns = (inputs[0].value || '').trim();
+                }
+                const correct = String((testData[i] && testData[i].answer) || '');
+                const ok = uAns.toUpperCase() === correct.toUpperCase();
+                const row = { q: String(i), user: uAns, correct: correct, ok: ok };
+                if (by[i]) row.by = String(by[i]);
+                answers.push(row);
+            }
+            const started = window.__bsehStartedAt || 0;
+            return { score: score, total: total, band: band, answers: answers, submittedAt: Date.now(),
+                     timeSpentSec: started ? Math.round((Date.now() - started) / 1000) : 0 };
+        }
+        function bsehResultFields() {
+            const r = window.__bsehLastResult;
+            if (!r) return {};
+            return { score: r.score, result: r, resultExpiresAt: Date.now() + 14 * 24 * 60 * 60 * 1000 };
+        }
+
         function submitTest() {
             if(timerInterval) clearInterval(timerInterval);
 
@@ -1621,6 +1903,7 @@
             const band = calculateBand(score);
             document.getElementById('band-score').innerText = band;
 
+            try { window.__bsehLastResult = buildBsehResultDetail(startQ, endQ, score, total, band); } catch (e) { console.warn('BSEH result detail', e); }
             saveProgressRecord(score, total, band);
 
             // Khi đang nộp 1 bài tập được giao: hiện rõ banner "Đã nộp homework thành công" +
@@ -1697,38 +1980,45 @@
             }
         }
 
-        // --- Annotation Toolbar (highlight / underline / strikethrough / eraser) ---
+        // --- Annotation Toolbar (highlight / underline / strikethrough / eraser / note) ---
         const annotToolbar = document.getElementById('annot-toolbar');
         const transBox = document.getElementById('trans-box');
+        const noteInputBox = document.getElementById('note-input-box');
+        const noteInputField = document.getElementById('note-input-field');
         let selectedTextStr = "";
         let savedRange = null;
         let currentTranslation = null;
+        let noteInputOpen = false;
 
         // Keep text selection alive while clicking toolbar buttons
         annotToolbar.addEventListener('mousedown', e => e.preventDefault());
+        noteInputBox.addEventListener('mousedown', e => e.preventDefault());
 
         const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
 
-        function positionToolbar(rect) {
-            // On touch devices (iPad etc.) place the toolbar BELOW the selection so it
+        function positionFloatingBox(boxEl, rect) {
+            // On touch devices (iPad etc.) place the box BELOW the selection so it
             // doesn't collide/overlap with the OS's own native selection toolbar (which
             // pops up above the selection).
-            annotToolbar.style.visibility = 'hidden';
-            annotToolbar.style.display = 'flex';
-            const tbWidth = annotToolbar.offsetWidth || 220;
+            boxEl.style.visibility = 'hidden';
+            boxEl.style.display = 'flex';
+            const tbWidth = boxEl.offsetWidth || 220;
             const top = isCoarsePointer
                 ? (rect.bottom + window.scrollY + 14)
                 : (rect.top + window.scrollY - 48);
             let left = rect.left + window.scrollX + (rect.width / 2) - (tbWidth / 2);
             left = Math.max(10, Math.min(left, window.scrollX + window.innerWidth - tbWidth - 10));
-            annotToolbar.style.top = top + 'px';
-            annotToolbar.style.left = left + 'px';
-            annotToolbar.style.visibility = 'visible';
+            boxEl.style.top = top + 'px';
+            boxEl.style.left = left + 'px';
+            boxEl.style.visibility = 'visible';
         }
 
+        function positionToolbar(rect) { positionFloatingBox(annotToolbar, rect); }
+
         function handleSelectionUI(e) {
-            // Don't trigger if clicking inside the toolbar or the translation box itself
-            if (e && (transBox.contains(e.target) || annotToolbar.contains(e.target))) return;
+            // Don't trigger if clicking inside the toolbar, note-input popup, or translation box itself
+            if (e && (transBox.contains(e.target) || annotToolbar.contains(e.target) || noteInputBox.contains(e.target))) return;
+            if (noteInputOpen) return; // đang gõ dở note thì không xử lý lại theo selection nữa
 
             const selection = window.getSelection();
             const text = selection.toString().trim();
@@ -1747,6 +2037,7 @@
                 positionToolbar(rect);
                 annotToolbar.style.display = 'flex';
                 transBox.style.display = 'none'; // hide translation box if making a new selection
+                noteInputBox.style.display = 'none'; noteInputOpen = false; // hide note popup too
             } else {
                 annotToolbar.style.display = 'none';
                 if (!(e && transBox.contains(e.target))) transBox.style.display = 'none';
@@ -1766,18 +2057,22 @@
 
         // Touch: dismiss the toolbar when tapping empty space with no active selection
         document.addEventListener('touchstart', function(e) {
-            if (!annotToolbar.contains(e.target) && !transBox.contains(e.target)) {
+            if (!annotToolbar.contains(e.target) && !transBox.contains(e.target) && !noteInputBox.contains(e.target) && !noteDeleteBox.contains(e.target)) {
                 const sel = window.getSelection();
                 if (!sel || sel.toString().trim() === '') {
                     annotToolbar.style.display = 'none';
+                    if (!noteInputOpen) noteInputBox.style.display = 'none';
+                    if (!findNoteAtClick(e.target)) hideNoteDeleteBox();
                 }
             }
         }, { passive: true });
 
         // --- Robust multi-node wrap/erase so annotations survive selections that
         //     span multiple paragraphs or existing <span id="loc-..."> markers ---
+        // Trả về mảng các phần tử wrapper vừa tạo (theo đúng thứ tự trong văn bản) — dùng để, vd, chèn
+        // thêm 1 note ngay sau phần tử CUỐI CÙNG khi vùng chọn note trải dài qua nhiều đoạn/node.
         function wrapRangeNodes(range, makeWrapper) {
-            if (!range || range.collapsed) return;
+            if (!range || range.collapsed) return [];
             const root = range.commonAncestorContainer;
             const walker = document.createTreeWalker(
                 root.nodeType === 3 ? root.parentNode : root,
@@ -1789,6 +2084,7 @@
             while (node = walker.nextNode()) {
                 if (range.intersectsNode(node) && node.nodeValue.trim() !== '') nodes.push(node);
             }
+            const wrappers = [];
             nodes.forEach(textNode => {
                 const nodeRange = document.createRange();
                 nodeRange.selectNodeContents(textNode);
@@ -1796,13 +2092,16 @@
                 if (textNode === range.endContainer) nodeRange.setEnd(textNode, range.endOffset);
                 if (nodeRange.collapsed) return;
                 try {
-                    nodeRange.surroundContents(makeWrapper());
+                    const wrapper = makeWrapper();
+                    nodeRange.surroundContents(wrapper);
+                    wrappers.push(wrapper);
                 } catch (err) { /* skip nodes that can't be safely wrapped */ }
             });
+            return wrappers;
         }
 
         function applyHighlight(range, color, textColor) {
-            wrapRangeNodes(range, () => {
+            return wrapRangeNodes(range, () => {
                 const span = document.createElement('span');
                 span.className = 'user-annotation user-highlight';
                 span.style.backgroundColor = color;
@@ -1814,7 +2113,7 @@
         }
 
         function applyUnderline(range) {
-            wrapRangeNodes(range, () => {
+            return wrapRangeNodes(range, () => {
                 const span = document.createElement('span');
                 span.className = 'user-annotation';
                 span.style.textDecoration = 'underline';
@@ -1825,7 +2124,7 @@
         }
 
         function applyStrike(range) {
-            wrapRangeNodes(range, () => {
+            return wrapRangeNodes(range, () => {
                 const span = document.createElement('span');
                 span.className = 'user-annotation';
                 span.style.textDecoration = 'line-through';
@@ -1835,10 +2134,15 @@
         }
 
         function eraseAnnotations(range) {
-            if (!range) return;
+            if (!range) return [];
+            const removedIds = [];
             document.querySelectorAll('.user-annotation').forEach(el => {
-                if (range.intersectsNode(el)) unwrapElement(el);
+                if (range.intersectsNode(el)) {
+                    if (el.dataset && el.dataset.annotId) removedIds.push(el.dataset.annotId);
+                    unwrapElement(el);
+                }
             });
+            return removedIds;
         }
 
         function unwrapElement(el) {
@@ -1849,6 +2153,100 @@
             parent.normalize();
         }
 
+        // --- Character-offset helpers + hooks dùng để đồng bộ highlight/gạch chân/gạch ngang/note
+        //     theo thời gian thực cho tính năng "Làm chung" (xem <script type="module"> ở cuối file).
+        //     Vị trí annotation được lưu dạng offset ký tự trong TOÀN BỘ text của #passage-N-text
+        //     (tính bằng TreeWalker(SHOW_TEXT)) thay vì lưu trực tiếp DOM Range — vì Range không thể
+        //     gửi qua mạng, còn offset ký tự thì ổn định bất kể có bao nhiêu span/wrapper khác đã bọc
+        //     quanh đoạn văn (bọc span không làm thay đổi độ dài text). window.__onAnnotCreate/
+        //     __onAnnotRemove do module đồng bộ gán vào — nếu module đó chưa chạy (vd mất mạng) thì
+        //     các hàm dưới đây chỉ đơn giản không làm gì thêm, tính năng ghi chú/tô màu vẫn hoạt động
+        //     bình thường như cũ. ---
+        let __annotSeq = 0;
+        function __newAnnotId() {
+            return 'a' + Date.now().toString(36) + '_' + (__annotSeq++).toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+        }
+        function findPassageContainer(node) {
+            let el = node && node.nodeType === 3 ? node.parentElement : node;
+            while (el && el !== document.body) {
+                if (el.id && /^passage-\d-text$/.test(el.id)) return el;
+                el = el.parentElement;
+            }
+            return null;
+        }
+        function getTextOffsets(container, range) {
+            const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
+            let offset = 0, start = -1, end = -1, node;
+            while (node = walker.nextNode()) {
+                const len = node.nodeValue.length;
+                if (start === -1 && node === range.startContainer) start = offset + range.startOffset;
+                if (node === range.endContainer) end = offset + range.endOffset;
+                offset += len;
+            }
+            if (start === -1 || end === -1) return null;
+            return { start, end };
+        }
+        function rangeFromTextOffsets(container, start, end) {
+            const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
+            let offset = 0, node, range = document.createRange(), startSet = false, endSet = false;
+            while (node = walker.nextNode()) {
+                const len = node.nodeValue.length;
+                if (!startSet && offset + len >= start) { range.setStart(node, Math.max(0, start - offset)); startSet = true; }
+                if (!endSet && offset + len >= end) { range.setEnd(node, Math.max(0, end - offset)); endSet = true; break; }
+                offset += len;
+            }
+            if (!startSet || !endSet) return null;
+            return range;
+        }
+        function __captureAnnotContext(range) {
+            if (!range) return null;
+            const container = findPassageContainer(range.commonAncestorContainer);
+            if (!container) return null;
+            const offsets = getTextOffsets(container, range);
+            if (!offsets) return null;
+            return { passageId: container.id, start: offsets.start, end: offsets.end };
+        }
+        function __finishAnnotCreate(info, wrappers, type, extra) {
+            if (!info || !wrappers || !wrappers.length) return;
+            const annotId = __newAnnotId();
+            wrappers.forEach(w => { w.dataset.annotId = annotId; });
+            if (typeof window.__onAnnotCreate === 'function') {
+                try { window.__onAnnotCreate(annotId, type, info.passageId, info.start, info.end, extra === undefined ? null : extra); } catch (e) {}
+            }
+        }
+        // Áp lại (từ RTDB) 1 annotation do người khác vừa tạo — dùng lại chính applyHighlight/
+        // applyUnderline/applyStrike ở trên nên style ra y hệt annotation tạo tại chỗ.
+        window.__replayAnnotCreate = function (annotId, type, passageId, start, end, extra) {
+            if (document.querySelector('[data-annot-id="' + annotId + '"]')) return; // đã có (vd chính client này vừa tạo) -> bỏ qua
+            const container = document.getElementById(passageId);
+            if (!container) return;
+            const range = rangeFromTextOffsets(container, start, end);
+            if (!range) return;
+            let wrappers = [];
+            if (type === 'highlight') wrappers = applyHighlight(range, extra && extra.color, extra && extra.textColor) || [];
+            else if (type === 'underline') wrappers = applyUnderline(range) || [];
+            else if (type === 'strike') wrappers = applyStrike(range) || [];
+            else if (type === 'note') {
+                wrappers = wrapRangeNodes(range, () => {
+                    const b = document.createElement('b');
+                    b.className = 'user-annotation user-note-phrase';
+                    return b;
+                });
+                if (wrappers.length) {
+                    const noteSpan = document.createElement('span');
+                    noteSpan.className = 'user-annotation reading-note';
+                    noteSpan.textContent = ' [' + extra + ']';
+                    const last = wrappers[wrappers.length - 1];
+                    last.parentNode.insertBefore(noteSpan, last.nextSibling);
+                    wrappers = wrappers.concat([noteSpan]);
+                }
+            }
+            wrappers.forEach(w => { w.dataset.annotId = annotId; });
+        };
+        window.__replayAnnotRemove = function (annotId) {
+            document.querySelectorAll('[data-annot-id="' + annotId + '"]').forEach(el => unwrapElement(el));
+        };
+
         function cleanupAfterAnnotate() {
             annotToolbar.style.display = 'none';
             window.getSelection().removeAllRanges();
@@ -1857,21 +2255,176 @@
 
         document.querySelectorAll('.annot-color').forEach(btn => {
             btn.addEventListener('click', () => {
-                applyHighlight(savedRange, btn.dataset.color, btn.dataset.textColor || null);
+                const info = __captureAnnotContext(savedRange);
+                const wrappers = applyHighlight(savedRange, btn.dataset.color, btn.dataset.textColor || null);
+                __finishAnnotCreate(info, wrappers, 'highlight', { color: btn.dataset.color, textColor: btn.dataset.textColor || null });
                 cleanupAfterAnnotate();
             });
         });
         document.getElementById('annot-underline').addEventListener('click', () => {
-            applyUnderline(savedRange);
+            const info = __captureAnnotContext(savedRange);
+            const wrappers = applyUnderline(savedRange);
+            __finishAnnotCreate(info, wrappers, 'underline');
             cleanupAfterAnnotate();
         });
         document.getElementById('annot-strike').addEventListener('click', () => {
-            applyStrike(savedRange);
+            const info = __captureAnnotContext(savedRange);
+            const wrappers = applyStrike(savedRange);
+            __finishAnnotCreate(info, wrappers, 'strike');
             cleanupAfterAnnotate();
         });
         document.getElementById('annot-erase').addEventListener('click', () => {
-            eraseAnnotations(savedRange);
+            const removedIds = eraseAnnotations(savedRange);
+            if (typeof window.__onAnnotRemove === 'function') {
+                removedIds.forEach(id => { try { window.__onAnnotRemove(id); } catch (e) {} });
+            }
             cleanupAfterAnnotate();
+        });
+
+        // --- Note popup: bấm "📝 Note" trên thanh nổi -> ẩn thanh nổi, hiện ô nhập note ngay tại
+        //     đúng vị trí đó -> Enter/nút ✓ để xác nhận, Esc/nút ✕ để huỷ.
+        //     QUAN TRỌNG: bấm vào ô nhập (input) sẽ làm trình duyệt tự huỷ vùng bôi đen xanh mặc định,
+        //     nên NGAY khi mở ô nhập, đoạn chữ vừa chọn được bọc tạm trong 1 lớp highlight vàng
+        //     (.note-pending-highlight) để người dùng vẫn thấy rõ mình đang note cho đúng đoạn nào.
+        //     Xác nhận thì lớp tạm này được "chốt" thành in đậm + note đỏ; Huỷ thì gỡ ra, trả nguyên
+        //     trạng đoạn chữ. ---
+        let pendingNoteWrappers = [];
+        let pendingNoteAnnotInfo = null;
+
+        document.getElementById('annot-note-btn').addEventListener('click', () => {
+            if (!savedRange) return;
+            pendingNoteAnnotInfo = __captureAnnotContext(savedRange);
+            const wrappers = wrapRangeNodes(savedRange, () => {
+                const span = document.createElement('span');
+                span.className = 'note-pending-highlight';
+                return span;
+            });
+            if (wrappers.length === 0) {
+                alert('Không thể thêm note vào đúng đoạn đã chọn (có thể vùng chọn đè lên định dạng khác). Vui lòng bôi đen lại 1 đoạn chữ khác rồi thử lại.');
+                cleanupAfterAnnotate();
+                return;
+            }
+            pendingNoteWrappers = wrappers;
+            const rect = wrappers[0].getBoundingClientRect();
+            annotToolbar.style.display = 'none';
+            noteInputOpen = true;
+            noteInputField.value = '';
+            positionFloatingBox(noteInputBox, rect);
+            noteInputField.focus();
+        });
+
+        function closeNoteInput(clearSelection) {
+            noteInputBox.style.display = 'none';
+            noteInputOpen = false;
+            if (clearSelection) {
+                window.getSelection().removeAllRanges();
+                savedRange = null;
+            }
+        }
+
+        function confirmNoteInput() {
+            const noteText = noteInputField.value.trim();
+            if (!noteText) { noteInputField.focus(); return; }
+            // "Chốt" từng đoạn highlight tạm thành <b> thật (giữ nguyên text bên trong, chỉ đổi span -> b).
+            const finalWrappers = pendingNoteWrappers.map(span => {
+                const b = document.createElement('b');
+                b.className = 'user-annotation user-note-phrase';
+                while (span.firstChild) b.appendChild(span.firstChild);
+                span.parentNode.replaceChild(b, span);
+                return b;
+            });
+            pendingNoteWrappers = [];
+            const lastWrapper = finalWrappers[finalWrappers.length - 1];
+            // Dùng lại đúng class .reading-note mà công cụ soạn đề dùng cho note giáo viên soạn sẵn lúc
+            // build, nên style giống hệt nhau. Cả phần in đậm lẫn phần note đều mang "user-annotation"
+            // nên nút "🧹 Xóa định dạng" vẫn xoá được, và bấm trực tiếp vào note cũng xoá được riêng nó
+            // (xem trình xử lý click "Xóa note" bên dưới).
+            const noteSpan = document.createElement('span');
+            noteSpan.className = 'user-annotation reading-note';
+            noteSpan.textContent = ` [${noteText}]`;
+            lastWrapper.parentNode.insertBefore(noteSpan, lastWrapper.nextSibling);
+
+            if (pendingNoteAnnotInfo) {
+                const annotId = __newAnnotId();
+                finalWrappers.forEach(w => { w.dataset.annotId = annotId; });
+                noteSpan.dataset.annotId = annotId;
+                if (typeof window.__onAnnotCreate === 'function') {
+                    try { window.__onAnnotCreate(annotId, 'note', pendingNoteAnnotInfo.passageId, pendingNoteAnnotInfo.start, pendingNoteAnnotInfo.end, noteText); } catch (e) {}
+                }
+            }
+            pendingNoteAnnotInfo = null;
+            closeNoteInput(true);
+        }
+
+        function cancelNoteInput() {
+            // Gỡ lớp highlight tạm, trả đoạn chữ về nguyên trạng ban đầu (chưa note gì cả).
+            pendingNoteWrappers.forEach(span => unwrapElement(span));
+            pendingNoteWrappers = [];
+            pendingNoteAnnotInfo = null;
+            closeNoteInput(true);
+        }
+
+        document.getElementById('note-input-ok').addEventListener('click', confirmNoteInput);
+        document.getElementById('note-input-cancel').addEventListener('click', cancelNoteInput);
+        noteInputField.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); confirmNoteInput(); }
+            else if (e.key === 'Escape') { e.preventDefault(); cancelNoteInput(); }
+        });
+
+        // --- Xoá 1 note đã thêm: bấm trực tiếp vào note đó (chữ in đậm hoặc phần [note] đỏ ngay sau)
+        //     -> hiện 1 nút nhỏ nổi lên "🗑 Xóa note" ngay phía trên -> bấm để xoá riêng note đó, không
+        //     cần bôi đen lại rồi dùng "🧹 Xóa định dạng" như trước. Áp dụng cho MỌI note đang hiển thị,
+        //     kể cả note giáo viên soạn sẵn lúc build đề (cú pháp {{đoạn chữ|note}}) — vì đây chỉ là xoá
+        //     tạm trên máy người đang xem lúc đó, tải lại trang là note gốc hiện lại bình thường. ---
+        const noteDeleteBox = document.getElementById('note-delete-box');
+        const noteDeleteBtn = document.getElementById('note-delete-btn');
+        noteDeleteBox.addEventListener('mousedown', e => e.preventDefault());
+        let noteDeleteTarget = null;
+
+        function hideNoteDeleteBox() {
+            noteDeleteBox.style.display = 'none';
+            noteDeleteTarget = null;
+        }
+
+        function findNoteAtClick(target) {
+            let noteSpan = target.closest ? target.closest('.reading-note') : null;
+            let bold = target.closest ? target.closest('b') : null;
+            if (bold && !noteSpan) {
+                const next = bold.nextElementSibling;
+                if (next && next.classList && next.classList.contains('reading-note')) noteSpan = next;
+                else bold = null; // <b> này không liền kề note nào -> không phải note, bỏ qua
+            }
+            if (noteSpan && !bold) {
+                const prev = noteSpan.previousElementSibling;
+                if (prev && prev.tagName === 'B') bold = prev;
+            }
+            return noteSpan ? { bold, noteSpan } : null;
+        }
+
+        document.getElementById('main-workspace').addEventListener('click', (e) => {
+            if (annotToolbar.contains(e.target) || noteInputBox.contains(e.target) || transBox.contains(e.target) || noteDeleteBox.contains(e.target)) return;
+            // Đang có vùng bôi đen (vừa kéo chọn chữ) thì ưu tiên luồng thêm định dạng/note mới, không
+            // xử lý theo hướng "xoá note" nữa.
+            const sel = window.getSelection();
+            if (sel && sel.toString().trim().length > 0) { hideNoteDeleteBox(); return; }
+
+            const found = findNoteAtClick(e.target);
+            if (!found) { hideNoteDeleteBox(); return; }
+            noteDeleteTarget = found;
+            const rect = found.noteSpan.getBoundingClientRect();
+            positionFloatingBox(noteDeleteBox, rect);
+        });
+
+        noteDeleteBtn.addEventListener('click', () => {
+            if (!noteDeleteTarget) return;
+            const { bold, noteSpan } = noteDeleteTarget;
+            const annotId = (noteSpan && noteSpan.dataset && noteSpan.dataset.annotId) || (bold && bold.dataset && bold.dataset.annotId) || null;
+            if (noteSpan && noteSpan.parentNode) noteSpan.parentNode.removeChild(noteSpan);
+            if (bold) unwrapElement(bold);
+            hideNoteDeleteBox();
+            if (annotId && typeof window.__onAnnotRemove === 'function') {
+                try { window.__onAnnotRemove(annotId); } catch (e) {}
+            }
         });
 
         // --- Translation (real free API: Google Translate unofficial endpoint,
@@ -1969,7 +2522,67 @@
             }
             btn.innerText = result === 'duplicate' ? '✓ Đã có sẵn' : '✅ Đã lưu!';
             setTimeout(() => { btn.innerText = original; }, 1500);
+            // Đồng bộ thêm 1 bản lên Firestore (collection savedWords) để từ này cũng hiện trong
+            // "My Words" ở trang chủ — xem được trên MỌI thiết bị, không chỉ trình duyệt này, và
+            // tự hết hạn sau 3 tháng. Sổ từ vựng cục bộ (localStorage) ở trên vẫn giữ nguyên như
+            // cũ, không đổi gì — đây chỉ là lưu THÊM, không thay thế.
+            if (result !== 'full') syncWordToMyWords(selectedTextStr, currentTranslation);
         });
+
+        // Lazy-load Firebase Auth + Firestore (chỉ khi học sinh thực sự bấm lưu từ, đỡ phải tải
+        // Firebase cho MỌI lượt mở đề Reading, kể cả lúc không dùng đến tính năng này). Dùng
+        // CHUNG firebaseConfig với index.html (project "b-s-english-house"), và nhờ
+        // Firebase Auth tự lưu phiên đăng nhập theo gốc site (origin) nên nếu học sinh đã đăng
+        // nhập ở trang chủ thì mở đề Reading (kể cả luyện tự do, không qua bài giao) vẫn nhận
+        // diện được đúng học sinh đó — không cần đăng nhập lại lần 2 ở đây.
+        let __myWordsFirebasePromise = null;
+        function loadMyWordsFirebase() {
+            if (!__myWordsFirebasePromise) {
+                __myWordsFirebasePromise = Promise.all([
+                    import('https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js'),
+                    import('https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js'),
+                    import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js')
+                ]).then(function (mods) {
+                    var FB_CONFIG = {
+                        apiKey: "AIzaSyDuoosjvJe3EoF22h9UJ6M95os5s_boQ-o",
+                        authDomain: "b-s-english-house.firebaseapp.com",
+                        projectId: "b-s-english-house",
+                        storageBucket: "b-s-english-house.firebasestorage.app",
+                        messagingSenderId: "946574286636",
+                        appId: "1:946574286636:web:44624fb938e6b5dc961689",
+                        measurementId: "G-YZR2QFWQGR"
+                    };
+                    var appMod = mods[0], authMod = mods[1], fsMod = mods[2];
+                    var app = appMod.initializeApp(FB_CONFIG, 'night-ielts-mywords-' + Date.now());
+                    var auth = authMod.getAuth(app);
+                    var db = fsMod.getFirestore(app);
+                    return { authMod: authMod, fsMod: fsMod, auth: auth, db: db };
+                });
+            }
+            return __myWordsFirebasePromise;
+        }
+
+        var SAVED_WORD_TTL_MS = 90 * 24 * 60 * 60 * 1000; // 3 tháng, giống hệt index.html
+
+        function syncWordToMyWords(word, meaning) {
+            loadMyWordsFirebase().then(function (fb) {
+                // onAuthStateChanged luôn gọi callback ngay lần đầu (dù có hay không có user) nên
+                // dùng 1 lần rồi tự huỷ đăng ký, không cần giữ subscription sống lâu dài.
+                var unsub = fb.authMod.onAuthStateChanged(fb.auth, function (user) {
+                    unsub();
+                    if (!user) return; // chưa đăng nhập ở trang chủ -> chỉ lưu local, bỏ qua Firestore
+                    var now = Date.now();
+                    fb.fsMod.addDoc(fb.fsMod.collection(fb.db, 'savedWords'), {
+                        studentId: user.uid,
+                        word: word,
+                        meaning: meaning,
+                        sourceTitle: document.title || '',
+                        savedAt: now,
+                        expiresAt: now + SAVED_WORD_TTL_MS
+                    }).catch(function (e) { console.warn('Night IELTS: không lưu được từ vào My Words', e); });
+                });
+            }).catch(function (e) { console.warn('Night IELTS: không tải được Firebase cho My Words', e); });
+        }
 
         function getVocabBook() {
             try {
@@ -2043,21 +2656,26 @@
     </script>
 
     <!-- ============ BÁO CÁO KẾT QUẢ VỀ FIRESTORE (chỉ chạy khi bài test này được mở từ 1 bài
-         tập được giao qua "Bài tập" trên trang chủ — tức URL có ?assignmentId=&uid=). Tách riêng
-         thành 1 <script type="module"> độc lập, KHÔNG đụng vào script chính ở trên, để không phải
-         gắn lại hàng loạt hàm lên window. Script này chỉ đọc kết quả grading có sẵn (submitTest())
-         và ghi vào submissions/{assignmentId}_{uid}, không thay đổi hành vi làm bài bình thường. -->
+         tập được giao qua "Bài tập" trên trang chủ — tức URL có ?assignmentId=). Tách riêng thành
+         1 <script type="module"> độc lập, KHÔNG đụng vào script chính ở trên, để không phải gắn
+         lại hàng loạt hàm lên window. Script này đọc kết quả grading có sẵn (submitTest()) rồi ghi
+         vào CẢ 2 nơi: (1) document assignments/{assignmentId} (giữ lại để tương thích ngược), và
+         (2) submissions/{assignmentId}_{uid} — đây mới là nơi DUY NHẤT mà trang chủ (index.html,
+         xem loadAssignmentsManager()/loadMyAssignments()) đọc để biết CHÍNH XÁC học sinh nào đã
+         làm xong/chưa trong 1 bài giao (đặc biệt khi giao theo CẢ LỚP — nhiều học sinh cùng 1
+         assignmentId nhưng mỗi người 1 submissions riêng). Thiếu bước (2) thì giáo viên sẽ
+         KHÔNG BAO GIỜ thấy bài được đánh dấu "Đã xong" dù (1) đã cập nhật thành công. -->
     <script type="module">
         (function () {
             var params = new URLSearchParams(location.search);
             var assignmentId = params.get('assignmentId');
-            var uid = params.get('uid');
             var scope = params.get('scope') || 'all';
-            if (!assignmentId || !uid) return; // mở bài test bình thường (không phải bài được giao) -> bỏ qua
+            var reportUid = params.get('uid') || null;
+            if (!assignmentId) return; // mở bài test bình thường (không phải bài được giao) -> bỏ qua
 
-            // TODO(night): dán ĐÚNG firebaseConfig của project "b-s-english-house" — PHẢI GIỐNG HỆT
-            // khối config trong index.html / listeningtypegenerator.html, nếu không kết quả sẽ ghi
-            // nhầm sang project khác và giáo viên sẽ không thấy được.
+            // PHẢI giống hệt khối firebaseConfig trong index.html của B's English House
+            // (project "b-s-english-house") — nếu không kết quả sẽ ghi nhầm project, giáo
+            // viên sẽ không bao giờ thấy được.
             var FB_CONFIG = {
                 apiKey: "AIzaSyDuoosjvJe3EoF22h9UJ6M95os5s_boQ-o",
                 authDomain: "b-s-english-house.firebaseapp.com",
@@ -2073,9 +2691,9 @@
                 import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js')
             ]).then(function (mods) {
                 var appMod = mods[0], fsMod = mods[1];
-                var app = appMod.initializeApp(FB_CONFIG, 'bseh-reading-report-' + Date.now());
+                var app = appMod.initializeApp(FB_CONFIG, 'night-ielts-reading-report-' + Date.now());
                 var db = fsMod.getFirestore(app);
-                var subRef = fsMod.doc(db, 'submissions', assignmentId + '_' + uid);
+                var assignmentRef = fsMod.doc(db, 'assignments', assignmentId);
 
                 // Bọc submitTest() gốc: chấm bài vẫn chạy y như cũ, chỉ thêm bước báo kết quả về
                 // Firestore ngay sau đó. submitTest là function khai báo ở top-level của <script>
@@ -2084,7 +2702,7 @@
                 var origSubmitTest = window.submitTest;
                 window.submitTest = function () {
                     if (typeof origSubmitTest === 'function') origSubmitTest();
-                    try { reportAssignmentResult(); } catch (e) { console.warn('BSEH: report failed', e); }
+                    try { reportAssignmentResult(); } catch (e) { console.warn('Night IELTS: report failed', e); }
                 };
 
                 function reportAssignmentResult() {
@@ -2107,16 +2725,42 @@
                     }
 
                     var percent = reportTotal > 0 ? Math.round(reportCorrect / reportTotal * 100) : 0;
-                    fsMod.setDoc(subRef, {
-                        status: 'done',
+                    var scoreText = reportCorrect + '/' + reportTotal;
+                    fsMod.updateDoc(assignmentRef, {
                         percent: percent,
-                        score: reportCorrect + '/' + reportTotal,
-                        completedAt: fsMod.serverTimestamp()
-                    }, { merge: true }).catch(function (e) { console.warn('BSEH: submissions write failed', e); });
+                        completed: true,
+                        scoreText: scoreText,
+                        lastPlayedAt: Date.now()
+                    }).catch(function (e) { console.warn('Night IELTS: cập nhật assignments thất bại', e); });
+
+                    // Ghi THÊM vào đúng submissions/{assignmentId}_{uid} của học sinh này — bắt
+                    // buộc phải có reportUid (đọc từ ?uid=... do index.html gắn sẵn khi mở bài giao,
+                    // xem openAssignment() ở index.html) vì 1 assignmentId có thể có NHIỀU học sinh
+                    // (giao theo lớp) nên không thể suy luận ngược uid từ assignmentId.
+                    if (reportUid) {
+                        fsMod.updateDoc(fsMod.doc(db, 'submissions', assignmentId + '_' + reportUid), {
+                            status: 'done',
+                            percent: percent,
+                            scoreText: scoreText,
+                            completedAt: Date.now(),
+                            ...(typeof window.bsehResultFields === 'function' ? window.bsehResultFields() : {})
+                        }).catch(function (e) { console.warn('Night IELTS: cập nhật submissions thất bại', e); });
+                    }
                 }
-            }).catch(function (e) { console.warn('BSEH: firebase init failed', e); });
+            }).catch(function (e) { console.warn('Night IELTS: không tải được hệ thống báo cáo', e); });
         })();
     </script>
+
+    <!-- ============ "LÀM CHUNG" — phiên làm bài chung theo thời gian thực (Firebase Realtime
+         Database, KHÔNG cần gói Blaze trả phí như Cloud Storage). Giáo viên bấm "🔴 Làm chung" ->
+         tạo 1 session ngắn hạn -> copy link gửi học sinh; ai mở link (?liveSession=ID) sẽ tham gia
+         CHUNG 1 trạng thái làm bài — chọn đáp án, tô màu/gạch chân/note của bất kỳ ai trong phiên
+         đều đồng bộ ngay cho mọi người khác, kèm số người đang tham gia. Tách hoàn toàn thành 1
+         <script type="module"> riêng, KHÔNG đụng script chính ở trên — chỉ dựa vào vài hook nhỏ đã
+         gắn sẵn (window.__onAnnotCreate/__onAnnotRemove, window.fillSlot/clearSlot) + quy ước
+         name="qN" có sẵn cho mọi loại câu hỏi. Lưu ý: bài test PHẢI được xuất bản/host (vd GitHub
+         Pages) thì link mới mở được ở máy khác — mở trực tiếp file trên máy (file://) sẽ không
+         dùng được cho học sinh. -->
     <script type="module">
         (function () {
             var FB_CONFIG = {
@@ -2134,6 +2778,80 @@
             var clientId = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
             var applyingRemote = false; // đang áp dụng thay đổi từ xa -> không ghi ngược lại Firestore (chặn vòng lặp)
             var syncStarted = false;
+
+            // ---- NICKNAME khi "Làm chung": hỏi tên lúc vào phiên, rồi hiện tên người điền cạnh
+            //      từng câu (lưu ở field answerBy.<qNum> / multiGroupsBy.<groupId> của phiên). ----
+            var NICK_KEY = 'bseh_live_nick';
+            function myNick() { return window.__bsehLiveNick || ''; }
+            function askLiveNickname(done) {
+                var saved = '';
+                try { saved = localStorage.getItem(NICK_KEY) || ''; } catch (e) {}
+                var ov = document.createElement('div');
+                ov.id = 'bseh-nick-overlay';
+                ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
+                ov.innerHTML = '<div style="background:#fff;color:#222;border-radius:14px;padding:22px;max-width:360px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.3);">' +
+                    '<h3 style="margin:0 0 6px 0;">👋 Bạn tên gì?</h3>' +
+                    '<p style="margin:0 0 12px 0;font-size:13.5px;color:#666;">Nhập nickname — câu nào bạn điền sẽ hiện tên bạn bên cạnh để cả nhóm biết ai làm câu đó.</p>' +
+                    '<input id="bseh-nick-input" maxlength="20" placeholder="VD: Mèo Mun" style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:2px solid #ccc;font-size:15px;">' +
+                    '<button type="button" id="bseh-nick-ok" style="margin-top:12px;width:100%;padding:10px;border:none;border-radius:8px;background:#2B4214;color:#fff;font-weight:700;font-size:15px;cursor:pointer;">Vào làm chung</button>' +
+                    '</div>';
+                document.body.appendChild(ov);
+                var input = ov.querySelector('#bseh-nick-input');
+                input.value = saved;
+                setTimeout(function () { input.focus(); input.select(); }, 50);
+                function ok() {
+                    var v = (input.value || '').trim().slice(0, 20);
+                    if (!v) { input.style.borderColor = '#c62828'; input.focus(); return; }
+                    window.__bsehLiveNick = v;
+                    try { localStorage.setItem(NICK_KEY, v); } catch (e) {}
+                    ov.remove();
+                    if (typeof done === 'function') done();
+                }
+                ov.querySelector('#bseh-nick-ok').addEventListener('click', ok);
+                input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); ok(); } });
+            }
+            function ensureByTagStyle() {
+                if (document.getElementById('bseh-by-tag-style')) return;
+                var st = document.createElement('style');
+                st.id = 'bseh-by-tag-style';
+                st.textContent = '.bseh-by-tag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:10px;background:#fff3cd;color:#8a5a00;border:1px solid #f4d27a;font-size:11px;font-weight:700;line-height:1.6;vertical-align:middle;white-space:nowrap;}';
+                document.head.appendChild(st);
+            }
+            function setByTag(host, key, nick) {
+                if (!host) return;
+                ensureByTagStyle();
+                var tag = null;
+                for (var i = 0; i < host.children.length; i++) {
+                    if (host.children[i].getAttribute('data-bseh-k') === key) { tag = host.children[i]; break; }
+                }
+                if (!nick) { if (tag) tag.remove(); return; }
+                if (!tag) {
+                    tag = document.createElement('span');
+                    tag.className = 'bseh-by-tag';
+                    tag.setAttribute('data-bseh-k', key);
+                    host.appendChild(tag);
+                }
+                tag.textContent = '✍ ' + nick;
+            }
+            function renderAnswerByTags(map) {
+                map = map || {};
+                window.__bsehLiveBy = map;
+                Object.keys(map).forEach(function (qNum) {
+                    var host = document.getElementById('q-container-' + qNum);
+                    if (!host) {
+                        var inp = document.getElementsByName('q' + qNum);
+                        host = inp && inp[0] ? inp[0].parentNode : null;
+                    }
+                    setByTag(host, 'q' + qNum, map[qNum]);
+                });
+            }
+            function renderMultiByTags(map) {
+                map = map || {};
+                Object.keys(map).forEach(function (groupId) {
+                    var container = document.querySelector('.multi-group[data-multi-group="' + groupId + '"]');
+                    setByTag(container, 'm' + groupId, map[groupId]);
+                });
+            }
             var currentParticipantCount = 1;
             var lastPresenceDocs = []; // cache để tính lại số người đang tham gia theo nhịp tim, không chỉ khi có thay đổi
 
@@ -2291,7 +3009,7 @@
                 var setup = document.getElementById('setup-screen');
                 if (!setup || setup.style.display !== 'none') return; // chưa bấm "Bắt đầu làm bài"
                 syncStarted = true;
-                setupPresence();
+                askLiveNickname(setupPresence);
                 setupAnswerSync();
                 setupMultiGroupSync();
                 setupAnnotationSync();
@@ -2309,7 +3027,7 @@
                 var myRef = fsMod.doc(presenceColRef(), clientId);
 
                 function heartbeat() {
-                    fsMod.setDoc(myRef, { lastSeen: Date.now() }).catch(function () {});
+                    fsMod.setDoc(myRef, { lastSeen: Date.now(), nick: myNick() }).catch(function () {});
                 }
                 heartbeat();
                 setInterval(heartbeat, PRESENCE_HEARTBEAT_MS);
@@ -2359,6 +3077,7 @@
                     if (!/^\d+$/.test(qNum)) return;
                     var field = {};
                     field['answers.' + qNum] = currentQValue(target);
+                    field['answerBy.' + qNum] = field['answers.' + qNum] ? myNick() : '';
                     fsMod.updateDoc(sessionDocRef(), field).catch(function () {});
                 }
                 document.addEventListener('input', function (e) { maybeSyncAnswer(e.target); });
@@ -2370,6 +3089,7 @@
                     applyingRemote = true;
                     try {
                         Object.keys(answers).forEach(function (qNum) { applyRemoteAnswer(qNum, answers[qNum]); });
+                        renderAnswerByTags(data.answerBy || {});
                     } finally { applyingRemote = false; }
                 });
             }
@@ -2416,12 +3136,14 @@
                         .map(function (c) { return c.value; });
                     var field = {};
                     field['multiGroups.' + groupId] = checked;
+                    field['multiGroupsBy.' + groupId] = checked.length ? myNick() : '';
                     fsMod.updateDoc(sessionDocRef(), field).catch(function () {});
                 });
 
                 fsMod.onSnapshot(sessionDocRef(), function (snap) {
                     var data = snap.data() || {};
                     var groups = data.multiGroups || {};
+                    try { renderMultiByTags(data.multiGroupsBy || {}); } catch (e) {}
                     applyingRemote = true;
                     try {
                         Object.keys(groups).forEach(function (groupId) {
@@ -2482,6 +3204,7 @@
             // dựng xong (input q1..qN/slot kéo-thả chỉ tồn tại SAU khi startTest() chạy).
             var origStartTest = window.startTest;
             window.startTest = function () {
+                window.__bsehStartedAt = Date.now();
                 if (typeof origStartTest === 'function') origStartTest();
                 try { startSyncing(); } catch (e) { console.warn('Night IELTS: live-session sync lỗi', e); }
             };

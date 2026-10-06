@@ -1961,8 +1961,11 @@
             if (!sub || !hasLiveResult(sub)) {
                 const why = !sub || sub.status !== 'done'
                     ? 'Học sinh chưa nộp bài này' + (sub && sub.percent ? ` (đang làm được ${sub.percent}%)` : '') + '.'
-                    : 'Kết quả chi tiết không còn (đã quá 14 ngày, hoặc bài được nộp từ trang làm bài phiên bản cũ chưa gửi kết quả chi tiết).';
-                body.innerHTML = `<p class="empty-hint">${why}</p>`;
+                    : 'Không có kết quả chi tiết từng câu (đã quá 14 ngày, hoặc bài được làm trên trang đề phiên bản cũ).';
+                const scoreLine = (sub && sub.status === 'done' && (sub.scoreText || sub.percent !== undefined))
+                    ? `<div class="rs-summary"><div class="rs-chip"><b>${escapeHtmlIndex(sub.scoreText || (sub.percent + '%'))}</b><span>Điểm đã nộp</span></div></div>`
+                    : '';
+                body.innerHTML = `${scoreLine}<p class="empty-hint">${why}</p>`;
                 return;
             }
 

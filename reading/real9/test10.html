@@ -1853,6 +1853,34 @@ Coral reefs are colonies of tiny living animals found in marine waters that cont
             return score;
         }
 
+        // ---- KẾT QUẢ CHI TIẾT gửi về cho giáo viên (index.html → "Bài Đã Giao" → bấm vào học sinh).
+        //      Lưu 14 ngày rồi index.html tự xoá. `by` = nickname người điền câu đó khi "Làm chung". ----
+        function buildBsehResultDetail(startQ, endQ, score, total, band) {
+            const by = window.__bsehLiveBy || {};
+            const answers = [];
+            for (let i = startQ; i <= endQ; i++) {
+                let uAns = '';
+                const inputs = document.getElementsByName(`q${i}`);
+                if (inputs.length > 0) {
+                    if (inputs[0].type === 'radio') inputs.forEach(r => { if (r.checked) uAns = r.value; });
+                    else uAns = (inputs[0].value || '').trim();
+                }
+                const correct = String((testData[i] && testData[i].answer) || '');
+                const ok = uAns.toUpperCase() === correct.toUpperCase();
+                const row = { q: String(i), user: uAns, correct: correct, ok: ok };
+                if (by[i]) row.by = String(by[i]);
+                answers.push(row);
+            }
+            const started = window.__bsehStartedAt || 0;
+            return { score: score, total: total, band: band, answers: answers, submittedAt: Date.now(),
+                     timeSpentSec: started ? Math.round((Date.now() - started) / 1000) : 0 };
+        }
+        function bsehResultFields() {
+            const r = window.__bsehLastResult;
+            if (!r) return {};
+            return { score: r.score, result: r, resultExpiresAt: Date.now() + 14 * 24 * 60 * 60 * 1000 };
+        }
+
         function submitTest() {
             if(timerInterval) clearInterval(timerInterval);
 
@@ -1878,6 +1906,7 @@ Coral reefs are colonies of tiny living animals found in marine waters that cont
             const band = calculateBand(score);
             document.getElementById('band-score').innerText = band;
 
+            try { window.__bsehLastResult = buildBsehResultDetail(startQ, endQ, score, total, band); } catch (e) { console.warn('BSEH result detail', e); }
             saveProgressRecord(score, total, band);
 
             // Khi đang nộp 1 bài tập được giao: hiện rõ banner "Đã nộp homework thành công" +
@@ -2716,7 +2745,8 @@ Coral reefs are colonies of tiny living animals found in marine waters that cont
                             status: 'done',
                             percent: percent,
                             scoreText: scoreText,
-                            completedAt: Date.now()
+                            completedAt: Date.now(),
+                            ...(typeof window.bsehResultFields === 'function' ? window.bsehResultFields() : {})
                         }).catch(function (e) { console.warn('Night IELTS: cập nhật submissions thất bại', e); });
                     }
                 }
@@ -2751,6 +2781,80 @@ Coral reefs are colonies of tiny living animals found in marine waters that cont
             var clientId = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
             var applyingRemote = false; // đang áp dụng thay đổi từ xa -> không ghi ngược lại Firestore (chặn vòng lặp)
             var syncStarted = false;
+
+            // ---- NICKNAME khi "Làm chung": hỏi tên lúc vào phiên, rồi hiện tên người điền cạnh
+            //      từng câu (lưu ở field answerBy.<qNum> / multiGroupsBy.<groupId> của phiên). ----
+            var NICK_KEY = 'bseh_live_nick';
+            function myNick() { return window.__bsehLiveNick || ''; }
+            function askLiveNickname(done) {
+                var saved = '';
+                try { saved = localStorage.getItem(NICK_KEY) || ''; } catch (e) {}
+                var ov = document.createElement('div');
+                ov.id = 'bseh-nick-overlay';
+                ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
+                ov.innerHTML = '<div style="background:#fff;color:#222;border-radius:14px;padding:22px;max-width:360px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.3);">' +
+                    '<h3 style="margin:0 0 6px 0;">👋 Bạn tên gì?</h3>' +
+                    '<p style="margin:0 0 12px 0;font-size:13.5px;color:#666;">Nhập nickname — câu nào bạn điền sẽ hiện tên bạn bên cạnh để cả nhóm biết ai làm câu đó.</p>' +
+                    '<input id="bseh-nick-input" maxlength="20" placeholder="VD: Mèo Mun" style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:2px solid #ccc;font-size:15px;">' +
+                    '<button type="button" id="bseh-nick-ok" style="margin-top:12px;width:100%;padding:10px;border:none;border-radius:8px;background:#2B4214;color:#fff;font-weight:700;font-size:15px;cursor:pointer;">Vào làm chung</button>' +
+                    '</div>';
+                document.body.appendChild(ov);
+                var input = ov.querySelector('#bseh-nick-input');
+                input.value = saved;
+                setTimeout(function () { input.focus(); input.select(); }, 50);
+                function ok() {
+                    var v = (input.value || '').trim().slice(0, 20);
+                    if (!v) { input.style.borderColor = '#c62828'; input.focus(); return; }
+                    window.__bsehLiveNick = v;
+                    try { localStorage.setItem(NICK_KEY, v); } catch (e) {}
+                    ov.remove();
+                    if (typeof done === 'function') done();
+                }
+                ov.querySelector('#bseh-nick-ok').addEventListener('click', ok);
+                input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); ok(); } });
+            }
+            function ensureByTagStyle() {
+                if (document.getElementById('bseh-by-tag-style')) return;
+                var st = document.createElement('style');
+                st.id = 'bseh-by-tag-style';
+                st.textContent = '.bseh-by-tag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:10px;background:#fff3cd;color:#8a5a00;border:1px solid #f4d27a;font-size:11px;font-weight:700;line-height:1.6;vertical-align:middle;white-space:nowrap;}';
+                document.head.appendChild(st);
+            }
+            function setByTag(host, key, nick) {
+                if (!host) return;
+                ensureByTagStyle();
+                var tag = null;
+                for (var i = 0; i < host.children.length; i++) {
+                    if (host.children[i].getAttribute('data-bseh-k') === key) { tag = host.children[i]; break; }
+                }
+                if (!nick) { if (tag) tag.remove(); return; }
+                if (!tag) {
+                    tag = document.createElement('span');
+                    tag.className = 'bseh-by-tag';
+                    tag.setAttribute('data-bseh-k', key);
+                    host.appendChild(tag);
+                }
+                tag.textContent = '✍ ' + nick;
+            }
+            function renderAnswerByTags(map) {
+                map = map || {};
+                window.__bsehLiveBy = map;
+                Object.keys(map).forEach(function (qNum) {
+                    var host = document.getElementById('q-container-' + qNum);
+                    if (!host) {
+                        var inp = document.getElementsByName('q' + qNum);
+                        host = inp && inp[0] ? inp[0].parentNode : null;
+                    }
+                    setByTag(host, 'q' + qNum, map[qNum]);
+                });
+            }
+            function renderMultiByTags(map) {
+                map = map || {};
+                Object.keys(map).forEach(function (groupId) {
+                    var container = document.querySelector('.multi-group[data-multi-group="' + groupId + '"]');
+                    setByTag(container, 'm' + groupId, map[groupId]);
+                });
+            }
             var currentParticipantCount = 1;
             var lastPresenceDocs = []; // cache để tính lại số người đang tham gia theo nhịp tim, không chỉ khi có thay đổi
 
@@ -2908,7 +3012,7 @@ Coral reefs are colonies of tiny living animals found in marine waters that cont
                 var setup = document.getElementById('setup-screen');
                 if (!setup || setup.style.display !== 'none') return; // chưa bấm "Bắt đầu làm bài"
                 syncStarted = true;
-                setupPresence();
+                askLiveNickname(setupPresence);
                 setupAnswerSync();
                 setupMultiGroupSync();
                 setupAnnotationSync();
@@ -2926,7 +3030,7 @@ Coral reefs are colonies of tiny living animals found in marine waters that cont
                 var myRef = fsMod.doc(presenceColRef(), clientId);
 
                 function heartbeat() {
-                    fsMod.setDoc(myRef, { lastSeen: Date.now() }).catch(function () {});
+                    fsMod.setDoc(myRef, { lastSeen: Date.now(), nick: myNick() }).catch(function () {});
                 }
                 heartbeat();
                 setInterval(heartbeat, PRESENCE_HEARTBEAT_MS);
@@ -2976,6 +3080,7 @@ Coral reefs are colonies of tiny living animals found in marine waters that cont
                     if (!/^\d+$/.test(qNum)) return;
                     var field = {};
                     field['answers.' + qNum] = currentQValue(target);
+                    field['answerBy.' + qNum] = field['answers.' + qNum] ? myNick() : '';
                     fsMod.updateDoc(sessionDocRef(), field).catch(function () {});
                 }
                 document.addEventListener('input', function (e) { maybeSyncAnswer(e.target); });
@@ -2987,6 +3092,7 @@ Coral reefs are colonies of tiny living animals found in marine waters that cont
                     applyingRemote = true;
                     try {
                         Object.keys(answers).forEach(function (qNum) { applyRemoteAnswer(qNum, answers[qNum]); });
+                        renderAnswerByTags(data.answerBy || {});
                     } finally { applyingRemote = false; }
                 });
             }
@@ -3033,12 +3139,14 @@ Coral reefs are colonies of tiny living animals found in marine waters that cont
                         .map(function (c) { return c.value; });
                     var field = {};
                     field['multiGroups.' + groupId] = checked;
+                    field['multiGroupsBy.' + groupId] = checked.length ? myNick() : '';
                     fsMod.updateDoc(sessionDocRef(), field).catch(function () {});
                 });
 
                 fsMod.onSnapshot(sessionDocRef(), function (snap) {
                     var data = snap.data() || {};
                     var groups = data.multiGroups || {};
+                    try { renderMultiByTags(data.multiGroupsBy || {}); } catch (e) {}
                     applyingRemote = true;
                     try {
                         Object.keys(groups).forEach(function (groupId) {
@@ -3099,6 +3207,7 @@ Coral reefs are colonies of tiny living animals found in marine waters that cont
             // dựng xong (input q1..qN/slot kéo-thả chỉ tồn tại SAU khi startTest() chạy).
             var origStartTest = window.startTest;
             window.startTest = function () {
+                window.__bsehStartedAt = Date.now();
                 if (typeof origStartTest === 'function') origStartTest();
                 try { startSyncing(); } catch (e) { console.warn('Night IELTS: live-session sync lỗi', e); }
             };

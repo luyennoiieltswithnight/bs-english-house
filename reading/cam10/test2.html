@@ -809,7 +809,6 @@
         </div>
     </div>
 
-    <!-- Setup Screen -->
     <!-- Live "làm chung" Session Modal -->
     <div id="live-session-modal" class="overlay" style="display:none;">
         <div class="modal-box" style="max-width:480px; text-align:left;">
@@ -881,9 +880,9 @@
             <div class="question-nav" id="q-nav-p3" style="display:none;"></div>
         </div>
         <div class="header-right">
+            <button class="nav-btn" onclick="openVocabBook()">📖 Sổ từ vựng (<span id="vocab-count">0</span>)</button>
             <button class="nav-btn" onclick="toggleLiveSessionBox()">🔴 Làm chung</button>
             <span class="timer" id="live-participant-badge" style="display:none;">👥 <span id="live-participant-count">1</span></span>
-            <button class="nav-btn" onclick="openVocabBook()">📖 Sổ từ vựng (<span id="vocab-count">0</span>)</button>
             <div class="timer" id="timer-display" style="display:none;">60:00</div>
             <button class="submit-btn" id="main-submit-btn" onclick="submitTest()">Nộp bài</button>
         </div>
@@ -963,9 +962,8 @@
         // (1 Passage hay cả bài) mà giáo viên đã giao, thay vì luôn mở full 3 Passage mập mờ.
         const __assignParams = new URLSearchParams(location.search);
         const ASSIGN_ID = __assignParams.get('assignmentId') || '';
-        const ASSIGN_UID = __assignParams.get('uid') || '';
         const ASSIGN_SCOPE = __assignParams.get('scope') || 'all'; // 'all' | '1' | '2' | '3'
-        const IS_ASSIGNMENT_MODE = !!(ASSIGN_ID && ASSIGN_UID);
+        const IS_ASSIGNMENT_MODE = !!ASSIGN_ID;
         function assignmentScopeLabel() {
             return (ASSIGN_SCOPE === '1' || ASSIGN_SCOPE === '2' || ASSIGN_SCOPE === '3')
                 ? `Passage ${ASSIGN_SCOPE}` : 'Cả bài (3 Passage)';
@@ -1854,6 +1852,34 @@
             return score;
         }
 
+        // ---- KẾT QUẢ CHI TIẾT gửi về cho giáo viên (index.html → "Bài Đã Giao" → bấm vào học sinh).
+        //      Lưu 14 ngày rồi index.html tự xoá. `by` = nickname người điền câu đó khi "Làm chung". ----
+        function buildBsehResultDetail(startQ, endQ, score, total, band) {
+            const by = window.__bsehLiveBy || {};
+            const answers = [];
+            for (let i = startQ; i <= endQ; i++) {
+                let uAns = '';
+                const inputs = document.getElementsByName(`q${i}`);
+                if (inputs.length > 0) {
+                    if (inputs[0].type === 'radio') inputs.forEach(r => { if (r.checked) uAns = r.value; });
+                    else uAns = (inputs[0].value || '').trim();
+                }
+                const correct = String((testData[i] && testData[i].answer) || '');
+                const ok = uAns.toUpperCase() === correct.toUpperCase();
+                const row = { q: String(i), user: uAns, correct: correct, ok: ok };
+                if (by[i]) row.by = String(by[i]);
+                answers.push(row);
+            }
+            const started = window.__bsehStartedAt || 0;
+            return { score: score, total: total, band: band, answers: answers, submittedAt: Date.now(),
+                     timeSpentSec: started ? Math.round((Date.now() - started) / 1000) : 0 };
+        }
+        function bsehResultFields() {
+            const r = window.__bsehLastResult;
+            if (!r) return {};
+            return { score: r.score, result: r, resultExpiresAt: Date.now() + 14 * 24 * 60 * 60 * 1000 };
+        }
+
         function submitTest() {
             if(timerInterval) clearInterval(timerInterval);
 
@@ -1879,6 +1905,7 @@
             const band = calculateBand(score);
             document.getElementById('band-score').innerText = band;
 
+            try { window.__bsehLastResult = buildBsehResultDetail(startQ, endQ, score, total, band); } catch (e) { console.warn('BSEH result detail', e); }
             saveProgressRecord(score, total, band);
 
             // Khi đang nộp 1 bài tập được giao: hiện rõ banner "Đã nộp homework thành công" +
@@ -2497,7 +2524,67 @@
             }
             btn.innerText = result === 'duplicate' ? '✓ Đã có sẵn' : '✅ Đã lưu!';
             setTimeout(() => { btn.innerText = original; }, 1500);
+            // Đồng bộ thêm 1 bản lên Firestore (collection savedWords) để từ này cũng hiện trong
+            // "My Words" ở trang chủ — xem được trên MỌI thiết bị, không chỉ trình duyệt này, và
+            // tự hết hạn sau 3 tháng. Sổ từ vựng cục bộ (localStorage) ở trên vẫn giữ nguyên như
+            // cũ, không đổi gì — đây chỉ là lưu THÊM, không thay thế.
+            if (result !== 'full') syncWordToMyWords(selectedTextStr, currentTranslation);
         });
+
+        // Lazy-load Firebase Auth + Firestore (chỉ khi học sinh thực sự bấm lưu từ, đỡ phải tải
+        // Firebase cho MỌI lượt mở đề Reading, kể cả lúc không dùng đến tính năng này). Dùng
+        // CHUNG firebaseConfig với index.html (project "b-s-english-house"), và nhờ
+        // Firebase Auth tự lưu phiên đăng nhập theo gốc site (origin) nên nếu học sinh đã đăng
+        // nhập ở trang chủ thì mở đề Reading (kể cả luyện tự do, không qua bài giao) vẫn nhận
+        // diện được đúng học sinh đó — không cần đăng nhập lại lần 2 ở đây.
+        let __myWordsFirebasePromise = null;
+        function loadMyWordsFirebase() {
+            if (!__myWordsFirebasePromise) {
+                __myWordsFirebasePromise = Promise.all([
+                    import('https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js'),
+                    import('https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js'),
+                    import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js')
+                ]).then(function (mods) {
+                    var FB_CONFIG = {
+                        apiKey: "AIzaSyDuoosjvJe3EoF22h9UJ6M95os5s_boQ-o",
+                        authDomain: "b-s-english-house.firebaseapp.com",
+                        projectId: "b-s-english-house",
+                        storageBucket: "b-s-english-house.firebasestorage.app",
+                        messagingSenderId: "946574286636",
+                        appId: "1:946574286636:web:44624fb938e6b5dc961689",
+                        measurementId: "G-YZR2QFWQGR"
+                    };
+                    var appMod = mods[0], authMod = mods[1], fsMod = mods[2];
+                    var app = appMod.initializeApp(FB_CONFIG, 'night-ielts-mywords-' + Date.now());
+                    var auth = authMod.getAuth(app);
+                    var db = fsMod.getFirestore(app);
+                    return { authMod: authMod, fsMod: fsMod, auth: auth, db: db };
+                });
+            }
+            return __myWordsFirebasePromise;
+        }
+
+        var SAVED_WORD_TTL_MS = 90 * 24 * 60 * 60 * 1000; // 3 tháng, giống hệt index.html
+
+        function syncWordToMyWords(word, meaning) {
+            loadMyWordsFirebase().then(function (fb) {
+                // onAuthStateChanged luôn gọi callback ngay lần đầu (dù có hay không có user) nên
+                // dùng 1 lần rồi tự huỷ đăng ký, không cần giữ subscription sống lâu dài.
+                var unsub = fb.authMod.onAuthStateChanged(fb.auth, function (user) {
+                    unsub();
+                    if (!user) return; // chưa đăng nhập ở trang chủ -> chỉ lưu local, bỏ qua Firestore
+                    var now = Date.now();
+                    fb.fsMod.addDoc(fb.fsMod.collection(fb.db, 'savedWords'), {
+                        studentId: user.uid,
+                        word: word,
+                        meaning: meaning,
+                        sourceTitle: document.title || '',
+                        savedAt: now,
+                        expiresAt: now + SAVED_WORD_TTL_MS
+                    }).catch(function (e) { console.warn('Night IELTS: không lưu được từ vào My Words', e); });
+                });
+            }).catch(function (e) { console.warn('Night IELTS: không tải được Firebase cho My Words', e); });
+        }
 
         function getVocabBook() {
             try {
@@ -2571,21 +2658,26 @@
     </script>
 
     <!-- ============ BÁO CÁO KẾT QUẢ VỀ FIRESTORE (chỉ chạy khi bài test này được mở từ 1 bài
-         tập được giao qua "Bài tập" trên trang chủ — tức URL có ?assignmentId=&uid=). Tách riêng
-         thành 1 <script type="module"> độc lập, KHÔNG đụng vào script chính ở trên, để không phải
-         gắn lại hàng loạt hàm lên window. Script này chỉ đọc kết quả grading có sẵn (submitTest())
-         và ghi vào submissions/{assignmentId}_{uid}, không thay đổi hành vi làm bài bình thường. -->
+         tập được giao qua "Bài tập" trên trang chủ — tức URL có ?assignmentId=). Tách riêng thành
+         1 <script type="module"> độc lập, KHÔNG đụng vào script chính ở trên, để không phải gắn
+         lại hàng loạt hàm lên window. Script này đọc kết quả grading có sẵn (submitTest()) rồi ghi
+         vào CẢ 2 nơi: (1) document assignments/{assignmentId} (giữ lại để tương thích ngược), và
+         (2) submissions/{assignmentId}_{uid} — đây mới là nơi DUY NHẤT mà trang chủ (index.html,
+         xem loadAssignmentsManager()/loadMyAssignments()) đọc để biết CHÍNH XÁC học sinh nào đã
+         làm xong/chưa trong 1 bài giao (đặc biệt khi giao theo CẢ LỚP — nhiều học sinh cùng 1
+         assignmentId nhưng mỗi người 1 submissions riêng). Thiếu bước (2) thì giáo viên sẽ
+         KHÔNG BAO GIỜ thấy bài được đánh dấu "Đã xong" dù (1) đã cập nhật thành công. -->
     <script type="module">
         (function () {
             var params = new URLSearchParams(location.search);
             var assignmentId = params.get('assignmentId');
-            var uid = params.get('uid');
             var scope = params.get('scope') || 'all';
-            if (!assignmentId || !uid) return; // mở bài test bình thường (không phải bài được giao) -> bỏ qua
+            var reportUid = params.get('uid') || null;
+            if (!assignmentId) return; // mở bài test bình thường (không phải bài được giao) -> bỏ qua
 
-            // TODO(night): dán ĐÚNG firebaseConfig của project "b-s-english-house" — PHẢI GIỐNG HỆT
-            // khối config trong index.html / listeningtypegenerator.html, nếu không kết quả sẽ ghi
-            // nhầm sang project khác và giáo viên sẽ không thấy được.
+            // PHẢI giống hệt khối firebaseConfig trong index.html của B's English House
+            // (project "b-s-english-house") — nếu không kết quả sẽ ghi nhầm project, giáo
+            // viên sẽ không bao giờ thấy được.
             var FB_CONFIG = {
                 apiKey: "AIzaSyDuoosjvJe3EoF22h9UJ6M95os5s_boQ-o",
                 authDomain: "b-s-english-house.firebaseapp.com",
@@ -2601,9 +2693,9 @@
                 import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js')
             ]).then(function (mods) {
                 var appMod = mods[0], fsMod = mods[1];
-                var app = appMod.initializeApp(FB_CONFIG, 'bseh-reading-report-' + Date.now());
+                var app = appMod.initializeApp(FB_CONFIG, 'night-ielts-reading-report-' + Date.now());
                 var db = fsMod.getFirestore(app);
-                var subRef = fsMod.doc(db, 'submissions', assignmentId + '_' + uid);
+                var assignmentRef = fsMod.doc(db, 'assignments', assignmentId);
 
                 // Bọc submitTest() gốc: chấm bài vẫn chạy y như cũ, chỉ thêm bước báo kết quả về
                 // Firestore ngay sau đó. submitTest là function khai báo ở top-level của <script>
@@ -2612,7 +2704,7 @@
                 var origSubmitTest = window.submitTest;
                 window.submitTest = function () {
                     if (typeof origSubmitTest === 'function') origSubmitTest();
-                    try { reportAssignmentResult(); } catch (e) { console.warn('BSEH: report failed', e); }
+                    try { reportAssignmentResult(); } catch (e) { console.warn('Night IELTS: report failed', e); }
                 };
 
                 function reportAssignmentResult() {
@@ -2635,16 +2727,42 @@
                     }
 
                     var percent = reportTotal > 0 ? Math.round(reportCorrect / reportTotal * 100) : 0;
-                    fsMod.setDoc(subRef, {
-                        status: 'done',
+                    var scoreText = reportCorrect + '/' + reportTotal;
+                    fsMod.updateDoc(assignmentRef, {
                         percent: percent,
-                        score: reportCorrect + '/' + reportTotal,
-                        completedAt: fsMod.serverTimestamp()
-                    }, { merge: true }).catch(function (e) { console.warn('BSEH: submissions write failed', e); });
+                        completed: true,
+                        scoreText: scoreText,
+                        lastPlayedAt: Date.now()
+                    }).catch(function (e) { console.warn('Night IELTS: cập nhật assignments thất bại', e); });
+
+                    // Ghi THÊM vào đúng submissions/{assignmentId}_{uid} của học sinh này — bắt
+                    // buộc phải có reportUid (đọc từ ?uid=... do index.html gắn sẵn khi mở bài giao,
+                    // xem openAssignment() ở index.html) vì 1 assignmentId có thể có NHIỀU học sinh
+                    // (giao theo lớp) nên không thể suy luận ngược uid từ assignmentId.
+                    if (reportUid) {
+                        fsMod.updateDoc(fsMod.doc(db, 'submissions', assignmentId + '_' + reportUid), {
+                            status: 'done',
+                            percent: percent,
+                            scoreText: scoreText,
+                            completedAt: Date.now(),
+                            ...(typeof window.bsehResultFields === 'function' ? window.bsehResultFields() : {})
+                        }).catch(function (e) { console.warn('Night IELTS: cập nhật submissions thất bại', e); });
+                    }
                 }
-            }).catch(function (e) { console.warn('BSEH: firebase init failed', e); });
+            }).catch(function (e) { console.warn('Night IELTS: không tải được hệ thống báo cáo', e); });
         })();
     </script>
+
+    <!-- ============ "LÀM CHUNG" — phiên làm bài chung theo thời gian thực (Firebase Realtime
+         Database, KHÔNG cần gói Blaze trả phí như Cloud Storage). Giáo viên bấm "🔴 Làm chung" ->
+         tạo 1 session ngắn hạn -> copy link gửi học sinh; ai mở link (?liveSession=ID) sẽ tham gia
+         CHUNG 1 trạng thái làm bài — chọn đáp án, tô màu/gạch chân/note của bất kỳ ai trong phiên
+         đều đồng bộ ngay cho mọi người khác, kèm số người đang tham gia. Tách hoàn toàn thành 1
+         <script type="module"> riêng, KHÔNG đụng script chính ở trên — chỉ dựa vào vài hook nhỏ đã
+         gắn sẵn (window.__onAnnotCreate/__onAnnotRemove, window.fillSlot/clearSlot) + quy ước
+         name="qN" có sẵn cho mọi loại câu hỏi. Lưu ý: bài test PHẢI được xuất bản/host (vd GitHub
+         Pages) thì link mới mở được ở máy khác — mở trực tiếp file trên máy (file://) sẽ không
+         dùng được cho học sinh. -->
     <script type="module">
         (function () {
             var FB_CONFIG = {
@@ -2662,6 +2780,80 @@
             var clientId = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
             var applyingRemote = false; // đang áp dụng thay đổi từ xa -> không ghi ngược lại Firestore (chặn vòng lặp)
             var syncStarted = false;
+
+            // ---- NICKNAME khi "Làm chung": hỏi tên lúc vào phiên, rồi hiện tên người điền cạnh
+            //      từng câu (lưu ở field answerBy.<qNum> / multiGroupsBy.<groupId> của phiên). ----
+            var NICK_KEY = 'bseh_live_nick';
+            function myNick() { return window.__bsehLiveNick || ''; }
+            function askLiveNickname(done) {
+                var saved = '';
+                try { saved = localStorage.getItem(NICK_KEY) || ''; } catch (e) {}
+                var ov = document.createElement('div');
+                ov.id = 'bseh-nick-overlay';
+                ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
+                ov.innerHTML = '<div style="background:#fff;color:#222;border-radius:14px;padding:22px;max-width:360px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.3);">' +
+                    '<h3 style="margin:0 0 6px 0;">👋 Bạn tên gì?</h3>' +
+                    '<p style="margin:0 0 12px 0;font-size:13.5px;color:#666;">Nhập nickname — câu nào bạn điền sẽ hiện tên bạn bên cạnh để cả nhóm biết ai làm câu đó.</p>' +
+                    '<input id="bseh-nick-input" maxlength="20" placeholder="VD: Mèo Mun" style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:2px solid #ccc;font-size:15px;">' +
+                    '<button type="button" id="bseh-nick-ok" style="margin-top:12px;width:100%;padding:10px;border:none;border-radius:8px;background:#2B4214;color:#fff;font-weight:700;font-size:15px;cursor:pointer;">Vào làm chung</button>' +
+                    '</div>';
+                document.body.appendChild(ov);
+                var input = ov.querySelector('#bseh-nick-input');
+                input.value = saved;
+                setTimeout(function () { input.focus(); input.select(); }, 50);
+                function ok() {
+                    var v = (input.value || '').trim().slice(0, 20);
+                    if (!v) { input.style.borderColor = '#c62828'; input.focus(); return; }
+                    window.__bsehLiveNick = v;
+                    try { localStorage.setItem(NICK_KEY, v); } catch (e) {}
+                    ov.remove();
+                    if (typeof done === 'function') done();
+                }
+                ov.querySelector('#bseh-nick-ok').addEventListener('click', ok);
+                input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); ok(); } });
+            }
+            function ensureByTagStyle() {
+                if (document.getElementById('bseh-by-tag-style')) return;
+                var st = document.createElement('style');
+                st.id = 'bseh-by-tag-style';
+                st.textContent = '.bseh-by-tag{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:10px;background:#fff3cd;color:#8a5a00;border:1px solid #f4d27a;font-size:11px;font-weight:700;line-height:1.6;vertical-align:middle;white-space:nowrap;}';
+                document.head.appendChild(st);
+            }
+            function setByTag(host, key, nick) {
+                if (!host) return;
+                ensureByTagStyle();
+                var tag = null;
+                for (var i = 0; i < host.children.length; i++) {
+                    if (host.children[i].getAttribute('data-bseh-k') === key) { tag = host.children[i]; break; }
+                }
+                if (!nick) { if (tag) tag.remove(); return; }
+                if (!tag) {
+                    tag = document.createElement('span');
+                    tag.className = 'bseh-by-tag';
+                    tag.setAttribute('data-bseh-k', key);
+                    host.appendChild(tag);
+                }
+                tag.textContent = '✍ ' + nick;
+            }
+            function renderAnswerByTags(map) {
+                map = map || {};
+                window.__bsehLiveBy = map;
+                Object.keys(map).forEach(function (qNum) {
+                    var host = document.getElementById('q-container-' + qNum);
+                    if (!host) {
+                        var inp = document.getElementsByName('q' + qNum);
+                        host = inp && inp[0] ? inp[0].parentNode : null;
+                    }
+                    setByTag(host, 'q' + qNum, map[qNum]);
+                });
+            }
+            function renderMultiByTags(map) {
+                map = map || {};
+                Object.keys(map).forEach(function (groupId) {
+                    var container = document.querySelector('.multi-group[data-multi-group="' + groupId + '"]');
+                    setByTag(container, 'm' + groupId, map[groupId]);
+                });
+            }
             var currentParticipantCount = 1;
             var lastPresenceDocs = []; // cache để tính lại số người đang tham gia theo nhịp tim, không chỉ khi có thay đổi
 
@@ -2819,7 +3011,7 @@
                 var setup = document.getElementById('setup-screen');
                 if (!setup || setup.style.display !== 'none') return; // chưa bấm "Bắt đầu làm bài"
                 syncStarted = true;
-                setupPresence();
+                askLiveNickname(setupPresence);
                 setupAnswerSync();
                 setupMultiGroupSync();
                 setupAnnotationSync();
@@ -2837,7 +3029,7 @@
                 var myRef = fsMod.doc(presenceColRef(), clientId);
 
                 function heartbeat() {
-                    fsMod.setDoc(myRef, { lastSeen: Date.now() }).catch(function () {});
+                    fsMod.setDoc(myRef, { lastSeen: Date.now(), nick: myNick() }).catch(function () {});
                 }
                 heartbeat();
                 setInterval(heartbeat, PRESENCE_HEARTBEAT_MS);
@@ -2887,6 +3079,7 @@
                     if (!/^\d+$/.test(qNum)) return;
                     var field = {};
                     field['answers.' + qNum] = currentQValue(target);
+                    field['answerBy.' + qNum] = field['answers.' + qNum] ? myNick() : '';
                     fsMod.updateDoc(sessionDocRef(), field).catch(function () {});
                 }
                 document.addEventListener('input', function (e) { maybeSyncAnswer(e.target); });
@@ -2898,6 +3091,7 @@
                     applyingRemote = true;
                     try {
                         Object.keys(answers).forEach(function (qNum) { applyRemoteAnswer(qNum, answers[qNum]); });
+                        renderAnswerByTags(data.answerBy || {});
                     } finally { applyingRemote = false; }
                 });
             }
@@ -2944,12 +3138,14 @@
                         .map(function (c) { return c.value; });
                     var field = {};
                     field['multiGroups.' + groupId] = checked;
+                    field['multiGroupsBy.' + groupId] = checked.length ? myNick() : '';
                     fsMod.updateDoc(sessionDocRef(), field).catch(function () {});
                 });
 
                 fsMod.onSnapshot(sessionDocRef(), function (snap) {
                     var data = snap.data() || {};
                     var groups = data.multiGroups || {};
+                    try { renderMultiByTags(data.multiGroupsBy || {}); } catch (e) {}
                     applyingRemote = true;
                     try {
                         Object.keys(groups).forEach(function (groupId) {
@@ -3010,6 +3206,7 @@
             // dựng xong (input q1..qN/slot kéo-thả chỉ tồn tại SAU khi startTest() chạy).
             var origStartTest = window.startTest;
             window.startTest = function () {
+                window.__bsehStartedAt = Date.now();
                 if (typeof origStartTest === 'function') origStartTest();
                 try { startSyncing(); } catch (e) { console.warn('Night IELTS: live-session sync lỗi', e); }
             };
